@@ -1,0 +1,42 @@
+# YOLO Vision Configuration (config/yolo_params.yaml)
+# Version-agnostic configuration for YOLOv5 / v8 / v10 / v11 / ONNX models.
+
+yolo_detector_node:
+  ros__parameters:
+    # Model configuration
+    # Supported engines: "auto", "opencv_dnn" (.onnx), "ultralytics" (.pt), or "mock" (dummy test)
+    engine_type: "auto"
+    model_path: "models/yolo_mission.onnx"
+    device: "cpu"                  # "cpu" or "cuda"
+
+    # Input image resolution
+    input_width: 640
+    input_height: 640
+
+    # Inference thresholds
+    conf_threshold: 0.35
+    iou_threshold: 0.45
+
+    # Sensor topics
+    image_topic: "/camera/color/image_raw"
+    depth_topic: "/camera/depth/image_rect_raw"
+    scan_topic: "/scan"
+
+    # Mission output topics
+    traffic_light_topic: "/mission/traffic_light"
+    cone_poses_topic: "/mission/cone_poses"
+    parking_ready_topic: "/mission/parking_ready"
+    debug_image_topic: "/mission/yolo_debug_image"
+
+    # Camera intrinsics (RealSense D435 default)
+    camera_fx: 605.0
+    camera_fy: 605.0
+    camera_cx: 320.0
+    camera_cy: 240.0
+
+    # Class ID or name mappings
+    # Default COCO has 'traffic light' at class 9.
+    # Custom trained weights can map arbitrary IDs here:
+    class_traffic_light: 9
+    class_cone: 0
+    class_parking: 1
