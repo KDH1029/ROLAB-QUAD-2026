@@ -47,19 +47,24 @@ map  ──(AMCL / Map Server)──>  odom  ──(151Hz Leg Odometry)──>  
 ROLAB-QUAD-2026/
 ├── config/
 │   ├── system_params.yaml           # 매핑/오도메트리 주행/센서 외부 파라미터 통합 설정
+│   ├── waypoints_track.yaml         # 2026 로보월드 대회 트랙(8m x 6m) 웨이포인트 및 대기 시간 설정
 │   └── targets.json                 # 저장된 웨이포인트 좌표 데이터
 ├── docs/
 │   ├── GITHUB_RULES.md              # 팀 GitHub 브랜치·커밋·디렉토리 분리 규칙
 │   ├── Blueprint_Complete.md        # 4족보행 자율주행 시스템 총괄 아키텍처 블루프린트
 │   └── Blueprint_Complete.pdf
 ├── maps/
+│   ├── roboworld_2026.yaml          # 대회 규격 치수(8m x 6m) 기반 정밀 2D 도면 맵
+│   ├── roboworld_2026.pgm
 │   ├── map_default.yaml             # 기본 2D 점유격자 메타데이터
 │   ├── map_default.pgm              # 기본 2D 점유격자 이미지
 │   └── map_default_elevation.npz    # 2.5D 지면 고도 및 경사도 데이터
 ├── scripts/
+│   ├── build_hybrid_map.py          # 규격 도면 맵 생성(cad) 및 실측 라이다 맵 합성(merge) 도구
 │   ├── go2_map_run.sh               # [1단계] 실시간 매핑 및 PCD -> 2D 변환 실행 스크립트
 │   ├── go2_odom_run.sh              # [2단계] 오도메트리 및 기구학 브릿지 단독 실행 스크립트
 │   ├── go2_nav_run.sh               # [통합] 브릿지 + AMCL + Nav2 자율주행 실행 스크립트
+│   ├── go2_mission_run.sh           # [대회 미션] 비전 인식 + 7단계 미션 FSM 통합 실행 스크립트
 │   ├── go2_mapper.py                # C++ mapper_node 실행용 경량 CLI 런처 (os.execvp)
 │   ├── go2_odom_nav.py              # C++ odom_nav_node 실행용 경량 CLI 런처 (os.execvp)
 │   ├── go2_goto.py                  # Nav2 목표 좌표 전송 및 웨이포인트 관리 CLI
@@ -69,8 +74,9 @@ ROLAB-QUAD-2026/
     │   ├── go2_bridge/              # C++ 핵심 노드 패키지 (odom_tf, imu_bridge, cloud_bridge, cmd_vel_to_sport, mapper_node, odom_nav_node)
     │   ├── go2_localization/        # Map Server, AMCL 로컬라이제이션 패키지
     │   └── go2_navigation/          # Nav2 RPP 컨트롤러 및 플래너 설정 패키지
-    ├── missions/                    # [대회 미션 제어 도메인]
-    │   └── README.md
+    ├── missions/                    # [대회 미션 제어 도메인 (C++)]
+    │   ├── mission_vision/          # 신호등(traffic_light_node), 주차 표식(parking_marker_node), 23cm 라바콘(cone_detector_node)
+    │   └── mission_runner/          # 7단계 대회 시퀀스 상태 머신 (mission_fsm_node)
     └── interfaces/                  # [공통 메시지 인터페이스]
         ├── unitree_api/             # Unitree Sport API 메시지 패키지
         └── unitree_go/              # Unitree LowState 메시지 패키지
@@ -88,12 +94,16 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-### A. 매핑 (Mapping)
+### A. 매핑 및 하이브리드 도면 지도 생성 (Mapping & CAD Merge)
 ```bash
+# 0) 대회 규정집 치수(8m x 6m) 기반 정밀 도면 맵 생성 및 현장 라이다 맵 합성(라바콘 제거)
+python3 scripts/build_hybrid_map.py cad --name roboworld_2026 --set-default
+python3 scripts/build_hybrid_map.py merge --scan-pgm maps/live_scan.pgm --name roboworld_hybrid --set-default
+
 # 1) 실물 로봇 실시간 스캔 매핑 (종료 시 Ctrl+C를 누르면 maps/ 아래에 자동 저장)
 ./scripts/go2_map_run.sh --name course_map
 
-# 2) 기존 3D PCD 파일을 2D 점유격자(.pgm/.yaml) 및 2.5D 고도 맵(_elevation.npz)으로 변환
+# 2) 기존 3D PCD 파일을 2D 점유격자(.pgm/.yaml)로 변환
 ./scripts/go2_map_run.sh --pcd /path/to/scan.pcd --name course_map
 
 # 3) 시뮬레이션 모드 매핑 테스트
@@ -113,14 +123,15 @@ python3 scripts/go2_odom_nav.py save wp_center
 python3 scripts/go2_odom_nav.py go wp_center
 ```
 
-### C. 사전 지도 기반 전체 자율주행 (AMCL + Nav2 Stack)
+### C. 사전 지도 기반 전체 자율주행 (AMCL + Nav2 Stack) 및 대회 미션 주행
 ```bash
-# 터미널 1: 전체 내비게이션 스택 기동 (시뮬레이션은 --sim 추가)
-./scripts/go2_nav_run.sh --map ./maps/map_default.yaml
+# 1) Nav2 기반 자유 목표 주행
+./scripts/go2_nav_run.sh --map ./maps/roboworld_2026.yaml
+python3 scripts/go2_goto.py --x 3.6 --y 3.0 --yaw -140
 
-# 터미널 2: 목표 좌표 전송
-python3 scripts/go2_goto.py --x 2.5 --y -1.0 --yaw 90
-python3 scripts/go2_goto.py --x 1.5 --y 0.5 --yaw 0 --sit
+# 2) 2026 로보월드 7단계 전체 미션(신호등 2초 정지, 슬라럼, 주차 5초 SIT, 완주) 자동 수행
+./scripts/go2_mission_run.sh          # 실물 로봇 모드
+./scripts/go2_mission_run.sh --sim    # 시뮬레이션 검증 모드
 ```
 
 ---

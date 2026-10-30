@@ -48,7 +48,7 @@ go2_cloud_bridge:
     max_range: 15.0
     enable_slope_filter: true
     max_walkable_slope_deg: 18.0
-    obstacle_min_dz: 0.18
+    obstacle_min_dz: 0.10
     obstacle_max_dz: 1.20
     radial_bin_m: 0.35
     azimuth_bins: 360

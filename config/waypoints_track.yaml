@@ -1,0 +1,87 @@
+# 2026 RoboWorld Quadruped Competition Track Waypoints & Mission Timings
+# Arena size: 8.000m (X) x 6.000m (Y), origin at bottom-left corner (0.0, 0.0)
+
+mission_timings:
+  stop_line_hold_sec: 2.0        # Rulebook 5.2: Minimum 2.0s full stop at stop line (+0.2s safety margin = 2.2s)
+  traffic_timeout_sec: 15.0      # Max wait time for GREEN signal before fallback proceed
+  parking_sit_hold_sec: 5.0      # Rulebook 5.2: Minimum 5.0s full sit in parking bay (+0.5s safety margin = 5.5s)
+  safety_margin_sec: 0.3
+
+# Competition 7-Stage Waypoint Sequence
+waypoints:
+  start_in:
+    description: "IN Entrance Start Line (top-right corridor)"
+    x: 7.20
+    y: 5.49
+    yaw_deg: 180.0
+
+  in_turn:
+    description: "Turn into top-right ramp entry"
+    x: 6.00
+    y: 5.20
+    yaw_deg: -140.0
+
+  stop_line_1:
+    description: "Stop Line 1 & Traffic Light 1 (top of ramp at central X-intersection)"
+    x: 3.60
+    y: 3.00
+    yaw_deg: -140.0
+    mission_action: "TRAFFIC_WAIT"
+
+  slalom_entry:
+    description: "Bottom-left entry into 5.018m Rubber Cone Slalom corridor"
+    x: 0.65
+    y: 0.95
+    yaw_deg: 90.0
+
+  slalom_mid:
+    description: "Midpoint of Rubber Cone Slalom corridor"
+    x: 0.55
+    y: 3.00
+    yaw_deg: 90.0
+    mission_action: "SLALOM_AVOID"
+
+  slalom_exit:
+    description: "Top-left exit of Rubber Cone Slalom corridor into Stair entry"
+    x: 0.70
+    y: 5.05
+    yaw_deg: -40.0
+
+  stop_line_2:
+    description: "Stop Line 2 & Traffic Light 2 (top of stairs at central X-intersection)"
+    x: 3.60
+    y: 3.00
+    yaw_deg: -40.0
+    mission_action: "TRAFFIC_WAIT"
+
+  stair_exit:
+    description: "Bottom-right exit from stairs toward Parking Bay"
+    x: 6.00
+    y: 1.50
+    yaw_deg: 90.0
+
+  parking_entry:
+    description: "Approach point in front of Parking Bay 'P'"
+    x: 6.10
+    y: 3.00
+    yaw_deg: 0.0
+
+  parking_slot:
+    description: "Designated Parking Bay center (1.5m x 1.5m) - Sit for >= 5.0s"
+    x: 7.20
+    y: 3.00
+    yaw_deg: 0.0
+    mission_action: "PARKING_SIT"
+
+  out_turn:
+    description: "Exit Parking Bay and align with OUT corridor"
+    x: 6.00
+    y: 0.51
+    yaw_deg: 0.0
+
+  out_finish:
+    description: "Cross OUT Finish Line completely (+200 pts completion bonus)"
+    x: 7.85
+    y: 0.51
+    yaw_deg: 0.0
+    mission_action: "FINISH"

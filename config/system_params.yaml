@@ -40,7 +40,7 @@ terrain_scan_slicer:
   max_range: 15.0                   # Maximum valid range (m)
   enable_slope_filter: true
   max_walkable_slope_deg: 18.0      # Slopes below this angle are treated as traversable ground (deg)
-  obstacle_min_dz: 0.18             # Minimum height above local ground profile to classify as obstacle (m)
+  obstacle_min_dz: 0.10             # Minimum height above local ground profile to classify as obstacle (0.10m for 23cm cones)
   obstacle_max_dz: 1.20             # Maximum obstacle height above local ground profile (m)
   radial_bin_m: 0.35                # Radial bin size for ground profile estimation (m)
   azimuth_bins: 360                 # Angular resolution (bins per 360 deg)

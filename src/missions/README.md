@@ -1,8 +1,13 @@
 # Mission Packages (`src/missions/`)
 
-이 디렉토리는 대회 개별 미션 제어 패키지(Behavior Tree, 상태 시퀀스, 비전/도킹 태스크 노드 등)를 배치하는 도메인 영역입니다.
+2026 로보월드 4족보행 로봇경진대회(450점 만점 규정) 수행을 위한 온보드 C++ 비전 인식 및 미션 시퀀스 제어 도메인입니다.
 
-## 작성 가이드라인
-1. 기반 기술 패키지(`src/core/`)의 소스코드를 직접 수정하지 않고, ROS 2 토픽/액션 인터페이스(`/cmd_vel`, `/goal_pose`, `/navigate_to_pose`, `/scan`, `/utlidar/robot_odom`)를 통해 연동합니다.
-2. 신규 미션 패키지는 `src/missions/mission_<과제명>/` 형태로 생성합니다.
-3. 미션 전용 파라미터는 각 패키지 내부 `config/` 또는 루트 `config/system_params.yaml`에 분리하여 관리합니다.
+## 포함된 패키지
+
+1. **[`mission_vision`](mission_vision/)** (C++ 비전 및 RGB-D/LiDAR 센서 융합)
+   - `traffic_light_node`: 지상 1.3m 높이(26×30cm 본체) 신호등의 독립 비동기 Red/Green 점등 상태 판별 (`/mission/traffic_light`)
+   - `parking_marker_node`: 주차구역 벽면 10×10cm QR 코드 및 문자 'P' 표식 + 전방 벽 거리 정합 판별 (`/mission/parking_ready`)
+   - `cone_detector_node`: 높이 23cm, 밑면 14×14cm 소형 주황색 라바콘의 RGB-D 역투영 + `/scan` 클러스터 3D 위치 추정 (`/mission/cone_poses`)
+
+2. **[`mission_runner`](mission_runner/)** (C++ 20Hz 대회 통합 상태 머신)
+   - `mission_fsm_node`: 출발(IN) $\rightarrow$ X자 교차로 경사로 $\rightarrow$ 정지선 1(2초 정지 & 초록불 대기, 50점) $\rightarrow$ 라바콘 슬라럼(측면 반발력 회피, 최대 100점) $\rightarrow$ 계단 및 정지선 2(2초 정지 & 초록불 대기, 50점) $\rightarrow$ 주차구역 진입 및 5초 앉기(API `1005` $\rightarrow$ `1004`, 50점) $\rightarrow$ 결승선(OUT) 통과(완주 200점)
