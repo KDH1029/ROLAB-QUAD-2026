@@ -17,6 +17,11 @@ venv/
 *.pcd
 *.pcap
 
+# Training artifacts & datasets
+dataset/
+runs/
+*.pt
+
 # Editor / OS files
 .vscode/
 .idea/

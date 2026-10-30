@@ -100,7 +100,7 @@ class OpenCvDnnEngine(BaseYoloEngine):
                 y2 = int((cy + 0.5 * h) * y_factor)
                 boxes.append([x1, y1, x2 - x1, y2 - y1])
                 confidences.append(float(max_score))
-                class_ids.append(int(max_class_loc[1]))
+                class_ids.append(int(max_class_loc[0]))
 
         indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_thresh, 0.45)
         results = []

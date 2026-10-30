@@ -34,9 +34,8 @@ yolo_detector_node:
     camera_cx: 320.0
     camera_cy: 240.0
 
-    # Class ID or name mappings
-    # Default COCO has 'traffic light' at class 9.
-    # Custom trained weights can map arbitrary IDs here:
-    class_traffic_light: 9
-    class_cone: 0
-    class_parking: 1
+    # Class ID or name mappings (RoboWorld 3-class YOLO)
+    # 0: traffic_light, 1: traffic_cone, 2: parking_sign
+    class_traffic_light: 0
+    class_cone: 1
+    class_parking: 2
