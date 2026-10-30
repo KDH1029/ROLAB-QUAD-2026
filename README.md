@@ -5,6 +5,26 @@ Unitree Go2 Edu와 Hesai XT16 3D LiDAR 환경에서 보행 시 발생하는 착�
 
 - **협업 및 형상 관리 규칙**: [`docs/GITHUB_RULES.md`](docs/GITHUB_RULES.md)
 - **시스템 아키텍처 블루프린트**: [`docs/Blueprint_Complete.md`](docs/Blueprint_Complete.md) / [`docs/Blueprint_Complete.pdf`](docs/Blueprint_Complete.pdf)
+- **프로젝트 인수인계 요약서**: [`docs/HANDOVER_ROBOWORLD_2026.md`](docs/HANDOVER_ROBOWORLD_2026.md)
+
+---
+
+## 📌 현재 개발 진행상황 (Current Status)
+
+> **현재 단계**: 뼈대 로직 및 사전 모델 구축 완료, **실제 로봇 하드웨어 및 현장 트랙 검증 전 단계**
+
+### ✅ 구현 및 반영 완료 항목
+- [x] **1:1 CAD 트랙 맵 & 웨이포인트**: $6\text{m} \times 8\text{m}$ 도면 맵(`maps/roboworld_2026.pgm`) 및 12개 공식 웨이포인트([`waypoints_track.yaml`](src/missions/mission_runner/config/waypoints_track.yaml)) 정합
+- [x] **C++ Core 스택 (`go2_bridge`)**: 151Hz 오도메트리 TF, 12-DoF FK 접촉 평면 보정(`base_stab`), $18^\circ$ 경사로/$0.1\text{m}$ 장애물 분리 필터, Sport API 제어기 구축
+- [x] **7단계 미션 FSM (`mission_runner`)**: 출발선(IN) → 경사로 → 정지선1(신호등 2초 정지/초록불 출발) → 슬라럼 → 정지선2 → 주차(5초 착석) → 도착선(OUT) 상태 머신 작성
+- [x] **YOLOv8-Nano 비전 (`mission_vision`)**: 3개 클래스(0: 신호등, 1: 23cm 콘, 2: 10cm 주차 표지판) 사전 학습 및 `yolo_mission.onnx` 모델 배치 (OpenCV DNN 0-dependency 추론)
+- [x] **통합 런처 및 유틸리티**: 원터치 실행기([`go2_mission_run.sh`](scripts/go2_mission_run.sh)), 재학습 스크립트([`train_mission_yolo.py`](scripts/train_mission_yolo.py)), 추론 테스트기([`test_yolo_inference.py`](scripts/test_yolo_inference.py))
+
+### 🔄 다음 작업 및 디버깅 예정 항목
+- [ ] `./scripts/go2_mission_run.sh --sim` 기반 가상 시뮬레이션 스모크 테스트 (FSM 상태 천이 검증)
+- [ ] 실물 로봇 센서 토픽 수신 확인 (`/camera/color/image_raw`, `/odom`, `/scan`)
+- [ ] 실제 소품(신호등, 콘, 주차판) 비전 검출 실측 (필요 시 현장 사진 20~30장 촬영 후 5분 재학습)
+- [ ] 12개 웨이포인트 트랙 1바퀴 실주행 디버깅
 
 ---
 
