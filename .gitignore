@@ -1,0 +1,26 @@
+# ROS 2 colcon build artifacts
+build/
+install/
+log/
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Large sensor recordings & raw 3D point clouds (keep lightweight .pgm/.yaml/_elevation.npz)
+*.bag
+*.db3
+*.mcap
+*.pcd
+*.pcap
+
+# Editor / OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
