@@ -30,13 +30,14 @@ map  ──(AMCL / Map Server)──>  odom  ──(151Hz Leg Odometry)──>  
    - 중앙 교차로 등이 완만한 언덕 형태로 솟아 있는 지형에서 단순 높이 임계값($z > z_{\min}$)으로 자를 경우 오르막 바닥이 장애물로 오인되는 문제를 해결하기 위해, 방위각 섹터별 반경 빈(`radial_bin_m`)의 최하단 점들로 국소 지면 프로파일을 추정합니다.
    - 인접 빈 간 경사각이 `max_walkable_slope_deg`(기본 $18^\circ$) 이하인 완만한 경사면은 바닥으로 통과시키고, 국소 지면 대비 `obstacle_min_dz`(기본 $0.18\text{m}$) 이상 수직으로 솟은 벽/기둥만 `/scan`에 반영합니다.
 
-4. **로컬 지면 평탄화 기반 2D/2.5D 매퍼 (`go2_mapper.py`)**
-   - 실시간(`live`) 주행 데이터 또는 오프라인 3D PCD 파일(`pcd2map`)로부터 2D 점유격자 지도(`.pgm`, `.yaml`)와 2.5D 고도 맵(`_elevation.npz`)을 동시에 생성합니다.
-   - $0.5\text{m} \times 0.5\text{m}$ 국소 셀 단위로 하위 5% 높이를 지면 기준선으로 삼아 상대 높이(`wall_z_min` ~ `wall_z_max`)에 있는 점만 벽으로 추출하므로 언덕 경사면이 벽으로 막히지 않습니다.
+4. **로컬 지면 평탄화 기반 C++ 3D/2D 매퍼 (`mapper_node`)**
+   - 실시간(`live`) 주행 데이터 또는 오프라인 3D PCD 파일(`pcd2map`)로부터 2D 점유격자 지도(`.pgm`, `.yaml`)를 고속으로 생성합니다.
+   - C++ `std::nth_element`($O(N)$ 선형 시간 선택)를 사용해 $0.5\text{m} \times 0.5\text{m}$ 국소 셀 단위로 하위 5% 높이를 지면 기준선으로 삼고, 상대 높이(`wall_z_min` ~ `wall_z_max`)에 있는 점만 벽으로 추출하므로 언덕 경사면이 벽으로 막히지 않습니다.
 
-5. **사족보행 속도 제어 브릿지 (`cmd_vel_to_sport_node`)**
-   - `/cmd_vel` 명령을 Unitree Sport API(`/api/sport/request`, API ID `1008`)로 변환합니다.
-   - 저속 명령에서 다리가 제자리 진동하는 현상을 막기 위한 최소 유효 속도 데드밴드(`min_vx`, `min_vy`, `min_wz`), 가속도 제한(slew-rate limiter), 데드맨 타임아웃(`0.5s`)을 포함합니다.
+5. **C++ 20Hz 오도메트리 직결 주행기 (`odom_nav_node`) 및 모터 제어 브릿지 (`cmd_vel_to_sport_node`)**
+   - `odom_nav_node`: Nav2 없이도 20Hz C++ 제어 루프(`ALIGN` $\rightarrow$ `CRUISE` $\rightarrow$ `YAW_LOCK`)와 전방 `/scan` 장애물 비상 정지 로직으로 목표 3D 좌표를 추종합니다.
+   - `cmd_vel_to_sport_node`: `/cmd_vel` 명령을 Unitree Sport API(`/api/sport/request`, API ID `1008`)로 변환하며, 최소 유효 속도 데드밴드(`min_vx`, `min_vy`, `min_wz`), 가속도 제한, 데드맨 타임아웃(`0.5s`)을 적용합니다.
+   - `scripts/go2_mapper.py`와 `scripts/go2_odom_nav.py`는 YAML/JSON 설정 파싱 후 `os.execvp`를 통해 프로세스를 C++ 바이너리(`mapper_node`, `odom_nav_node`)로 즉시 교체하므로 주행 및 매핑 중 Python 런타임 메모리가 상주하지 않습니다.
 
 ---
 
@@ -56,16 +57,16 @@ ROLAB-QUAD-2026/
 │   ├── map_default.pgm              # 기본 2D 점유격자 이미지
 │   └── map_default_elevation.npz    # 2.5D 지면 고도 및 경사도 데이터
 ├── scripts/
-│   ├── go2_map_run.sh               # [1단계] 실시간 매핑 및 PCD -> 2D/2.5D 변환 실행 스크립트
+│   ├── go2_map_run.sh               # [1단계] 실시간 매핑 및 PCD -> 2D 변환 실행 스크립트
 │   ├── go2_odom_run.sh              # [2단계] 오도메트리 및 기구학 브릿지 단독 실행 스크립트
 │   ├── go2_nav_run.sh               # [통합] 브릿지 + AMCL + Nav2 자율주행 실행 스크립트
-│   ├── go2_mapper.py                # 3D 포인트클라우드 로컬 바닥 평탄화 매퍼
-│   ├── go2_odom_nav.py              # Nav2 없이 동작하는 3D 오도메트리 기반 직결 주행기
+│   ├── go2_mapper.py                # C++ mapper_node 실행용 경량 CLI 런처 (os.execvp)
+│   ├── go2_odom_nav.py              # C++ odom_nav_node 실행용 경량 CLI 런처 (os.execvp)
 │   ├── go2_goto.py                  # Nav2 목표 좌표 전송 및 웨이포인트 관리 CLI
 │   └── sim_nav_test.py              # 오프라인 검증용 사족보행 기구학/라이다 시뮬레이터
 └── src/
     ├── core/                        # [기반 기술 도메인]
-    │   ├── go2_bridge/              # 하드웨어 브릿지 및 기구학/경사 필터 패키지 (C++)
+    │   ├── go2_bridge/              # C++ 핵심 노드 패키지 (odom_tf, imu_bridge, cloud_bridge, cmd_vel_to_sport, mapper_node, odom_nav_node)
     │   ├── go2_localization/        # Map Server, AMCL 로컬라이제이션 패키지
     │   └── go2_navigation/          # Nav2 RPP 컨트롤러 및 플래너 설정 패키지
     ├── missions/                    # [대회 미션 제어 도메인]

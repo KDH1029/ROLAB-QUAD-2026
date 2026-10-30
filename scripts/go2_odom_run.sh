@@ -68,7 +68,7 @@ echo "----------------------------------------------------------------------"
 cleanup() {
     echo -e "\n[INFO] Stopping odometry bridge stack..."
     pkill -P $$ 2>/dev/null || true
-    pkill -f "odom_tf_node|imu_bridge_node|cloud_bridge_node|cmd_vel_to_sport_node|sim_nav_test" 2>/dev/null || true
+    pkill -f "odom_tf_node|imu_bridge_node|cloud_bridge_node|cmd_vel_to_sport_node|odom_nav_node|sim_nav_test" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 

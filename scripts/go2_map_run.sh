@@ -85,7 +85,7 @@ echo "----------------------------------------------------------------------"
 cleanup() {
     echo -e "\n[INFO] Stopping mapping bridge nodes..."
     pkill -P $$ 2>/dev/null || true
-    pkill -f "odom_tf_node|imu_bridge_node|cloud_bridge_node" 2>/dev/null || true
+    pkill -f "odom_tf_node|imu_bridge_node|cloud_bridge_node|mapper_node" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
