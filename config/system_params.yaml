@@ -1,0 +1,78 @@
+# Go2 System Configuration (config/system_params.yaml)
+# Central parameter file for Python mapping and odometry navigation scripts.
+# ROS 2 C++ bridge node parameters are located in src/core/go2_bridge/config/bridge_params.yaml.
+
+# 1. Robot & LiDAR Extrinsics
+robot_extrinsics:
+  # Hesai XT16 mounting offset relative to base_link (m, rad)
+  lidar_x: 0.2500
+  lidar_y: 0.0000
+  lidar_z: 0.1588
+  lidar_roll: 0.012330      # +0.71 deg
+  lidar_pitch: 0.005579     # +0.32 deg
+  lidar_yaw: 1.57079632679  # +90.0 deg
+
+  # Go2 leg link dimensions from URDF (m)
+  hip_offset_x: 0.1934
+  hip_offset_y: 0.0465
+  thigh_offset_y: 0.0955
+  thigh_length: 0.2130
+  calf_length: 0.2130
+
+# 2. Attitude Stabilization & Slope Adaptation
+attitude_stabilization:
+  # stab_mode:
+  #   "gravity" : Aligns base_stab with gravity horizontal plane
+  #   "terrain" : Aligns base_stab with stance foot plane
+  stab_mode: "gravity"
+  use_kinematics_filter: true
+  filter_alpha: 0.96                # Gyro integration weight (0.94 - 0.98)
+  contact_force_thresh: 15          # Foot contact force threshold (raw sensor value)
+  max_kin_imu_diff_deg: 6.0         # Max allowed discrepancy between FK slope and IMU gravity (deg)
+
+# 3. 3D Terrain-Aware Scan Slicing
+terrain_scan_slicer:
+  input_cloud_topic: "/velodyne_points"
+  raw_lidar_topic: "/lidar_points"
+  output_scan_topic: "/scan"
+  target_frame: "base_stab"
+  min_range: 0.40                   # Minimum valid range (m)
+  max_range: 15.0                   # Maximum valid range (m)
+  enable_slope_filter: true
+  max_walkable_slope_deg: 18.0      # Slopes below this angle are treated as traversable ground (deg)
+  obstacle_min_dz: 0.18             # Minimum height above local ground profile to classify as obstacle (m)
+  obstacle_max_dz: 1.20             # Maximum obstacle height above local ground profile (m)
+  radial_bin_m: 0.35                # Radial bin size for ground profile estimation (m)
+  azimuth_bins: 360                 # Angular resolution (bins per 360 deg)
+
+# 4. 3D Mapping & PCD-to-2D Projection
+mapping:
+  resolution: 0.03                  # Occupancy grid resolution (m/pixel)
+  local_floor_cell_m: 0.50          # Grid cell size for local ground elevation estimation (m)
+  local_floor_percentile: 5.0       # Height percentile used as local floor reference (%)
+  wall_z_min: 0.22                  # Minimum wall height above local floor (m)
+  wall_z_max: 1.15                  # Maximum wall height above local floor (m)
+  min_pts_per_cell: 2               # Minimum points per cell required to mark as occupied
+  free_pad_m: 0.80                  # Free-space clearing radius around observed points (m)
+  keyframe_dist_m: 0.10             # Translation threshold for live mapping keyframes (m)
+  keyframe_angle_deg: 5.0           # Rotation threshold for live mapping keyframes (deg)
+
+# 5. Odometry & Goal Navigation Control
+navigation_control:
+  default_frame: "odom"             # Reference frame ("odom" or "map")
+  max_vx: 0.65                      # Max forward velocity (m/s)
+  max_vy: 0.35                      # Max lateral velocity (m/s)
+  max_wz: 1.20                      # Max angular velocity (rad/s)
+  min_vx: 0.08                      # Forward deadband velocity (m/s)
+  min_vy: 0.08                      # Lateral deadband velocity (m/s)
+  min_wz: 0.15                      # Angular deadband velocity (rad/s)
+  max_ax: 1.00                      # Max linear acceleration (m/s^2)
+  max_alphaz: 2.00                  # Max angular acceleration (rad/s^2)
+  deadman_timeout_s: 0.50           # Command timeout before stopping (s)
+  xy_goal_tolerance_m: 0.18         # Position tolerance for goal completion (m)
+  yaw_goal_tolerance_deg: 6.0       # Yaw tolerance for goal completion (deg)
+  heading_align_thresh_deg: 25.0    # Heading error threshold to trigger in-place alignment (deg)
+  obstacle_stop_dist_m: 0.35        # Front obstacle emergency stop distance (m)
+  obstacle_check_fov_deg: 20.0      # Front obstacle detection half-angle (deg)
+  kp_linear: 0.85                   # Proportional gain for linear velocity
+  kp_angular: 1.60                  # Proportional gain for angular velocity

@@ -1,0 +1,68 @@
+# Go2 Bridge Node Parameters (src/core/go2_bridge/config/bridge_params.yaml)
+
+go2_odom_tf:
+  ros__parameters:
+    odom_topic: "/utlidar/robot_odom"
+    dst_parent: "odom"
+    dst_child: "base_link"
+    z_lift: 0.0
+    stamp_mode: "align"
+    max_rate: 50.0
+
+go2_imu_bridge:
+  ros__parameters:
+    input_topic: "/lowstate"
+    output_topic: "/imu/body"
+    frame_id: "imu_link"
+    publish_static_tf: true
+    publish_stab: true
+    stab_parent: "base_link"
+    stab_child: "base_stab"
+    stab_rate: 50.0
+
+    # Hesai XT16 mounting extrinsics relative to base_link (m, rad)
+    lidar_x: 0.2500
+    lidar_y: 0.0000
+    lidar_z: 0.1588
+    lidar_roll: 0.012330
+    lidar_pitch: 0.005579
+    lidar_yaw: 1.57079632679
+
+    # Attitude stabilization & slope adaptation
+    stab_mode: "gravity"
+    use_kinematics_filter: true
+    filter_alpha: 0.96
+    contact_force_thresh: 15
+    max_kin_imu_diff_deg: 6.0
+
+go2_cloud_bridge:
+  ros__parameters:
+    input_topic: "/lidar_points"
+    output_topic: "/velodyne_points"
+    frame_id: "hesai_lidar"
+    stride: 1
+    publish_terrain_scan: true
+    scan_topic: "/scan"
+    target_frame: "base_stab"
+    min_range: 0.40
+    max_range: 15.0
+    enable_slope_filter: true
+    max_walkable_slope_deg: 18.0
+    obstacle_min_dz: 0.18
+    obstacle_max_dz: 1.20
+    radial_bin_m: 0.35
+    azimuth_bins: 360
+
+go2_cmd_vel_to_sport:
+  ros__parameters:
+    cmd_vel_topic: "/cmd_vel"
+    sport_req_topic: "/api/sport/request"
+    max_vx: 0.8
+    max_vy: 0.4
+    max_wz: 1.5
+    min_vx: 0.08
+    min_vy: 0.08
+    min_wz: 0.15
+    max_ax: 1.0
+    max_alphaz: 2.0
+    deadman_s: 0.5
