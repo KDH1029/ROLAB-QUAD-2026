@@ -2,15 +2,15 @@
 """
 2026 RoboWorld Quadruped Competition Map Generator & Hybrid LiDAR Map Merger.
 
-Modes:
-  1. cad    : Generates a noise-free 2D occupancy grid (.pgm/.yaml) and 2.5D elevation
-              grid (_elevation.npz) from the official rulebook dimensions (8.0m x 6.0m).
+Supports generating the exact competition map from:
+  1. ref    : Converts the official 3D orthographic CAD reference texture
+              (6.0m width x 8.0m height, upright IN/P/OUT orientation) into 2D grid (.pgm/.yaml).
   2. merge  : Combines a live LiDAR-scanned map (.pgm) with the CAD corridor mask,
               removing traffic cones (23cm) and dynamic clutter from walkable aisles
               while preserving real LiDAR wall measurements near track boundaries.
 
 Usage:
-  python3 scripts/build_hybrid_map.py cad --name roboworld_2026 --set-default
+  python3 scripts/build_hybrid_map.py ref --set-default
   python3 scripts/build_hybrid_map.py merge --scan-pgm maps/live_scan.pgm --name roboworld_hybrid
 """
 
@@ -18,141 +18,80 @@ import argparse
 import math
 import shutil
 from pathlib import Path
+import cv2
 import numpy as np
 
 WS_ROOT = Path(__file__).resolve().parent.parent
 MAPS_DIR = WS_ROOT / 'maps'
+REF_IMAGE_PATH = MAPS_DIR / 'uploaded_ref.png'
 
 
-def point_in_poly(x, y, poly):
-    """Vectorized ray-casting point-in-polygon test for numpy arrays x, y."""
-    n = len(poly)
-    inside = np.zeros(x.shape, dtype=bool)
-    p1x, p1y = poly[0]
-    for i in range(1, n + 1):
-        p2x, p2y = poly[i % n]
-        cond_y = (y > min(p1y, p2y)) & (y <= max(p1y, p2y))
-        cond_x = x <= max(p1x, p2x)
-        mask = cond_y & cond_x
-        if p1y != p2y:
-            xinters = (y[mask] - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-            if p1x == p2x:
-                inside[mask] = ~inside[mask]
-            else:
-                flip = x[mask] <= xinters
-                inside_sub = inside[mask]
-                inside_sub[flip] = ~inside_sub[flip]
-                inside[mask] = inside_sub
-        p1x, p1y = p2x, p2y
-    return inside
+def build_from_ref_image(res=0.03, pad_m=1.0):
+    if not REF_IMAGE_PATH.exists():
+        raise FileNotFoundError(f"Reference image not found at {REF_IMAGE_PATH}")
 
+    img = cv2.imread(str(REF_IMAGE_PATH))
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-def dist_to_segment(px, py, x1, y1, x2, y2):
-    """Vectorized distance from grid points (px, py) to line segment (x1,y1)-(x2,y2)."""
-    dx = x2 - x1
-    dy = y2 - y1
-    l2 = dx * dx + dy * dy
-    if l2 < 1e-12:
-        return np.hypot(px - x1, py - y1)
-    t = np.clip(((px - x1) * dx + (py - y1) * dy) / l2, 0.0, 1.0)
-    proj_x = x1 + t * dx
-    proj_y = y1 + t * dy
-    return np.hypot(px - proj_x, py - proj_y)
+    # Crop the track container bounding box
+    x1, x2 = 31, 675
+    y1, y2 = 70, 961
+    cropped = gray[y1:y2+1, x1:x2+1]
 
+    # Target arena dimensions: 6.000m width (X) x 8.000m height (Y)
+    target_w = int(round(6.0 / res))  # 200 px at 0.03m
+    target_h = int(round(8.0 / res))  # 267 px at 0.03m
 
-def build_cad_track(res=0.03, pad_m=1.0):
-    """
-    Constructs the 2026 RoboWorld 8.0m x 6.0m track in a metric coordinate frame
-    where (0.0, 0.0) is the bottom-left corner of the 8.0m x 6.0m arena.
+    resized = cv2.resize(cropped, (target_w, target_h), interpolation=cv2.INTER_AREA)
 
-    Key dimensions from Rulebook Section 4.1 & 4.2:
-      - Total arena: 8.000m (X) x 6.000m (Y)
-      - Left slalom corridor: X in [0.0, 1.0], Y in [0.5, 5.5] (5.018m straight, 1.4m top/bottom turns)
-      - Central X-intersection: center at (3.60, 3.00), corridor width = 1.00m
-        * Diagonal 1 (Ramp): bottom-left (1.0, 0.9) <-> center (3.6, 3.0) <-> top-right (5.8, 5.1)
-        * Diagonal 2 (Stairs): top-left (1.0, 5.1) <-> center (3.6, 3.0) <-> bottom-right (5.8, 0.9)
-      - Right IN corridor (top): X in [5.6, 8.0] (length 2.400m), Y in [4.982, 6.000] (width 1.018m)
-      - Right OUT corridor (bottom): X in [5.6, 8.0] (length 2.400m), Y in [0.000, 1.018] (width 1.018m)
-      - Parking bay (P): X in [6.5, 8.0] (1.500m), Y in [2.25, 3.75] (height 1.500m)
-    """
-    arena_w = 8.0
-    arena_h = 6.0
-    x0 = -pad_m
-    y0 = -pad_m
-    width = int(math.ceil((arena_w + 2.0 * pad_m) / res))
-    height = int(math.ceil((arena_h + 2.0 * pad_m) / res))
+    # Walkable aisles: gray road surface + white dashed line marks
+    walkable = (resized > 55)
 
-    xs = x0 + (np.arange(width) + 0.5) * res
-    ys = y0 + (np.arange(height) + 0.5) * res
-    gx, gy = np.meshgrid(xs, ys)
+    # Build Occupancy Grid: 205 = unknown, 254 = free, 0 = wall
+    grid = np.full((target_h, target_w), 205, dtype=np.uint8)
+    grid[walkable] = 254
 
-    # Walkable free-space mask
-    walkable = np.zeros((height, width), dtype=bool)
-
-    # 1. Left Slalom straight corridor (X: 0.0..1.0, Y: 0.5..5.5) + top/bottom caps (width 1.4m)
-    walkable |= (gx >= 0.0) & (gx <= 1.0) & (gy >= 0.5) & (gy <= 5.5)
-    walkable |= (gx >= 0.0) & (gx <= 1.4) & (gy >= 4.6) & (gy <= 5.5)
-    walkable |= (gx >= 0.0) & (gx <= 1.4) & (gy >= 0.5) & (gy <= 1.4)
-
-    # 2. Central X-intersection corridors (width 1.0m -> half-width 0.50m)
-    d_ramp = dist_to_segment(gx, gy, 1.0, 0.9, 5.8, 5.1)
-    d_stair = dist_to_segment(gx, gy, 1.0, 5.1, 5.8, 0.9)
-    walkable |= (d_ramp <= 0.50)
-    walkable |= (d_stair <= 0.50)
-
-    # 3. Top-right IN entrance (length 2.400m: X 5.6..8.0, width 1.018m: Y 4.982..6.0)
-    #    plus vertical connector (X 5.6..6.6, Y 4.4..6.0)
-    walkable |= (gx >= 5.6) & (gx <= 8.0) & (gy >= 4.982) & (gy <= 6.0)
-    walkable |= (gx >= 5.5) & (gx <= 6.5) & (gy >= 4.4) & (gy <= 6.0)
-
-    # 4. Bottom-right OUT exit (length 2.400m: X 5.6..8.0, width 1.018m: Y 0.0..1.018)
-    #    plus vertical connector (X 5.5..6.5, Y 0.0..3.8) linking to Parking bay
-    walkable |= (gx >= 5.6) & (gx <= 8.0) & (gy >= 0.0) & (gy <= 1.018)
-    walkable |= (gx >= 5.5) & (gx <= 6.5) & (gy >= 0.0) & (gy <= 3.8)
-
-    # 5. Right-middle Parking Bay 'P' (1.5m x 1.5m: X 6.5..8.0, Y 2.25..3.75)
-    walkable |= (gx >= 6.4) & (gx <= 8.0) & (gy >= 2.25) & (gy <= 3.75)
-
-    # Clip walkable area strictly inside the 8.0m x 6.0m outer boundary (except small margin)
-    walkable &= (gx >= 0.0) & (gx <= arena_w) & (gy >= 0.0) & (gy <= arena_h)
-
-    # Build Occupancy Grid Image: 205 = unknown, 254 = free, 0 = occupied wall
-    img = np.full((height, width), 205, dtype=np.uint8)
-    img[walkable] = 254
-
-    # Extract wall boundary (2-pixel thick outline around walkable region)
-    wall_mask = np.zeros((height, width), dtype=bool)
-    for dy in (-2, -1, 0, 1, 2):
-        for dx in (-2, -1, 0, 1, 2):
+    wall_mask = np.zeros_like(walkable)
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
             if dx == 0 and dy == 0:
                 continue
             shifted = np.roll(np.roll(walkable, dy, axis=0), dx, axis=1)
             wall_mask |= (shifted & ~walkable)
-    img[wall_mask] = 0
+    grid[wall_mask] = 0
 
-    # Build 2.5D Elevation Grid (cell_size = 0.25m) modeling the central X-intersection hill/stairs
+    # Add 1.0m safety padding around the 6.0m x 8.0m arena
+    pad_px = int(round(pad_m / res))
+    full_h = target_h + 2 * pad_px
+    full_w = target_w + 2 * pad_px
+    padded = np.full((full_h, full_w), 205, dtype=np.uint8)
+    padded[pad_px:pad_px + target_h, pad_px:pad_px + target_w] = grid
+
+    walkable_full = np.zeros((full_h, full_w), dtype=bool)
+    walkable_full[pad_px:pad_px + target_h, pad_px:pad_px + target_w] = walkable
+
+    # 2.5D Elevation Grid for the central diamond plateau (+28cm at X=3.0m, Y=4.0m)
     cell_size = 0.25
-    nx = int(math.ceil((arena_w + 2.0 * pad_m) / cell_size))
-    ny = int(math.ceil((arena_h + 2.0 * pad_m) / cell_size))
-    ex = x0 + (np.arange(nx) + 0.5) * cell_size
-    ey = y0 + (np.arange(ny) + 0.5) * cell_size
+    nx = int(math.ceil((6.0 + 2.0 * pad_m) / cell_size))
+    ny = int(math.ceil((8.0 + 2.0 * pad_m) / cell_size))
+    ex = -pad_m + (np.arange(nx) + 0.5) * cell_size
+    ey = -pad_m + (np.arange(ny) + 0.5) * cell_size
     egx, egy = np.meshgrid(ex, ey)
 
-    # Central intersection rises to +0.28m plateau at (3.6, 3.0)
-    dist_center = np.hypot(egx - 3.6, egy - 3.0)
-    elev_grid = np.clip(0.28 * np.exp(-0.5 * (dist_center / 1.1) ** 2), 0.0, 0.28).astype(np.float32)
+    dist_center = np.hypot(egx - 3.0, egy - 4.0)
+    elev_grid = np.clip(0.28 * np.exp(-0.5 * (dist_center / 1.0) ** 2), 0.0, 0.28).astype(np.float32)
 
     meta = {
-        'width': width,
-        'height': height,
+        'width': full_w,
+        'height': full_h,
         'resolution': res,
-        'origin_x': x0,
-        'origin_y': y0,
+        'origin_x': -pad_m,
+        'origin_y': -pad_m,
         'elev_grid': elev_grid,
         'elev_cell_size': cell_size,
-        'walkable_mask': walkable,
+        'walkable_mask': walkable_full,
     }
-    return img, meta
+    return padded, meta
 
 
 def read_pgm(path):
@@ -203,9 +142,14 @@ def save_map_bundle(img, meta, map_name, set_default=False):
             cell_size=meta['elev_cell_size'],
         )
 
+    # Save visual PNG preview
+    preview_path = MAPS_DIR / f"{map_name}_preview.png"
+    cv2.imwrite(str(preview_path), img)
+
     print(f"[DONE] Saved map bundle '{map_name}':")
     print(f"  - PGM      : {pgm_path} ({w}x{h} px, res={meta['resolution']:.3f}m)")
     print(f"  - YAML     : {yaml_path} (origin=[{meta['origin_x']:.2f}, {meta['origin_y']:.2f}])")
+    print(f"  - Preview  : {preview_path}")
     if 'elev_grid' in meta:
         print(f"  - Elevation: {elev_path}")
 
@@ -219,16 +163,8 @@ def save_map_bundle(img, meta, map_name, set_default=False):
 
 
 def merge_cad_and_lidar(cad_img, cad_meta, scan_pgm_path, wall_band_m=0.18):
-    """
-    Cleans dynamic obstacles (23cm traffic cones, people) inside the walkable aisle core
-    using the CAD free-space mask, while retaining real LiDAR wall measurements near boundaries.
-    """
     scan_img = read_pgm(scan_pgm_path)
     if scan_img.shape != cad_img.shape:
-        print(
-            f"[WARN] Scan shape {scan_img.shape} differs from CAD shape {cad_img.shape}. "
-            "Resampling scan to CAD canvas..."
-        )
         sh, sw = scan_img.shape
         ch, cw = cad_img.shape
         yi = np.clip((np.arange(ch) * sh / ch).astype(int), 0, sh - 1)
@@ -239,7 +175,6 @@ def merge_cad_and_lidar(cad_img, cad_meta, scan_pgm_path, wall_band_m=0.18):
     res = cad_meta['resolution']
     margin_px = max(2, int(round(wall_band_m / res)))
 
-    # Erode walkable mask by margin_px to get the "inner aisle core" where cones sit
     inner_core = walkable.copy()
     for dy in range(-margin_px, margin_px + 1):
         for dx in range(-margin_px, margin_px + 1):
@@ -248,23 +183,20 @@ def merge_cad_and_lidar(cad_img, cad_meta, scan_pgm_path, wall_band_m=0.18):
                 inner_core &= shifted
 
     merged = cad_img.copy()
-    # Near walls (walkable & ~inner_core), trust real LiDAR occupied pixels (0)
     wall_zone = walkable & ~inner_core
     merged[wall_zone & (scan_img < 50)] = 0
-
-    # Inside inner_core, force free space (254) to erase any scanned 23cm traffic cones
     merged[inner_core] = 254
     return merged
 
 
 def main():
-    parser = argparse.ArgumentParser(description='2026 RoboWorld CAD & Hybrid Map Builder')
-    sub = parser.add_subparsers(dest='mode', help='Mode: cad or merge')
+    parser = argparse.ArgumentParser(description='2026 RoboWorld Exact Map Builder')
+    sub = parser.add_subparsers(dest='mode', help='Mode: ref or merge')
 
-    p_cad = sub.add_parser('cad', help='Generate clean CAD map from rulebook dimensions')
-    p_cad.add_argument('--name', type=str, default='roboworld_2026', help='Output map name')
-    p_cad.add_argument('--res', type=float, default=0.03, help='Grid resolution (m/px)')
-    p_cad.add_argument('--set-default', action='store_true', help='Also copy to map_default')
+    p_ref = sub.add_parser('ref', help='Generate exact map from 3D reference CAD image')
+    p_ref.add_argument('--name', type=str, default='roboworld_2026', help='Output map name')
+    p_ref.add_argument('--res', type=float, default=0.03, help='Grid resolution (m/px)')
+    p_ref.add_argument('--set-default', action='store_true', help='Also copy to map_default')
 
     p_merge = sub.add_parser('merge', help='Merge live LiDAR PGM with CAD corridor mask')
     p_merge.add_argument('--scan-pgm', type=str, required=True, help='Input LiDAR-scanned .pgm file')
@@ -274,15 +206,15 @@ def main():
     p_merge.add_argument('--set-default', action='store_true', help='Also copy to map_default')
 
     args = parser.parse_args()
-    if args.mode == 'cad':
-        img, meta = build_cad_track(res=args.res)
-        save_map_bundle(img, meta, args.name, set_default=args.set_default)
+    if args.mode == 'ref' or args.mode is None:
+        img, meta = build_from_ref_image(res=getattr(args, 'res', 0.03))
+        name = getattr(args, 'name', 'roboworld_2026')
+        set_def = getattr(args, 'set_default', True)
+        save_map_bundle(img, meta, name, set_default=set_def)
     elif args.mode == 'merge':
-        cad_img, meta = build_cad_track(res=args.res)
-        merged = merge_cad_and_lidar(cad_img, meta, args.scan_pgm, wall_band_m=args.wall_band)
+        img, meta = build_from_ref_image(res=args.res)
+        merged = merge_cad_and_lidar(img, meta, args.scan_pgm, wall_band_m=args.wall_band)
         save_map_bundle(merged, meta, args.name, set_default=args.set_default)
-    else:
-        parser.print_help()
 
 
 if __name__ == '__main__':

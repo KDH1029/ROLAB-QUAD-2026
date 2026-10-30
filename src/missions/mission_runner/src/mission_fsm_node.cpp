@@ -207,20 +207,20 @@ private:
       return;
     }
 
-    // Official 2026 RoboWorld 8.0m x 6.0m track coordinates (matching config/waypoints_track.yaml)
+    // Official 2026 RoboWorld 6.0m (X) x 8.0m (Y) upright track coordinates
     stages_ = {
-      {"start_in",      7.20, 5.49,  180.0, "NONE"},
-      {"in_turn",       6.00, 5.20, -140.0, "NONE"},
-      {"stop_line_1",   3.60, 3.00, -140.0, "TRAFFIC_WAIT"},
-      {"slalom_entry",  0.65, 0.95,   90.0, "NONE"},
-      {"slalom_mid",    0.55, 3.00,   90.0, "SLALOM_AVOID"},
-      {"slalom_exit",   0.70, 5.05,  -40.0, "NONE"},
-      {"stop_line_2",   3.60, 3.00,  -40.0, "TRAFFIC_WAIT"},
-      {"stair_exit",    6.00, 1.50,   90.0, "NONE"},
-      {"parking_entry", 6.10, 3.00,    0.0, "NONE"},
-      {"parking_slot",  7.20, 3.00,    0.0, "PARKING_SIT"},
-      {"out_turn",      6.00, 0.51,    0.0, "NONE"},
-      {"out_finish",    7.85, 0.51,    0.0, "FINISH"}
+      {"start_in",      5.00, 0.80,   90.0, "NONE"},
+      {"ramp_ascend",   4.40, 2.50,  135.0, "NONE"},
+      {"stop_line_1",   3.00, 4.00,  135.0, "TRAFFIC_WAIT"},
+      {"slalom_entry",  1.20, 6.80,   90.0, "NONE"},
+      {"slalom_mid",    3.00, 7.20,    0.0, "SLALOM_AVOID"},
+      {"slalom_exit",   4.80, 6.80, -135.0, "NONE"},
+      {"stop_line_2",   3.00, 4.00, -135.0, "TRAFFIC_WAIT"},
+      {"stair_exit",    1.20, 1.80,  -90.0, "NONE"},
+      {"bottom_turn",   1.80, 1.50,    0.0, "NONE"},
+      {"parking_slot",  3.00, 0.70,  -90.0, "PARKING_SIT"},
+      {"out_align",     1.20, 1.20,  -90.0, "NONE"},
+      {"out_finish",    1.00, 0.40,  -90.0, "FINISH"}
     };
   }
 
