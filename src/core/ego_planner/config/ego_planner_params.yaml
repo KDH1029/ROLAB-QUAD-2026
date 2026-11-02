@@ -1,0 +1,19 @@
+ego_planner_node:
+  ros__parameters:
+    odom_topic: "/Odometry_filtered"
+    goal_topic: "/goal_pose"
+    cloud_topic: "/cloud_registered"   # World-frame registered point cloud from FAST-LIO
+    cmd_vel_topic: "/cmd_vel"
+    map_frame: "camera_init"
+
+    max_vel: 0.8         # Maximum forward velocity (m/s)
+    max_acc: 1.2         # Maximum acceleration (m/s^2)
+    max_wz: 1.5          # Maximum angular velocity (rad/s)
+    goal_tol: 0.25       # Goal arrival tolerance (m)
+    safe_dist: 0.45      # Minimum clearance from obstacles (m) - maintains >27cm margin from Go2 robot body
+    min_obs_h: -0.17     # Min height: 18cm above floor (rejects ground noise, detects low obstacles)
+    max_obs_h: 1.10      # Max height: up to 1.45m above floor (detects tables, people, doors)
+    replan_gap: 0.4      # Min interval between replans (s)
+    use_prior_map: true  # Load clean processed obstacle avoidance layer
+    static_map_path: "/home/ilovehan9283/go2_ws/maps/room_obstacles.bin"
+
