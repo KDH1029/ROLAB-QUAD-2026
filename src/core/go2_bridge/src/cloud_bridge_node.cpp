@@ -98,6 +98,13 @@ public:
     obstacle_max_dz_ = declare_parameter<double>("obstacle_max_dz", 1.20);
     radial_bin_m_ = declare_parameter<double>("radial_bin_m", 0.35);
     azimuth_bins_ = std::max<int>(90, declare_parameter<int>("azimuth_bins", 360));
+    // "slope": radial ground profile (original). "vertical": per azimuth, a wall is >= vertical_min_rings
+    // adjacent rings hitting the same horizontal distance (+-vertical_tol_m). Floors, ramps and stair
+    // treads spread out with elevation and never qualify; needs no ground or robot-height estimate.
+    scan_mode_ = declare_parameter<std::string>("scan_mode", "slope");
+    vertical_tol_m_ = declare_parameter<double>("vertical_tol_m", 0.03);
+    vertical_min_rings_ = std::max<int>(2, declare_parameter<int>("vertical_min_rings", 3));
+    vertical_min_span_m_ = declare_parameter<double>("vertical_min_span_m", 0.08);
 
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -190,6 +197,65 @@ private:
     set(f[4], "time", OUT_OFF_TIME, PF::FLOAT32);
     set(f[5], "ring", OUT_OFF_RING, PF::UINT16);
     return f;
+  }
+
+  void publishVerticalScan(
+    const std::vector<float> & bx, const std::vector<float> & by, const std::vector<float> & bz,
+    const std::vector<uint16_t> & ring, const builtin_interfaces::msg::Time & stamp)
+  {
+    if (!scan_pub_ || bx.empty()) {return;}
+    const int n_az = azimuth_bins_;
+    const double d_az = (2.0 * M_PI) / static_cast<double>(n_az);
+    int n_ring = 0;
+    for (auto r : ring) {n_ring = std::max<int>(n_ring, r + 1);}
+    n_ring = std::min(n_ring, 128);
+    const float INF = std::numeric_limits<float>::infinity();
+
+    // Nearest return of each ring in each azimuth bin (horizontal distance from base_stab origin)
+    std::vector<float> rh(static_cast<size_t>(n_az * n_ring), INF), zz(static_cast<size_t>(n_az * n_ring), 0.0f);
+    for (size_t i = 0; i < bx.size(); ++i) {
+      const float r = std::hypot(bx[i], by[i]);
+      if (r < min_range_ || r >= max_range_ || ring[i] >= n_ring) {continue;}
+      int a = static_cast<int>((std::atan2(by[i], bx[i]) + M_PI) / d_az);
+      a = std::clamp(a, 0, n_az - 1);
+      const size_t k = static_cast<size_t>(a * n_ring + ring[i]);
+      if (r < rh[k]) {rh[k] = r; zz[k] = bz[i];}
+    }
+
+    auto scan = std::make_unique<sensor_msgs::msg::LaserScan>();
+    scan->header.stamp = stamp;
+    scan->header.frame_id = target_frame_;
+    scan->angle_min = -M_PI;
+    scan->angle_max = M_PI;
+    scan->angle_increment = static_cast<float>(d_az);
+    scan->scan_time = 0.05f;
+    scan->range_min = static_cast<float>(min_range_);
+    scan->range_max = static_cast<float>(max_range_);
+    scan->ranges.assign(n_az, INF);
+
+    const float tol = static_cast<float>(vertical_tol_m_);
+    const float min_span = static_cast<float>(vertical_min_span_m_);
+    for (int a = 0; a < n_az; ++a) {
+      const float * r = &rh[static_cast<size_t>(a * n_ring)];
+      const float * z = &zz[static_cast<size_t>(a * n_ring)];
+      float best = INF;
+      // Runs of adjacent rings whose horizontal distances stay within tol of each other
+      for (int i = 0; i < n_ring; ++i) {
+        if (!std::isfinite(r[i])) {continue;}
+        float lo = r[i], hi = r[i], zlo = z[i], zhi = z[i];
+        int j = i + 1;
+        for (; j < n_ring && std::isfinite(r[j]); ++j) {
+          const float nlo = std::min(lo, r[j]), nhi = std::max(hi, r[j]);
+          if (nhi - nlo > tol) {break;}
+          lo = nlo; hi = nhi; zlo = std::min(zlo, z[j]); zhi = std::max(zhi, z[j]);
+        }
+        if (j - i >= vertical_min_rings_ && zhi - zlo >= min_span) {
+          best = std::min(best, 0.5f * (lo + hi));
+        }
+      }
+      scan->ranges[a] = best;
+    }
+    scan_pub_->publish(std::move(scan));
   }
 
   void publishTerrainAwareScan(
@@ -359,10 +425,12 @@ private:
     out->data.resize(static_cast<size_t>(OUT_POINT_STEP) * m);
 
     std::vector<float> stab_x, stab_y, stab_z;
+    std::vector<uint16_t> stab_ring;
     if (publish_terrain_scan_) {
       stab_x.reserve(m);
       stab_y.reserve(m);
       stab_z.reserve(m);
+      stab_ring.reserve(m);
     }
 
     uint8_t * dst = out->data.data();
@@ -405,12 +473,17 @@ private:
         stab_x.push_back(sx);
         stab_y.push_back(sy);
         stab_z.push_back(sz);
+        stab_ring.push_back(ring);
       }
     }
 
     pub_->publish(std::move(out));
     if (publish_terrain_scan_) {
-      publishTerrainAwareScan(stab_x, stab_y, stab_z, out_stamp);
+      if (scan_mode_ == "vertical" && layout_.ring >= 0) {
+        publishVerticalScan(stab_x, stab_y, stab_z, stab_ring, out_stamp);
+      } else {
+        publishTerrainAwareScan(stab_x, stab_y, stab_z, out_stamp);
+      }
     }
     ++count_;
   }
@@ -438,6 +511,10 @@ private:
   double obstacle_max_dz_{1.20};
   double radial_bin_m_{0.35};
   int azimuth_bins_{360};
+  std::string scan_mode_{"slope"};
+  double vertical_tol_m_{0.03};
+  int vertical_min_rings_{3};
+  double vertical_min_span_m_{0.08};
 
   InputLayout layout_;
   ClockAligner clock_;
