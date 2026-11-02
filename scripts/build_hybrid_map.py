@@ -165,11 +165,11 @@ def save_map_bundle(img, meta, map_name, set_default=False):
 def merge_cad_and_lidar(cad_img, cad_meta, scan_pgm_path, wall_band_m=0.18):
     scan_img = read_pgm(scan_pgm_path)
     if scan_img.shape != cad_img.shape:
-        sh, sw = scan_img.shape
-        ch, cw = cad_img.shape
-        yi = np.clip((np.arange(ch) * sh / ch).astype(int), 0, sh - 1)
-        xi = np.clip((np.arange(cw) * sw / cw).astype(int), 0, sw - 1)
-        scan_img = scan_img[np.ix_(yi, xi)]
+        # Stretching a LiDAR map onto the CAD grid ignores origin/resolution and silently
+        # misplaces every wall. The scan map must already share the CAD grid.
+        raise ValueError(
+            f"scan map {scan_img.shape} does not match CAD grid {cad_img.shape}; "
+            "register it to the CAD frame (same origin/resolution) before merging")
 
     walkable = cad_meta['walkable_mask']
     res = cad_meta['resolution']

@@ -8,7 +8,7 @@
  *   3. Stop Line 1: >= 2.0s full stop + wait for GREEN traffic light (+50 pts)
  *   4. Rubber Cone Slalom (23cm cones): lateral repulsion & wall clearance (+100 pts)
  *   5. Stop Line 2: >= 2.0s full stop + wait for GREEN traffic light (+50 pts)
- *   6. Parking Bay ('P' / QR): Sport API 1005 (StandDown) for >= 5.0s + 1004 (StandUp) (+50 pts)
+ *   6. Parking Bay ('P' / QR): Sport API 1009 (Sit) for >= 5.0s + 1010 (RiseSit) (+50 pts)
  *   7. OUT Finish Line traversal (+200 pts)
  */
 
@@ -75,6 +75,13 @@ public:
     // Relative-to-start option so the FSM can also run in pure odom frame starting at (0,0)
     use_relative_demo_ = declare_parameter<bool>("use_relative_route", false);
 
+    // A GREEN must arrive after the stop began and be this fresh to count
+    traffic_fresh_sec_ = declare_parameter<double>("traffic_fresh_sec", 1.0);
+    cone_fresh_sec_ = declare_parameter<double>("cone_fresh_sec", 0.5);
+    // 1009 Sit / 1010 RiseSit (1005 StandDown + 1004 StandUp leaves the joints locked: Move is ignored)
+    sit_api_id_ = declare_parameter<int>("parking_sit_api_id", 1009);
+    rise_api_id_ = declare_parameter<int>("parking_rise_api_id", 1010);
+
     initWaypoints();
 
     cmd_pub_ = create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
@@ -89,13 +96,19 @@ public:
       std::bind(&MissionFsmNode::onScan, this, std::placeholders::_1));
     traffic_sub_ = create_subscription<std_msgs::msg::String>(
       "/mission/traffic_light", 10,
-      [this](const std_msgs::msg::String::SharedPtr msg) { traffic_state_ = msg->data; });
+      [this](const std_msgs::msg::String::SharedPtr msg) {
+        traffic_state_ = msg->data;
+        traffic_stamp_ = std::chrono::steady_clock::now();
+      });
     parking_sub_ = create_subscription<std_msgs::msg::Bool>(
       "/mission/parking_ready", 10,
       [this](const std_msgs::msg::Bool::SharedPtr msg) { parking_marker_seen_ = msg->data; });
     cone_sub_ = create_subscription<geometry_msgs::msg::PoseArray>(
       "/mission/cone_poses", 10,
-      [this](const geometry_msgs::msg::PoseArray::SharedPtr msg) { cone_poses_ = *msg; });
+      [this](const geometry_msgs::msg::PoseArray::SharedPtr msg) {
+        cone_poses_ = *msg;
+        cone_stamp_ = std::chrono::steady_clock::now();
+      });
 
     RCLCPP_INFO(
       get_logger(),
@@ -123,6 +136,12 @@ public:
 
     double x, y, z, yaw;
     if (!queryPose(x, y, z, yaw)) {
+      // No pose in the reference frame: never drive on a guess
+      geometry_msgs::msg::Twist zero;
+      cmd_pub_->publish(zero);
+      RCLCPP_WARN_THROTTLE(
+        get_logger(), *get_clock(), 2000,
+        "No pose in '%s' frame (is localization running?). Holding still.", ref_frame_.c_str());
       return;
     }
 
@@ -237,12 +256,21 @@ private:
       if (elapsed < stop_hold_sec_) {
         return;
       }
-      if (traffic_state_ == "GREEN" || elapsed >= traffic_timeout_sec_) {
+      // Only a GREEN received during this stop counts; a GREEN from the previous stop line must not.
+      const auto now_tp = std::chrono::steady_clock::now();
+      const bool fresh = traffic_stamp_ > action_start_time_ &&
+        std::chrono::duration<double>(now_tp - traffic_stamp_).count() <= traffic_fresh_sec_;
+      const std::string signal = fresh ? traffic_state_ : std::string("STALE");
+      const bool timed_out = elapsed >= traffic_timeout_sec_;
+      if (signal == "GREEN" || (timed_out && signal != "RED")) {
         RCLCPP_INFO(
-          get_logger(), "[TRAFFIC] Hold=%.1fs complete (signal=%s). Proceeding (+50 pts).",
-          elapsed, traffic_state_.c_str());
+          get_logger(), "[TRAFFIC] Hold=%.1fs complete (signal=%s%s). Proceeding.",
+          elapsed, signal.c_str(), timed_out ? ", timeout" : "");
         in_special_action_ = false;
         advanceStage();
+      } else if (timed_out) {
+        RCLCPP_WARN_THROTTLE(
+          get_logger(), *get_clock(), 2000, "[TRAFFIC] Timeout but signal is RED. Still waiting.");
       }
       return;
     }
@@ -251,17 +279,21 @@ private:
       // Rulebook 5.2: Full sit >= 5.0s inside parking zone (+50 pts)
       if (!parking_sit_sent_) {
         stopRobot();
-        sendSportCmd(1005);  // API ID 1005: StandDown (Sit)
+        sendSportCmd(sit_api_id_);
         parking_sit_sent_ = true;
-        RCLCPP_INFO(get_logger(), "[PARKING] Sent StandDown(1005). Holding sit for %.1fs...", parking_sit_sec_);
+        parking_rise_sent_ = false;
+        RCLCPP_INFO(get_logger(), "[PARKING] Sent Sit(%d). Holding sit for %.1fs...", sit_api_id_, parking_sit_sec_);
         return;
       }
       if (elapsed >= parking_sit_sec_ && elapsed < parking_sit_sec_ + 1.5) {
-        sendSportCmd(1004);  // API ID 1004: StandUp
+        if (!parking_rise_sent_) {
+          sendSportCmd(rise_api_id_);
+          parking_rise_sent_ = true;
+        }
         return;
       }
       if (elapsed >= parking_sit_sec_ + 1.5) {
-        RCLCPP_INFO(get_logger(), "[PARKING] Sit 5s & StandUp complete (+50 pts). Exiting bay.");
+        RCLCPP_INFO(get_logger(), "[PARKING] Sit %.1fs & RiseSit complete. Exiting bay.", parking_sit_sec_);
         in_special_action_ = false;
         advanceStage();
       }
@@ -293,8 +325,10 @@ private:
   double computeLateralAvoidance()
   {
     double vy = 0.0;
-    // Repulsion from detected 23cm cones within 1.1m ahead
-    for (const auto & p : cone_poses_.poses) {
+    // Repulsion from detected 23cm cones within 1.1m ahead (ignore detections the detector stopped refreshing)
+    const bool cones_fresh = std::chrono::duration<double>(
+      std::chrono::steady_clock::now() - cone_stamp_).count() <= cone_fresh_sec_;
+    for (const auto & p : cones_fresh ? cone_poses_.poses : std::vector<geometry_msgs::msg::Pose>{}) {
       if (p.position.x > 0.15 && p.position.x < 1.10 && std::abs(p.position.y) < 0.45) {
         const double sign = (p.position.y >= 0.0) ? -1.0 : 1.0;
         const double mag = 0.18 * (1.10 - p.position.x);
@@ -327,26 +361,24 @@ private:
 
   bool queryPose(double & x, double & y, double & z, double & yaw)
   {
-    const std::vector<std::string> frames = {ref_frame_, "odom"};
-    for (const auto & f : frames) {
-      try {
-        auto tr = tf_buffer_.lookupTransform(f, "base_link", tf2::TimePointZero);
-        x = tr.transform.translation.x;
-        y = tr.transform.translation.y;
-        z = tr.transform.translation.z;
-        tf2::Quaternion q(
-          tr.transform.rotation.x,
-          tr.transform.rotation.y,
-          tr.transform.rotation.z,
-          tr.transform.rotation.w);
-        double r, p;
-        tf2::Matrix3x3(q).getRPY(r, p, yaw);
-        return true;
-      } catch (const tf2::TransformException &) {
-        continue;
-      }
+    // Waypoints are in ref_frame_. Falling back to odom would drive map coordinates from wherever
+    // the robot was switched on, so only odom-referenced routes may use the raw topic below.
+    try {
+      auto tr = tf_buffer_.lookupTransform(ref_frame_, "base_link", tf2::TimePointZero);
+      x = tr.transform.translation.x;
+      y = tr.transform.translation.y;
+      z = tr.transform.translation.z;
+      tf2::Quaternion q(
+        tr.transform.rotation.x,
+        tr.transform.rotation.y,
+        tr.transform.rotation.z,
+        tr.transform.rotation.w);
+      double r, p;
+      tf2::Matrix3x3(q).getRPY(r, p, yaw);
+      return true;
+    } catch (const tf2::TransformException &) {
     }
-    if (raw_odom_) {
+    if (ref_frame_ == "odom" && raw_odom_) {
       const auto & p = raw_odom_->pose.pose;
       x = p.position.x;
       y = p.position.y;
@@ -378,16 +410,23 @@ private:
   double xy_tol_m_ = 0.16;
   double yaw_tol_deg_ = 7.0;
   bool use_relative_demo_ = false;
+  double traffic_fresh_sec_ = 1.0;
+  double cone_fresh_sec_ = 0.5;
+  int sit_api_id_ = 1009;
+  int rise_api_id_ = 1010;
 
   std::vector<StageWaypoint> stages_;
   size_t stage_idx_ = 0;
   bool in_special_action_ = false;
   bool parking_sit_sent_ = false;
+  bool parking_rise_sent_ = false;
   bool mission_complete_ = false;
   size_t tick_ = 0;
   std::chrono::steady_clock::time_point action_start_time_;
 
   std::string traffic_state_ = "UNKNOWN";
+  std::chrono::steady_clock::time_point traffic_stamp_{};
+  std::chrono::steady_clock::time_point cone_stamp_{};
   bool parking_marker_seen_ = false;
   double left_wall_dist_ = 99.9;
   double right_wall_dist_ = 99.9;

@@ -13,6 +13,9 @@
    - 모델 파일이 없거나 로드할 수 없을 경우, 프레임워크가 자동으로 **Mock(모의) 모드**로 동작하여 전체 자율주행 파이프라인(`mission_runner`)의 끊김 없는 테스트를 보장합니다.
 
 ## 클래스 정의 (3-Class)
-- `Class 0`: `traffic_cone` (23cm 주황색 라바콘)
-- `Class 1`: `parking_sign` (10cm 'P' 문자 및 QR 코드)
-- `Class 9` (COCO 기본): `traffic_light` (지상 1.3m 신호등)
+`yolo_mission.onnx` 메타데이터 기준 (`config/yolo_params.yaml` 의 `class_*` 와 일치해야 함):
+- `Class 0`: `traffic_light` (지상 1.3m 신호등)
+- `Class 1`: `traffic_cone` (23cm 주황색 라바콘)
+- `Class 2`: `parking_sign` (10cm 'P' 문자 및 QR 코드)
+
+모델이 없거나 로드에 실패하면 노드는 에러로 종료합니다. Mock 은 `engine_type:=mock` 일 때만.

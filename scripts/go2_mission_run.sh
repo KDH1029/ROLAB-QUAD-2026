@@ -53,17 +53,23 @@ fi
 
 echo "----------------------------------------------------------------------"
 echo "2026 RoboWorld Quadruped Competition Mission Stack (450-pt Full Course)"
-echo "  Vision nodes : traffic_light_node, parking_marker_node, cone_detector_node"
+echo "  Vision node  : yolo_detector_node (traffic light / cone / parking)"
 echo "  Controller   : mission_fsm_node (7-Stage C++ State Machine)"
 echo "  Frame        : $REF_FRAME (sim_mode=$SIM_MODE)"
 echo "----------------------------------------------------------------------"
 
 cleanup() {
     echo -e "\n[INFO] Stopping competition mission stack..."
-    pkill -P $$ 2>/dev/null || true
-    pkill -f "odom_tf_node|imu_bridge_node|cloud_bridge_node|cmd_vel_to_sport_node|traffic_light_node|parking_marker_node|cone_detector_node|mission_fsm_node|sim_nav_test" 2>/dev/null || true
+    # Only our own children. A name-based pkill -f would also kill other workspaces'
+    # cloud_bridge_node / imu_bridge_node running on the same machine.
+    pkill -INT -P $$ 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
+
+if [ "$SIM_MODE" = false ]; then
+    echo "[INFO] Waypoints are in the 'map' frame: start localization first (go2_nav_run.sh)."
+    echo "       Without map->odom TF the FSM holds still instead of driving."
+fi
 
 if [ "$SIM_MODE" = true ]; then
     python3 "$WS_DIR/scripts/sim_nav_test.py" >/dev/null 2>&1 &

@@ -51,9 +51,11 @@ public:
       cmd_vel_topic_.c_str(), sport_req_topic_.c_str(), max_vx_, min_vx_, max_wz_);
   }
 
-  ~CmdVelToSportNode() override
+  // Ctrl+C invalidates the context before spin() returns, so a stop sent from the destructor
+  // never leaves the process. Send it from a pre-shutdown callback while publishing still works.
+  void sendStop()
   {
-    sendStop();
+    pub_->publish(createRequest(ROBOT_SPORT_API_ID_STOPMOVE, "{}"));
   }
 
 private:
@@ -141,11 +143,6 @@ private:
     pub_->publish(createRequest(ROBOT_SPORT_API_ID_MOVE, param_buf));
   }
 
-  void sendStop()
-  {
-    pub_->publish(createRequest(ROBOT_SPORT_API_ID_STOPMOVE, "{}"));
-  }
-
   std::string cmd_vel_topic_;
   std::string sport_req_topic_;
   double max_vx_{1.0};
@@ -180,6 +177,8 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<go2_bridge::CmdVelToSportNode>();
+  rclcpp::contexts::get_global_default_context()->add_pre_shutdown_callback(
+    [node]() {node->sendStop();});
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;

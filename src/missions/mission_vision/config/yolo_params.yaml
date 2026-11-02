@@ -34,8 +34,12 @@ yolo_detector_node:
     camera_cx: 320.0
     camera_cy: 240.0
 
-    # Class ID or name mappings (RoboWorld 3-class YOLO)
+    # Class IDs — must match the ONNX metadata names of yolo_mission.onnx
     # 0: traffic_light, 1: traffic_cone, 2: parking_sign
     class_traffic_light: 0
     class_cone: 1
     class_parking: 2
+
+    # Inference rate cap (Hz, 0 = every frame) and debug image (off on the robot)
+    max_infer_hz: 5.0
+    publish_debug_image: false

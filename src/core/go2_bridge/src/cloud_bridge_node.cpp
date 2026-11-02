@@ -272,7 +272,9 @@ private:
             scan->ranges[a] = r_val;
             break;
           } else if (slope_tan <= max_slope_tan) {
-            ground_z = 0.6 * ground_z + 0.4 * static_cast<double>(min_z);
+            // Track the last accepted ground point itself. An EMA lags behind a ramp, so the next
+            // bin's rise is measured against a stale height and a 10 deg ramp reads as a wall.
+            ground_z = static_cast<double>(min_z);
             prev_r = static_cast<double>(r_val);
           }
         } else {
@@ -334,7 +336,10 @@ private:
       tx_stab = tf.transform.translation.x;
       ty_stab = tf.transform.translation.y;
       tz_stab = tf.transform.translation.z;
-    } catch (const std::exception &) {
+    } catch (const std::exception & e) {
+      RCLCPP_WARN_THROTTLE(
+        get_logger(), *get_clock(), 5000,
+        "TF to %s unavailable (%s); /scan uses fixed untilted extrinsic", target_frame_.c_str(), e.what());
       R_to_stab = Mat3{{0, -1, 0, 1, 0, 0, 0, 0, 1}};
       tx_stab = 0.25;
       tz_stab = 0.1588;

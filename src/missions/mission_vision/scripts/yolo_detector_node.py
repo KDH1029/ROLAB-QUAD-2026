@@ -36,9 +36,10 @@ class BaseYoloEngine:
 
 
 class MockYoloEngine(BaseYoloEngine):
-    """Fallback engine used when weights are not yet loaded; enables full-pipeline testing."""
-    def __init__(self):
+    """Dummy engine for pipeline tests only (engine_type:=mock)."""
+    def __init__(self, tl_cls=0):
         self.frame_idx = 0
+        self.tl_cls = tl_cls
 
     def predict(self, bgr_image: np.ndarray, conf_thresh: float):
         self.frame_idx += 1
@@ -48,7 +49,7 @@ class MockYoloEngine(BaseYoloEngine):
         dets.append({
             'bbox': [int(w * 0.40), int(h * 0.15), int(w * 0.60), int(h * 0.45)],
             'conf': 0.88,
-            'cls': 9  # traffic light
+            'cls': self.tl_cls
         })
         return dets
 
@@ -115,17 +116,17 @@ class OpenCvDnnEngine(BaseYoloEngine):
         return results
 
 
-def create_engine(engine_type: str, model_path: str, in_w=640, in_h=640, device="cpu"):
-    """Factory creating the appropriate backend engine with graceful fallback."""
+def create_engine(engine_type: str, model_path: str, in_w=640, in_h=640, device="cpu", tl_cls=0):
+    """Factory creating the backend engine. Fails loudly unless mock is requested."""
     if engine_type == "mock":
-        return MockYoloEngine()
+        return MockYoloEngine(tl_cls)
 
     if os.path.isfile(model_path):
         if model_path.endswith(".onnx"):
             try:
                 return OpenCvDnnEngine(model_path, in_w, in_h, device)
             except Exception as e:
-                print(f"[WARN] Failed to load ONNX model via OpenCV DNN: {e}. Falling back to Mock.")
+                raise RuntimeError(f"Failed to load ONNX model via OpenCV DNN: {e}") from e
         elif model_path.endswith(".pt"):
             try:
                 from ultralytics import YOLO
@@ -141,10 +142,11 @@ def create_engine(engine_type: str, model_path: str, in_w=640, in_h=640, device=
                         return dets
                 return UltralyticsEngine(model_path)
             except Exception as e:
-                print(f"[WARN] Ultralytics import failed: {e}. Falling back to Mock.")
+                raise RuntimeError(f"Ultralytics load failed: {e}") from e
 
-    print(f"[INFO] No valid YOLO model found at '{model_path}'. Running in Mock mode.")
-    return MockYoloEngine()
+    # Mock 은 engine_type="mock" 으로 명시했을 때만. 실기에서 조용히 Mock 으로 바뀌면
+    # 화면 중앙의 아무 초록색이나 GREEN 으로 판정해 신호를 무시하고 출발한다.
+    raise RuntimeError(f"YOLO model could not be loaded: '{model_path}' (set engine_type:=mock for pipeline tests)")
 
 
 # ==============================================================================
@@ -266,6 +268,13 @@ class YoloDetectorNode(Node):
         self.declare_parameter('cone_poses_topic', '/mission/cone_poses')
         self.declare_parameter('parking_ready_topic', '/mission/parking_ready')
         self.declare_parameter('debug_image_topic', '/mission/yolo_debug_image')
+        # yolo_mission.onnx 메타데이터 names = {0: traffic_light, 1: traffic_cone, 2: parking_sign}
+        self.declare_parameter('class_traffic_light', 0)
+        self.declare_parameter('class_cone', 1)
+        self.declare_parameter('class_parking', 2)
+        # 추론 주기 상한 (Hz). 카메라 30Hz 를 전부 추론하면 CPU 를 다 먹는다. 0 이면 제한 없음.
+        self.declare_parameter('max_infer_hz', 5.0)
+        self.declare_parameter('publish_debug_image', False)
 
         engine_type = self.get_parameter('engine_type').value
         model_path = self.get_parameter('model_path').value
@@ -273,12 +282,22 @@ class YoloDetectorNode(Node):
         in_w = self.get_parameter('input_width').value
         in_h = self.get_parameter('input_height').value
         self.conf_thresh = self.get_parameter('conf_threshold').value
+        self.cls_tl = int(self.get_parameter('class_traffic_light').value)
+        self.cls_cone = int(self.get_parameter('class_cone').value)
+        self.cls_park = int(self.get_parameter('class_parking').value)
+        hz = float(self.get_parameter('max_infer_hz').value)
+        self.min_period_ns = int(1e9 / hz) if hz > 0 else 0
+        self.last_infer_ns = 0
+        self.publish_debug = bool(self.get_parameter('publish_debug_image').value)
 
-        # Resolve model path relative to package root
-        pkg_root = Path(__file__).resolve().parent.parent
-        full_model_path = str(pkg_root / model_path) if not os.path.isabs(model_path) else model_path
+        # 상대경로는 설치된 share/mission_vision 기준 (symlink-install 여부와 무관)
+        if os.path.isabs(model_path):
+            full_model_path = model_path
+        else:
+            from ament_index_python.packages import get_package_share_directory
+            full_model_path = os.path.join(get_package_share_directory('mission_vision'), model_path)
 
-        self.engine = create_engine(engine_type, full_model_path, in_w, in_h, device)
+        self.engine = create_engine(engine_type, full_model_path, in_w, in_h, device, self.cls_tl)
         self.tl_handler = TrafficLightHandler()
         self.cone_handler = ConeHandler()
         self.parking_handler = ParkingHandler()
@@ -312,6 +331,10 @@ class YoloDetectorNode(Node):
         self.parking_handler.set_scan(msg)
 
     def on_image(self, msg: Image):
+        now_ns = self.get_clock().now().nanoseconds
+        if self.min_period_ns and now_ns - self.last_infer_ns < self.min_period_ns:
+            return
+        self.last_infer_ns = now_ns
         channels = 4 if 'a' in msg.encoding else 3
         if msg.step < msg.width * channels:
             return
@@ -333,15 +356,13 @@ class YoloDetectorNode(Node):
             conf = det['conf']
             x1, y1, x2, y2 = bbox
 
-            # Class 9 (COCO) or custom: Traffic Light
-            if cls_id == 9:
+            if cls_id == self.cls_tl:
                 crop = bgr[y1:y2, x1:x2]
                 tl_state = self.tl_handler.process(crop)
                 cv2.rectangle(bgr, (x1, y1), (x2, y2), (0, 255, 255), 2)
                 cv2.putText(bgr, f"TL:{tl_state}", (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
-            # Class 0: Traffic Cone (23cm)
-            elif cls_id == 0:
+            elif cls_id == self.cls_cone:
                 cv2.rectangle(bgr, (x1, y1), (x2, y2), (0, 140, 255), 2)
                 if self.last_depth is not None:
                     res3d = self.cone_handler.process(bbox, self.last_depth)
@@ -354,8 +375,7 @@ class YoloDetectorNode(Node):
                         cv2.putText(bgr, f"Cone:({rx:.1f},{ry:.1f})m", (x1, y1 - 6),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 140, 255), 2)
 
-            # Class 1: Parking Sign ('P' / QR)
-            elif cls_id == 1:
+            elif cls_id == self.cls_park:
                 parking_ready = self.parking_handler.process(conf)
                 color = (0, 255, 0) if parking_ready else (0, 0, 255)
                 cv2.rectangle(bgr, (x1, y1), (x2, y2), color, 2)
@@ -367,7 +387,8 @@ class YoloDetectorNode(Node):
         self.cone_pub.publish(cone_poses)
         self.park_pub.publish(Bool(data=parking_ready))
 
-        # Publish visual debug image
+        if not self.publish_debug:
+            return
         debug_msg = Image()
         debug_msg.header = msg.header
         debug_msg.height, debug_msg.width = bgr.shape[:2]
