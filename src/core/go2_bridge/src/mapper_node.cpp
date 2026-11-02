@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
+#include <random>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -68,6 +69,9 @@ struct MapperConfig
   std::string base_frame = "base_link";
   double duration_sec = 0.0;
   bool local_level = true;
+  bool auto_level = true;
+  double level_cell_m = 0.5;
+  double level_inlier_m = 0.05;
   bool set_default = true;
 };
 
@@ -184,7 +188,96 @@ bool writePcdFile(const std::string & path, const std::vector<Point3f> & pts)
   return true;
 }
 
-bool exportOccupancyGrid(const std::vector<Point3f> & raw_pts, const MapperConfig & cfg)
+// Fit the dominant floor plane and rotate the cloud so that plane is level (z = 0).
+// Candidates are the lowest points of each level_cell_m cell; RANSAC keeps ramps/stairs
+// (a minority of cells) from tilting the fit. A map tilted by a few degrees shifts the wall
+// band by tan(tilt) * distance, which cuts walls on one side and adds floor on the other.
+// trajectory: robot base positions while mapping. The robot stood on that ground, so when
+// available it is the floor reference (cloud-lowest points mix in ramps, platforms and noise
+// below the floor; on the 누리관 bag they gave 2.41 vs 1.33 deg depending on the percentile).
+void autoLevel(std::vector<Point3f> & pts, const MapperConfig & cfg,
+  const std::vector<Point3f> & trajectory = {})
+{
+  std::vector<Point3f> cand;
+  const char * source = "trajectory";
+  if (trajectory.size() >= 50) {
+    cand = trajectory;
+  } else {
+    source = "cloud";
+    const float cell = static_cast<float>(cfg.level_cell_m);
+    std::unordered_map<int64_t, Point3f> lowest;
+    for (const auto & p : pts) {
+      const int64_t key = (static_cast<int64_t>(std::floor(p.x / cell)) << 32) ^
+        (static_cast<int64_t>(std::floor(p.y / cell)) & 0xffffffffLL);
+      auto it = lowest.find(key);
+      if (it == lowest.end() || p.z < it->second.z) {lowest[key] = p;}
+    }
+    cand.reserve(lowest.size());
+    for (const auto & kv : lowest) {cand.push_back(kv.second);}
+  }
+  if (cand.size() < 20) {
+    std::cout << "  - AutoLevel: skipped (" << cand.size() << " floor candidates)\n";
+    return;
+  }
+
+  std::mt19937 rng(12345);
+  std::uniform_int_distribution<size_t> pick(0, cand.size() - 1);
+  const double thr = cfg.level_inlier_m;
+  size_t best_n = 0;
+  double best[3] = {0.0, 0.0, 0.0};  // z = a x + b y + c
+  for (int it = 0; it < 500; ++it) {
+    const auto & p1 = cand[pick(rng)];
+    const auto & p2 = cand[pick(rng)];
+    const auto & p3 = cand[pick(rng)];
+    const double ux = p2.x - p1.x, uy = p2.y - p1.y, uz = p2.z - p1.z;
+    const double vx = p3.x - p1.x, vy = p3.y - p1.y, vz = p3.z - p1.z;
+    const double nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    if (std::abs(nz) < 1e-6 || std::abs(nz) < 0.9 * std::sqrt(nx * nx + ny * ny + nz * nz)) {continue;}
+    const double a = -nx / nz, b = -ny / nz, c = p1.z - a * p1.x - b * p1.y;
+    size_t n = 0;
+    for (const auto & q : cand) {
+      if (std::abs(q.z - (a * q.x + b * q.y + c)) < thr) {++n;}
+    }
+    if (n > best_n) {best_n = n; best[0] = a; best[1] = b; best[2] = c;}
+  }
+  // Least-squares refit on inliers
+  double sxx = 0, sxy = 0, sx = 0, syy = 0, sy = 0, sn = 0, sxz = 0, syz = 0, sz = 0;
+  for (const auto & q : cand) {
+    if (std::abs(q.z - (best[0] * q.x + best[1] * q.y + best[2])) >= thr) {continue;}
+    sxx += q.x * q.x; sxy += q.x * q.y; sx += q.x; syy += q.y * q.y; sy += q.y; sn += 1;
+    sxz += q.x * q.z; syz += q.y * q.z; sz += q.z;
+  }
+  const tf2::Matrix3x3 A(sxx, sxy, sx, sxy, syy, sy, sx, sy, sn);
+  const tf2::Vector3 abc = A.inverse() * tf2::Vector3(sxz, syz, sz);
+
+  // Rotate plane normal (-a, -b, 1) onto +z, then drop the plane offset to z = 0
+  tf2::Vector3 n(-abc.x(), -abc.y(), 1.0);
+  n.normalize();
+  const tf2::Vector3 z(0, 0, 1);
+  const double tilt = std::acos(std::clamp(n.dot(z), -1.0, 1.0));
+  tf2::Matrix3x3 R;
+  R.setIdentity();
+  if (tilt > 1e-6) {
+    tf2::Vector3 axis = n.cross(z);
+    axis.normalize();
+    R.setRotation(tf2::Quaternion(axis, tilt));
+  }
+  // Trajectory points are at body height, so only the tilt is taken from them; the floor offset
+  // is left to the local floor estimate.
+  const tf2::Vector3 o = R * tf2::Vector3(0, 0, trajectory.size() >= 50 ? 0.0 : abc.z());
+  for (auto & p : pts) {
+    const tf2::Vector3 w = R * tf2::Vector3(p.x, p.y, p.z);
+    p.x = static_cast<float>(w.x());
+    p.y = static_cast<float>(w.y());
+    p.z = static_cast<float>(w.z() - o.z());
+  }
+  std::cout << "  - AutoLevel: tilt " << std::fixed << std::setprecision(2) << tilt * 180.0 / M_PI
+            << " deg corrected (" << source << " inliers " << best_n << "/" << cand.size() << ")\n";
+}
+
+bool exportOccupancyGrid(
+  const std::vector<Point3f> & raw_pts, const MapperConfig & cfg,
+  const std::vector<Point3f> & trajectory = {})
 {
   if (raw_pts.empty()) {
     std::cerr << "[WARN] Point cloud is empty. Nothing to export.\n";
@@ -192,6 +285,9 @@ bool exportOccupancyGrid(const std::vector<Point3f> & raw_pts, const MapperConfi
   }
 
   std::vector<Point3f> pts = raw_pts;
+  if (cfg.auto_level) {
+    autoLevel(pts, cfg, trajectory);
+  }
   float x_min = pts[0].x, x_max = pts[0].x;
   float y_min = pts[0].y, y_max = pts[0].y;
   for (const auto & p : pts) {
@@ -413,6 +509,9 @@ public:
     cfg_.base_frame = declare_parameter<std::string>("base_frame", "base_link");
     cfg_.duration_sec = declare_parameter<double>("duration_sec", 0.0);
     cfg_.local_level = declare_parameter<bool>("local_level", true);
+    cfg_.auto_level = declare_parameter<bool>("auto_level", true);
+    cfg_.level_cell_m = declare_parameter<double>("level_cell_m", 0.5);
+    cfg_.level_inlier_m = declare_parameter<double>("level_inlier_m", 0.05);
     cfg_.set_default = declare_parameter<bool>("set_default", true);
 
     if (cfg_.mode == "live") {
@@ -443,7 +542,7 @@ public:
     std::cout << "\n[DONE] 3D PCD saved: " << pcd_out.string()
               << " (" << accumulated_pts_.size() << " pts)\n";
 
-    exportOccupancyGrid(accumulated_pts_, cfg_);
+    exportOccupancyGrid(accumulated_pts_, cfg_, trajectory_);
   }
 
 private:
@@ -496,6 +595,10 @@ private:
     double br, bp, byaw;
     tf2::Matrix3x3(tf2::Quaternion(bq.x, bq.y, bq.z, bq.w)).getRPY(br, bp, byaw);
     if (!checkKeyframe(base_tf.transform.translation.x, base_tf.transform.translation.y, byaw)) return;
+    trajectory_.push_back({
+      static_cast<float>(base_tf.transform.translation.x),
+      static_cast<float>(base_tf.transform.translation.y),
+      static_cast<float>(base_tf.transform.translation.z)});
 
     const size_t n_pts = static_cast<size_t>(msg->width) * static_cast<size_t>(msg->height);
     const size_t step = msg->point_step;
@@ -506,6 +609,8 @@ private:
     const tf2::Matrix3x3 R(tf2::Quaternion(q.x, q.y, q.z, q.w));
     const auto & t = sensor_tf.transform.translation;
     const uint8_t * raw = msg->data.data();
+    const tf2::Vector3 base_pos(
+      base_tf.transform.translation.x, base_tf.transform.translation.y, base_tf.transform.translation.z);
     const double min_r2 = cfg_.min_range_m * cfg_.min_range_m;
     const double max_r2 = cfg_.max_range_m * cfg_.max_range_m;
 
@@ -515,14 +620,13 @@ private:
       std::memcpy(&ly, raw + i * step + 4, sizeof(float));
       std::memcpy(&lz, raw + i * step + 8, sizeof(float));
       if (!std::isfinite(lx) || !std::isfinite(ly) || !std::isfinite(lz)) continue;
-      const double r2 = static_cast<double>(lx) * lx + static_cast<double>(ly) * ly + static_cast<double>(lz) * lz;
+      const tf2::Vector3 w = R * tf2::Vector3(lx, ly, lz) + tf2::Vector3(t.x, t.y, t.z);
+      // Range from the robot base, so the gate also works for clouds already in the odom frame
+      // (e.g. FAST-LIO's deskewed /cloud_registered).
+      const double r2 = (w - base_pos).length2();
       if (r2 < min_r2 || r2 > max_r2) continue;
-      const tf2::Vector3 w = R * tf2::Vector3(lx, ly, lz);
       accumulated_pts_.push_back({
-        static_cast<float>(t.x + w.x()),
-        static_cast<float>(t.y + w.y()),
-        static_cast<float>(t.z + w.z())
-      });
+        static_cast<float>(w.x()), static_cast<float>(w.y()), static_cast<float>(w.z())});
     }
     keyframes_++;
     if (keyframes_ % 20 == 0) {
@@ -538,6 +642,7 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_;
 
   std::vector<Point3f> accumulated_pts_;
+  std::vector<Point3f> trajectory_;
   size_t keyframes_ = 0;
   bool has_last_pose_ = false;
   double last_x_ = 0.0;

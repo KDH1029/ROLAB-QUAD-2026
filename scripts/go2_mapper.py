@@ -40,6 +40,12 @@ def load_mapping_config():
         'cloud_stride': 2,
         'min_range_m': 0.6,
         'max_range_m': 12.0,
+        'auto_level': True,
+        'level_cell_m': 0.5,
+        'level_inlier_m': 0.05,
+        'odom_frame': 'odom',
+        'base_frame': 'base_link',
+        'cloud_topic': '/velodyne_points',
     }
     if HAS_YAML and SYS_CONFIG_FILE.exists():
         try:
@@ -89,7 +95,7 @@ def main():
 
     p_live = sub.add_parser('live', help='Real-time odometry + LiDAR mapping (C++ mapper_node)')
     p_live.add_argument('--name', type=str, default=f"map_{time.strftime('%m%d_%H%M')}", help='Output map name')
-    p_live.add_argument('--cloud-topic', type=str, default='/velodyne_points', help='3D PointCloud2 topic')
+    p_live.add_argument('--cloud-topic', type=str, default=cfg['cloud_topic'], help='3D PointCloud2 topic')
     p_live.add_argument('--res', type=float, default=cfg['resolution'], help='Grid resolution (m)')
     p_live.add_argument('--zmin', type=float, default=cfg['wall_z_min'], help='Min wall height above local floor (m)')
     p_live.add_argument('--zmax', type=float, default=cfg['wall_z_max'], help='Max wall height above local floor (m)')
@@ -129,6 +135,11 @@ def main():
             'cloud_stride': int(cfg['cloud_stride']),
             'min_range_m': float(cfg['min_range_m']),
             'max_range_m': float(cfg['max_range_m']),
+            'odom_frame': str(cfg['odom_frame']),
+            'base_frame': str(cfg['base_frame']),
+            'auto_level': bool(cfg['auto_level']),
+            'level_cell_m': float(cfg['level_cell_m']),
+            'level_inlier_m': float(cfg['level_inlier_m']),
             'duration_sec': float(args.duration),
             'set_default': bool(args.set_default),
         })
@@ -148,6 +159,9 @@ def main():
             'min_pts_per_cell': int(args.min_pts),
             'free_pad_m': float(args.free_pad),
             'local_level': not bool(args.no_level),
+            'auto_level': bool(cfg['auto_level']),
+            'level_cell_m': float(cfg['level_cell_m']),
+            'level_inlier_m': float(cfg['level_inlier_m']),
             'set_default': bool(args.set_default),
         })
     else:

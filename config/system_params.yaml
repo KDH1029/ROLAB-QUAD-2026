@@ -61,6 +61,15 @@ mapping:
   cloud_stride: 2                   # Use every Nth LiDAR point while accumulating (live)
   min_range_m: 0.6                  # Ignore returns closer than this to the LiDAR (robot body / legs)
   max_range_m: 12.0                 # Ignore returns farther than this (outside the arena)
+  auto_level: true                  # Level the map: floor plane from the mapping trajectory (fallback: lowest cloud points)
+  level_cell_m: 0.5                 # Cell size for cloud-based floor candidates (fallback only)
+  level_inlier_m: 0.05              # RANSAC inlier distance for the floor plane (m)
+  # Pose source for live mapping. FAST-LIO poses + its deskewed cloud gave walls ~13 cm vs ~25 cm on leg odom:
+  #   leg odom : odom_frame "odom",        base_frame "base_link", cloud_topic "/velodyne_points"
+  #   FAST-LIO : odom_frame "camera_init", base_frame "body",      cloud_topic "/cloud_registered" (cloud_stride 1)
+  odom_frame: "odom"
+  base_frame: "base_link"
+  cloud_topic: "/velodyne_points"
 
 # 5. Odometry & Goal Navigation Control
 navigation_control:
