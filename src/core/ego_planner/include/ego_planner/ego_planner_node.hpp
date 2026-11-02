@@ -13,6 +13,8 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rcl_interfaces/msg/set_parameters_result.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
 #include "nav_msgs/msg/odometry.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -73,6 +75,10 @@ private:
   void publishVisualizations();
   void publishMapVisualization();
   void stopRobot();
+  // Goals may come in another frame (e.g. AMCL "map"). They are kept in that frame and mapped
+  // into the odometry frame with the robot pose seen in both, again at every replan, so the
+  // goal stays anchored to the map while the controller runs on the smooth odometry.
+  bool resolveGoal(Eigen::Vector2d & goal_odom);
 
   // Components
   std::shared_ptr<GridMap> grid_map_;
@@ -152,6 +158,11 @@ private:
   bool have_last_odom_{false};
   bool blocked_stop_{false};
   std::string static_map_path_;
+  std::string goal_base_frame_{"base_link"};
+  std::string goal_frame_;
+  Eigen::Vector2d goal_in_frame_{0, 0};
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   bool use_prior_map_{false};
 
   // ROS Interfaces

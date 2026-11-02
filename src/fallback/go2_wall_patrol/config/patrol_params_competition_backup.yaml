@@ -1,0 +1,78 @@
+/**:
+  ros__parameters:
+    cruise_speed: 0.45
+    enable_slowdown: false
+    turn_speed: 0.5
+    min_turn_speed: 0.15
+    max_vy: 0.25
+    max_align_vx: 0.28
+    turn_tolerance_deg: 2.5
+    post_turn_dwell_time: 0.5
+    enable_start_sit: true
+    start_delay_sec: 20.0
+    sit_duration: 3.0
+    stand_duration: 2.5
+    traffic_cycle_sec: 30.0
+    lidar_yaw_mount_deg: 90.0
+    lidar_x_offset: 0.25
+    lidar_y_offset: 0.0
+    lidar_z_offset: 0.1588
+    z_min: -0.15
+    z_max: 0.6
+    enable_ring_filter: true
+    ring_min: 7
+    ring_max: 8
+    filter_alpha: 0.4
+    ransac_iterations: 80
+    ransac_inlier_thresh: 0.035
+    ransac_min_inliers: 20
+    prefer_outer_wall: true
+    path_1:
+      drive_yaw_deg: 0.0
+      target_left_dist: 1.0
+      front_trigger_dist: 1.84
+      has_traffic_light: true
+    path_2:
+      drive_yaw_deg: -90.0
+      target_left_dist: 1.6
+      front_trigger_dist: 1.82
+      has_traffic_light: true
+    path_3:
+      drive_yaw_deg: 180.0
+      target_left_dist: 0.44
+      front_trigger_dist: 1.13
+      has_traffic_light: false
+    path_4:
+      drive_yaw_deg: 90.0
+      target_left_dist: 1.64
+      front_trigger_dist: 1.87
+      has_traffic_light: true
+    corner_a:
+      target_front_dist: 1.37
+      target_left_dist: 1.14
+      target_yaw_deg: 0.0
+    corner_b:
+      target_front_dist: 1.11
+      target_left_dist: 0.96
+      target_yaw_deg: 0.0
+    corner_c:
+      target_front_dist: 1.22
+      target_left_dist: 0.96
+      target_yaw_deg: -90.0
+    corner_d:
+      target_front_dist: 1.02
+      target_left_dist: 1.1
+      target_yaw_deg: 180.0
+    align_tol_x: 0.06
+    align_tol_y: 0.06
+    align_tol_yaw_deg: 3.0
+    align_settle_time: 0.35
+    kp_x: 0.9
+    kp_dist: 0.8
+    kp_yaw: 1.5
+    kp_turn: 1.5
+    auto_start: false
+    sensor_timeout: 0.6
+    slowdown_dist: 1.5
+    imu_yaw_offset_deg: 0.0
+

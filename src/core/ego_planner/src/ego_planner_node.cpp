@@ -70,6 +70,7 @@ EgoPlannerNode::EgoPlannerNode()
   rotate_in_place_rad_ = declare_parameter<double>("control.rotate_in_place_rad", 1.20);
   estimate_vel_from_pose_ = declare_parameter<bool>("control.estimate_vel_from_pose", true);
 
+  goal_base_frame_ = declare_parameter<std::string>("goal_base_frame", "base_link");
   static_map_path_ = declare_parameter<std::string>("static_map_path", "");
   use_prior_map_ = declare_parameter<bool>("use_prior_map", false);
 
@@ -80,6 +81,9 @@ EgoPlannerNode::EgoPlannerNode()
 
 CallbackReturn EgoPlannerNode::on_configure(const rclcpp_lifecycle::State &)
 {
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
   // Initialize algorithmic modules
   grid_map_ = std::make_shared<GridMap>();
   grid_map_->init(map_resolution_, map_size_, map_size_, inflate_radius_);
@@ -175,6 +179,8 @@ CallbackReturn EgoPlannerNode::on_cleanup(const rclcpp_lifecycle::State &)
   cmd_vel_pub_.reset();
   path_pub_.reset();
   map_vis_pub_.reset();
+  tf_listener_.reset();
+  tf_buffer_.reset();
   a_star_.reset();
   optimizer_.reset();
   grid_map_.reset();
@@ -312,10 +318,18 @@ void EgoPlannerNode::onGoal(const geometry_msgs::msg::PoseStamped::SharedPtr msg
   }
   is_replanning_ = false;
 
-  goal_pos_ = Eigen::Vector2d(msg->pose.position.x, msg->pose.position.y);
+  goal_frame_ = msg->header.frame_id;
+  goal_in_frame_ = Eigen::Vector2d(msg->pose.position.x, msg->pose.position.y);
+  if (!resolveGoal(goal_pos_)) {
+    RCLCPP_ERROR(get_logger(), "Goal frame '%s' cannot be related to '%s' (no TF to %s)",
+                 goal_frame_.c_str(), map_frame_.c_str(), goal_base_frame_.c_str());
+    return;
+  }
   has_goal_ = true;
   state_ = PlannerState::PLANNING;
-  RCLCPP_INFO(get_logger(), "Received new target goal: (%.2f, %.2f)", goal_pos_.x(), goal_pos_.y());
+  RCLCPP_INFO(get_logger(), "Received new target goal: (%.2f, %.2f) in %s -> (%.2f, %.2f) in %s",
+              goal_in_frame_.x(), goal_in_frame_.y(), goal_frame_.empty() ? map_frame_.c_str() : goal_frame_.c_str(),
+              goal_pos_.x(), goal_pos_.y(), map_frame_.c_str());
 
   Eigen::Vector2d start_pos(robot_pos_.x(), robot_pos_.y());
   Eigen::Vector2d start_vel(robot_vel_.x(), robot_vel_.y());
@@ -469,6 +483,7 @@ void EgoPlannerNode::controlLoop()
                            (time_since_replan >= replan_gap_);
 
   if (!is_replanning_ && need_replan) {
+    resolveGoal(goal_pos_);  // follow map corrections (keeps the last value if TF is missing)
     double t_stitch = std::min(t_cur + stitch_lead_, total_duration);
     Eigen::Vector2d p0 = current_traj_.evaluatePosition(t_stitch);
     Eigen::Vector2d v0 = current_traj_.evaluateVelocity(t_stitch);
@@ -532,6 +547,32 @@ void EgoPlannerNode::controlLoop()
   cmd.linear.y = std::clamp((v_ff_y + kp_y_ * err_body_y) * heading_factor, -max_vy_, max_vy_);
   cmd.angular.z = std::clamp(kp_yaw_ * yaw_err, -max_wz_, max_wz_);
   cmd_vel_pub_->publish(cmd);
+}
+
+bool EgoPlannerNode::resolveGoal(Eigen::Vector2d & goal_odom)
+{
+  if (goal_frame_.empty() || goal_frame_ == map_frame_) {
+    goal_odom = goal_in_frame_;
+    return true;
+  }
+  geometry_msgs::msg::TransformStamped tr;
+  try {
+    tr = tf_buffer_->lookupTransform(goal_frame_, goal_base_frame_, tf2::TimePointZero);
+  } catch (const tf2::TransformException &) {
+    return false;
+  }
+  // Robot pose in the goal frame
+  tf2::Quaternion q(tr.transform.rotation.x, tr.transform.rotation.y, tr.transform.rotation.z, tr.transform.rotation.w);
+  double r, p, yaw_g;
+  tf2::Matrix3x3(q).getRPY(r, p, yaw_g);
+  const Eigen::Vector2d pos_g(tr.transform.translation.x, tr.transform.translation.y);
+  // Goal relative to the robot, then placed around the robot pose in the odometry frame
+  const Eigen::Vector2d d = goal_in_frame_ - pos_g;
+  const double cg = std::cos(yaw_g), sg = std::sin(yaw_g);
+  const Eigen::Vector2d rel(cg * d.x() + sg * d.y(), -sg * d.x() + cg * d.y());
+  const double co = std::cos(robot_yaw_), so = std::sin(robot_yaw_);
+  goal_odom = robot_pos_.head<2>() + Eigen::Vector2d(co * rel.x() - so * rel.y(), so * rel.x() + co * rel.y());
+  return true;
 }
 
 void EgoPlannerNode::stopRobot()

@@ -165,6 +165,22 @@ ros2 launch go2_bridge bridge.launch.py &
 ros2 run fast_lio fastlio_mapping --ros-args --params-file "$GO2_FASTLIO_CONFIG"
 ```
 
+### E. 한 줄 실행 (lifecycle 스택)
+```bash
+# 0) 지도 (조종기로 한 바퀴, 모터 명령 없음)
+./scripts/go2_map_run.sh --lio --name arena --no-default
+# 1) 주행 스택: 브리지 + FAST-LIO + AMCL(Omni, 수직성 스캔) + EGO-Planner + 모터 브리지
+./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"            # --no-motor 로 모터 없이
+python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0                    # 목표는 map 좌표
+# 2) 보험: RANSAC 벽 추종 (지도·SLAM 불필요)
+./scripts/go2_run.sh --mode patrol
+ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
+```
+- 모든 런타임 노드는 lifecycle 노드이고 `lifecycle_manager_go2` 가 순서대로 올린다(모터 브리지는 마지막).
+- 소프트웨어 정지: `ros2 lifecycle set /go2_cmd_vel_to_sport deactivate` (StopMove 전송). Ctrl+C 도 StopMove.
+- 파라미터: `go2_bridge/config/bridge_params.yaml`, `go2_localization/config/amcl_params.yaml`,
+  `ego_planner/config/ego_planner_params.yaml`, `go2_wall_patrol/config/patrol_params.yaml`
+
 ---
 
 ## 4. 주요 튜닝 파라미터 요약
