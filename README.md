@@ -154,6 +154,17 @@ python3 scripts/go2_goto.py --x 3.6 --y 3.0 --yaw -140
 ./scripts/go2_mission_run.sh --sim    # 시뮬레이션 검증 모드
 ```
 
+### D. SLAM (FAST-LIO) — 외부 빌드본 참조
+FAST-LIO 는 이 저장소에 포함하지 않고, 팀이 원래 쓰던 빌드본을 underlay 로 참조한다 (원본 수정 금지).
+- 실행 파일: `~/ws/lab/install/fast_lio` (소스 `~/ws/lab/go2_ws/src/fast_lio`), 경로는 `SLAM_UNDERLAY` 로 변경
+- 설정: [`config/fastlio/fastlio_xt16_odometry.yaml`](config/fastlio/fastlio_xt16_odometry.yaml) — 원본 `odometry.yaml` 포크, `FORK:` 3곳만 변경
+- 라이다 입력은 반드시 XT16 `/lidar_points`. `/utlidar/cloud`(L1) 를 넣으면 2분 안에 km 단위로 발산한다 (bag 재생 실측)
+```bash
+source scripts/go2_slam_env.sh
+ros2 launch go2_bridge bridge.launch.py &
+ros2 run fast_lio fastlio_mapping --ros-args --params-file "$GO2_FASTLIO_CONFIG"
+```
+
 ---
 
 ## 4. 주요 튜닝 파라미터 요약
