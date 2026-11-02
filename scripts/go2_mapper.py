@@ -103,6 +103,8 @@ def main():
     p_live.add_argument('--keyframe-dist', type=float, default=cfg['keyframe_dist_m'], help='Keyframe distance (m)')
     p_live.add_argument('--keyframe-deg', type=float, default=cfg['keyframe_angle_deg'], help='Keyframe angle (deg)')
     p_live.add_argument('--duration', type=float, default=0.0, help='Auto-stop duration (s)')
+    p_live.add_argument('--pose-source', choices=['config', 'leg', 'lio'], default='config',
+                        help='leg: leg-odom TF + raw cloud; lio: FAST-LIO pose + deskewed /cloud_registered')
     p_live.add_argument('--set-default', action='store_true', help='Set as map_default')
 
     p_pcd = sub.add_parser('pcd2map', help='Convert 3D .pcd to 2D .pgm/.yaml (C++ mapper_node)')
@@ -118,6 +120,13 @@ def main():
 
     args = parser.parse_args()
     if args.mode == 'live':
+        if args.pose_source == 'lio':
+            # Verified on the 누리관 bag: walls 13 cm (leg odom 25 cm), driven path never marked occupied
+            cfg.update(odom_frame='camera_init', base_frame='body', cloud_stride=1)
+            args.cloud_topic = '/cloud_registered'
+        elif args.pose_source == 'leg':
+            cfg.update(odom_frame='odom', base_frame='base_link', cloud_stride=2)
+            args.cloud_topic = '/velodyne_points'
         exec_cpp_mapper({
             'mode': 'live',
             'maps_dir': str(MAPS_DIR),
