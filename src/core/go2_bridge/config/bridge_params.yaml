@@ -52,6 +52,12 @@ go2_cloud_bridge:
     obstacle_max_dz: 1.20
     radial_bin_m: 0.35
     azimuth_bins: 360
+    # "vertical": walls = adjacent rings at the same horizontal distance (ramps/stairs never qualify).
+    # "slope": original radial ground profile. AMCL on the 누리관 bag: vertical p90 15 cm vs slope 18 cm.
+    scan_mode: "vertical"
+    vertical_tol_m: 0.03
+    vertical_min_rings: 3
+    vertical_min_span_m: 0.08
 
 go2_cmd_vel_to_sport:
   ros__parameters:
