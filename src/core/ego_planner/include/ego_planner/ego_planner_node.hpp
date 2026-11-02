@@ -10,6 +10,7 @@
 #include <atomic>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rcl_interfaces/msg/set_parameters_result.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -33,11 +34,21 @@ enum class PlannerState
   GOAL_REACHED
 };
 
-class EgoPlannerNode : public rclcpp::Node
+using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+
+// Lifecycle: configure = grid/planners/publishers, activate = inputs + 20 Hz loop,
+// deactivate = zero velocity and stop listening (a software stop).
+class EgoPlannerNode : public rclcpp_lifecycle::LifecycleNode
 {
 public:
   EgoPlannerNode();
   ~EgoPlannerNode();
+
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_shutdown(const rclcpp_lifecycle::State &) override;
 
 private:
   void onOdom(const nav_msgs::msg::Odometry::SharedPtr msg);
@@ -140,6 +151,8 @@ private:
   Eigen::Vector3d last_odom_pos_{0, 0, 0};
   bool have_last_odom_{false};
   bool blocked_stop_{false};
+  std::string static_map_path_;
+  bool use_prior_map_{false};
 
   // ROS Interfaces
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
@@ -148,9 +161,9 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
   rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_cb_;
 
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
-  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_vis_pub_;
+  rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
+  rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_vis_pub_;
 
   rclcpp::TimerBase::SharedPtr timer_;
 };

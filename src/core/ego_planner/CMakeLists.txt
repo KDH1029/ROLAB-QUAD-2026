@@ -11,6 +11,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -41,6 +42,7 @@ add_executable(ego_planner_node src/ego_planner_node.cpp)
 target_link_libraries(ego_planner_node ego_planner_core)
 ament_target_dependencies(ego_planner_node
   rclcpp
+  rclcpp_lifecycle
   sensor_msgs
   geometry_msgs
   nav_msgs

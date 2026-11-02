@@ -3,6 +3,7 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2_ros/transform_broadcaster.h"
@@ -12,11 +13,13 @@
 namespace go2_bridge
 {
 
-class OdomTfNode : public rclcpp::Node
+using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+
+class OdomTfNode : public rclcpp_lifecycle::LifecycleNode
 {
 public:
   OdomTfNode()
-  : Node("go2_odom_tf")
+  : rclcpp_lifecycle::LifecycleNode("go2_odom_tf")
   {
     topic_ = declare_parameter<std::string>("odom_topic", "/utlidar/robot_odom");
     parent_ = declare_parameter<std::string>("dst_parent", "odom");
@@ -25,17 +28,46 @@ public:
     stamp_mode_ = declare_parameter<std::string>("stamp_mode", "align");
     max_rate_ = declare_parameter<double>("max_rate", 50.0);
     min_dt_ = (max_rate_ > 0.0) ? (1.0 / max_rate_) : 0.0;
+  }
 
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override
+  {
     br_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override
+  {
     sub_ = create_subscription<nav_msgs::msg::Odometry>(
       topic_, rclcpp::QoS(rclcpp::KeepLast(20)).best_effort(),
       std::bind(&OdomTfNode::onOdom, this, std::placeholders::_1));
     timer_ = create_wall_timer(
       std::chrono::seconds(5), std::bind(&OdomTfNode::report, this));
-
     RCLCPP_INFO(
-      get_logger(), "odom_tf started: %s -> %s (topic=%s, mode=%s, max_rate=%.1fHz)",
+      get_logger(), "odom_tf active: %s -> %s (topic=%s, mode=%s, max_rate=%.1fHz)",
       parent_.c_str(), child_.c_str(), topic_.c_str(), stamp_mode_.c_str(), max_rate_);
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override
+  {
+    sub_.reset();
+    timer_.reset();
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override
+  {
+    br_.reset();
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_shutdown(const rclcpp_lifecycle::State &) override
+  {
+    sub_.reset();
+    timer_.reset();
+    br_.reset();
+    return CallbackReturn::SUCCESS;
   }
 
 private:
@@ -108,7 +140,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<go2_bridge::OdomTfNode>();
-  rclcpp::spin(node);
+  rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
   return 0;
 }

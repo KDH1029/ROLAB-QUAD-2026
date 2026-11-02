@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -76,11 +77,13 @@ struct InputLayout
   }
 };
 
-class CloudBridgeNode : public rclcpp::Node
+using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+
+class CloudBridgeNode : public rclcpp_lifecycle::LifecycleNode
 {
 public:
   CloudBridgeNode()
-  : Node("go2_cloud_bridge")
+  : rclcpp_lifecycle::LifecycleNode("go2_cloud_bridge")
   {
     in_topic_ = declare_parameter<std::string>("input_topic", "/lidar_points");
     out_topic_ = declare_parameter<std::string>("output_topic", "/velodyne_points");
@@ -106,30 +109,65 @@ public:
     vertical_min_rings_ = std::max<int>(2, declare_parameter<int>("vertical_min_rings", 3));
     vertical_min_span_m_ = declare_parameter<double>("vertical_min_span_m", 0.08);
 
+  }
+
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override
+  {
     tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-
     pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
       out_topic_, rclcpp::QoS(rclcpp::KeepLast(5)).reliable());
-
     if (publish_terrain_scan_) {
       scan_pub_ = create_publisher<sensor_msgs::msg::LaserScan>(
         scan_topic_, rclcpp::SensorDataQoS());
     }
+    return CallbackReturn::SUCCESS;
+  }
 
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override
+  {
+    pub_->on_activate();
+    if (scan_pub_) {scan_pub_->on_activate();}
     sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
       in_topic_, rclcpp::SensorDataQoS(),
       std::bind(&CloudBridgeNode::onCloud, this, std::placeholders::_1));
-
     report_timer_ = create_wall_timer(
       std::chrono::seconds(5), std::bind(&CloudBridgeNode::report, this));
-
     RCLCPP_INFO(
       get_logger(),
-      "cloud_bridge started: %s -> %s (scan=%s, max_slope=%.1f deg)",
+      "cloud_bridge active: %s -> %s (scan=%s, mode=%s)",
       in_topic_.c_str(), out_topic_.c_str(),
-      publish_terrain_scan_ ? scan_topic_.c_str() : "off",
-      max_walkable_slope_deg_);
+      publish_terrain_scan_ ? scan_topic_.c_str() : "off", scan_mode_.c_str());
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override
+  {
+    sub_.reset();
+    report_timer_.reset();
+    pub_->on_deactivate();
+    if (scan_pub_) {scan_pub_->on_deactivate();}
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override
+  {
+    pub_.reset();
+    scan_pub_.reset();
+    tf_listener_.reset();
+    tf_buffer_.reset();
+    layout_ = InputLayout();
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_shutdown(const rclcpp_lifecycle::State &) override
+  {
+    sub_.reset();
+    report_timer_.reset();
+    pub_.reset();
+    scan_pub_.reset();
+    tf_listener_.reset();
+    return CallbackReturn::SUCCESS;
   }
 
 private:
@@ -521,8 +559,8 @@ private:
   MonotonicStamp mono_;
   size_t count_{0};
 
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_;
-  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_pub_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_pub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
@@ -534,7 +572,8 @@ private:
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<go2_bridge::CloudBridgeNode>());
+  auto node = std::make_shared<go2_bridge::CloudBridgeNode>();
+  rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
   return 0;
 }

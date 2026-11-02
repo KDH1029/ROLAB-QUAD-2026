@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "unitree_go/msg/low_state.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -18,11 +19,13 @@
 namespace go2_bridge
 {
 
-class ImuBridgeNode : public rclcpp::Node
+using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+
+class ImuBridgeNode : public rclcpp_lifecycle::LifecycleNode
 {
 public:
   ImuBridgeNode()
-  : Node("go2_imu_bridge")
+  : rclcpp_lifecycle::LifecycleNode("go2_imu_bridge")
   {
     in_topic_ = declare_parameter<std::string>("input_topic", "/lowstate");
     out_topic_ = declare_parameter<std::string>("output_topic", "/imu/body");
@@ -49,30 +52,65 @@ public:
     contact_force_thresh_ = declare_parameter<int>("contact_force_thresh", 15);
     max_kin_imu_diff_deg_ = declare_parameter<double>("max_kin_imu_diff_deg", 6.0);
 
+  }
+
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override
+  {
     auto pub_qos = rclcpp::QoS(rclcpp::KeepLast(50)).reliable();
     pub_ = create_publisher<sensor_msgs::msg::Imu>(out_topic_, pub_qos);
-
-    sub_ = create_subscription<unitree_go::msg::LowState>(
-      in_topic_, rclcpp::SensorDataQoS(),
-      std::bind(&ImuBridgeNode::onLowState, this, std::placeholders::_1));
-
     if (publish_stab_) {
       tf_br_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     }
-
     if (publish_static_tf_) {
-      static_tf_br_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+      static_tf_br_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(*this);
+    }
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override
+  {
+    pub_->on_activate();
+    if (static_tf_br_) {
       publishStaticTransforms();
     }
-
+    initialized_filter_ = false;
+    sub_ = create_subscription<unitree_go::msg::LowState>(
+      in_topic_, rclcpp::SensorDataQoS(),
+      std::bind(&ImuBridgeNode::onLowState, this, std::placeholders::_1));
     report_timer_ = create_wall_timer(
       std::chrono::seconds(5), std::bind(&ImuBridgeNode::report, this));
-
     RCLCPP_INFO(
       get_logger(),
-      "imu_bridge started: mode=%s, fk_filter=%s (alpha=%.2f, max_diff=%.1f deg)",
+      "imu_bridge active: mode=%s, fk_filter=%s (alpha=%.2f, max_diff=%.1f deg)",
       stab_mode_.c_str(), use_kinematics_filter_ ? "on" : "off",
       filter_alpha_, max_kin_imu_diff_deg_);
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override
+  {
+    sub_.reset();
+    report_timer_.reset();
+    pub_->on_deactivate();
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override
+  {
+    pub_.reset();
+    tf_br_.reset();
+    static_tf_br_.reset();
+    return CallbackReturn::SUCCESS;
+  }
+
+  CallbackReturn on_shutdown(const rclcpp_lifecycle::State &) override
+  {
+    sub_.reset();
+    report_timer_.reset();
+    pub_.reset();
+    tf_br_.reset();
+    static_tf_br_.reset();
+    return CallbackReturn::SUCCESS;
   }
 
 private:
@@ -287,7 +325,7 @@ private:
   rclcpp::TimerBase::SharedPtr report_timer_;
 
   rclcpp::Subscription<unitree_go::msg::LowState>::SharedPtr sub_;
-  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_br_;
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_br_;
 };
@@ -298,7 +336,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<go2_bridge::ImuBridgeNode>();
-  rclcpp::spin(node);
+  rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
   return 0;
 }

@@ -9,7 +9,7 @@ namespace ego_planner
 {
 
 EgoPlannerNode::EgoPlannerNode()
-: Node("ego_planner_node")
+: rclcpp_lifecycle::LifecycleNode("ego_planner_node")
 {
   // Topics / frames
   odom_topic_ = declare_parameter<std::string>("odom_topic", "/Odometry");
@@ -70,15 +70,23 @@ EgoPlannerNode::EgoPlannerNode()
   rotate_in_place_rad_ = declare_parameter<double>("control.rotate_in_place_rad", 1.20);
   estimate_vel_from_pose_ = declare_parameter<bool>("control.estimate_vel_from_pose", true);
 
+  static_map_path_ = declare_parameter<std::string>("static_map_path", "");
+  use_prior_map_ = declare_parameter<bool>("use_prior_map", false);
+
+  // Runtime changes are accepted in any state; they take effect on the next plan.
+  param_cb_ = add_on_set_parameters_callback(
+    std::bind(&EgoPlannerNode::onParamChange, this, std::placeholders::_1));
+}
+
+CallbackReturn EgoPlannerNode::on_configure(const rclcpp_lifecycle::State &)
+{
   // Initialize algorithmic modules
   grid_map_ = std::make_shared<GridMap>();
   grid_map_->init(map_resolution_, map_size_, map_size_, inflate_radius_);
   grid_map_->setFilterConfig(filter_cfg_);
 
-  std::string static_map = declare_parameter<std::string>("static_map_path", "");
-  bool use_prior_map = declare_parameter<bool>("use_prior_map", false);
-  if (use_prior_map && !static_map.empty()) {
-    std::string resolved_path = static_map;
+  if (use_prior_map_ && !static_map_path_.empty()) {
+    std::string resolved_path = static_map_path_;
     if (resolved_path.rfind("~/", 0) == 0) {
       const char * home = getenv("HOME");
       if (home) resolved_path = std::string(home) + resolved_path.substr(1);
@@ -97,7 +105,21 @@ EgoPlannerNode::EgoPlannerNode()
   optimizer_ = std::make_shared<BsplineOptimizer>();
   configurePlanners(*a_star_, *optimizer_, grid_map_);
 
-  // ROS subscribers & publishers
+  cmd_vel_pub_ = create_publisher<geometry_msgs::msg::Twist>(cmd_vel_topic_, 10);
+  path_pub_ = create_publisher<nav_msgs::msg::Path>("/ego_planner/trajectory", 10);
+  map_vis_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("/ego_planner/grid_map", 10);
+  return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn EgoPlannerNode::on_activate(const rclcpp_lifecycle::State &)
+{
+  cmd_vel_pub_->on_activate();
+  path_pub_->on_activate();
+  map_vis_pub_->on_activate();
+  state_ = PlannerState::IDLE;
+  has_goal_ = false;
+  blocked_stop_ = false;
+
   odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
     odom_topic_, 10, std::bind(&EgoPlannerNode::onOdom, this, std::placeholders::_1));
   goal_sub_ = create_subscription<geometry_msgs::msg::PoseStamped>(
@@ -112,13 +134,6 @@ EgoPlannerNode::EgoPlannerNode()
       std::bind(&EgoPlannerNode::onCloud, this, std::placeholders::_1));
   }
 
-  cmd_vel_pub_ = create_publisher<geometry_msgs::msg::Twist>(cmd_vel_topic_, 10);
-  path_pub_ = create_publisher<nav_msgs::msg::Path>("/ego_planner/trajectory", 10);
-  map_vis_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("/ego_planner/grid_map", 10);
-
-  param_cb_ = add_on_set_parameters_callback(
-    std::bind(&EgoPlannerNode::onParamChange, this, std::placeholders::_1));
-
   // 20Hz control and planning loop
   timer_ = create_wall_timer(50ms, std::bind(&EgoPlannerNode::controlLoop, this));
 
@@ -130,6 +145,53 @@ EgoPlannerNode::EgoPlannerNode()
     odom_topic_.c_str(), obstacle_source_.c_str(),
     obstacle_source_ == "scan" ? scan_topic_.c_str() : cloud_topic_.c_str(),
     inflate_radius_, safe_dist_);
+  return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn EgoPlannerNode::on_deactivate(const rclcpp_lifecycle::State &)
+{
+  // Deactivation is a stop: zero velocity first, then drop inputs and the control loop.
+  timer_.reset();
+  if (is_replanning_ && async_plan_future_.valid()) {
+    async_plan_future_.wait_for(100ms);
+  }
+  is_replanning_ = false;
+  stopRobot();
+  state_ = PlannerState::IDLE;
+  has_goal_ = false;
+  odom_sub_.reset();
+  goal_sub_.reset();
+  scan_sub_.reset();
+  cloud_sub_.reset();
+  has_odom_ = has_cloud_ = have_last_odom_ = false;
+  cmd_vel_pub_->on_deactivate();
+  path_pub_->on_deactivate();
+  map_vis_pub_->on_deactivate();
+  return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn EgoPlannerNode::on_cleanup(const rclcpp_lifecycle::State &)
+{
+  cmd_vel_pub_.reset();
+  path_pub_.reset();
+  map_vis_pub_.reset();
+  a_star_.reset();
+  optimizer_.reset();
+  grid_map_.reset();
+  return CallbackReturn::SUCCESS;
+}
+
+CallbackReturn EgoPlannerNode::on_shutdown(const rclcpp_lifecycle::State &)
+{
+  timer_.reset();
+  if (cmd_vel_pub_ && cmd_vel_pub_->is_activated()) {
+    stopRobot();
+  }
+  odom_sub_.reset();
+  goal_sub_.reset();
+  scan_sub_.reset();
+  cloud_sub_.reset();
+  return CallbackReturn::SUCCESS;
 }
 
 EgoPlannerNode::~EgoPlannerNode()
@@ -179,7 +241,9 @@ rcl_interfaces::msg::SetParametersResult EgoPlannerNode::onParamChange(
     RCLCPP_INFO(get_logger(), "runtime parameter %s -> %s", n.c_str(), p.value_to_string().c_str());
   }
   // The original only read limits in the constructor; re-init so the next plan uses new ones.
-  configurePlanners(*a_star_, *optimizer_, grid_map_);
+  if (a_star_ && optimizer_ && grid_map_) {
+    configurePlanners(*a_star_, *optimizer_, grid_map_);
+  }
   return result;
 }
 
@@ -559,7 +623,7 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<ego_planner::EgoPlannerNode>();
-  rclcpp::spin(node);
+  rclcpp::spin(node->get_node_base_interface());
   rclcpp::shutdown();
   return 0;
 }

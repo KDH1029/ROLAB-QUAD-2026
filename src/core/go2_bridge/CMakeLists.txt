@@ -7,6 +7,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -21,6 +22,7 @@ include_directories(include)
 add_executable(odom_tf_node src/odom_tf_node.cpp)
 ament_target_dependencies(odom_tf_node
   rclcpp
+  rclcpp_lifecycle
   nav_msgs
   geometry_msgs
   tf2_ros
@@ -30,6 +32,7 @@ ament_target_dependencies(odom_tf_node
 add_executable(imu_bridge_node src/imu_bridge_node.cpp)
 ament_target_dependencies(imu_bridge_node
   rclcpp
+  rclcpp_lifecycle
   sensor_msgs
   geometry_msgs
   tf2
@@ -41,6 +44,7 @@ ament_target_dependencies(imu_bridge_node
 add_executable(cloud_bridge_node src/cloud_bridge_node.cpp)
 ament_target_dependencies(cloud_bridge_node
   rclcpp
+  rclcpp_lifecycle
   sensor_msgs
   geometry_msgs
   tf2
@@ -51,6 +55,7 @@ ament_target_dependencies(cloud_bridge_node
 add_executable(cmd_vel_to_sport_node src/cmd_vel_to_sport_node.cpp)
 ament_target_dependencies(cmd_vel_to_sport_node
   rclcpp
+  rclcpp_lifecycle
   geometry_msgs
   unitree_api
 )
