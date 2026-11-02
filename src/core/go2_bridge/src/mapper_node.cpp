@@ -13,6 +13,7 @@
 #include <cmath>
 #include <csignal>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <filesystem>
 #include <random>
@@ -70,6 +71,7 @@ struct MapperConfig
   double duration_sec = 0.0;
   bool local_level = true;
   bool auto_level = true;
+  std::string trajectory_path = "";
   double level_cell_m = 0.5;
   double level_inlier_m = 0.05;
   bool set_default = true;
@@ -196,7 +198,7 @@ bool writePcdFile(const std::string & path, const std::vector<Point3f> & pts)
 // available it is the floor reference (cloud-lowest points mix in ramps, platforms and noise
 // below the floor; on the 누리관 bag they gave 2.41 vs 1.33 deg depending on the percentile).
 void autoLevel(std::vector<Point3f> & pts, const MapperConfig & cfg,
-  const std::vector<Point3f> & trajectory = {})
+  std::vector<Point3f> & trajectory)
 {
   std::vector<Point3f> cand;
   const char * source = "trajectory";
@@ -265,19 +267,44 @@ void autoLevel(std::vector<Point3f> & pts, const MapperConfig & cfg,
   // Trajectory points are at body height, so only the tilt is taken from them; the floor offset
   // is left to the local floor estimate.
   const tf2::Vector3 o = R * tf2::Vector3(0, 0, trajectory.size() >= 50 ? 0.0 : abc.z());
-  for (auto & p : pts) {
-    const tf2::Vector3 w = R * tf2::Vector3(p.x, p.y, p.z);
-    p.x = static_cast<float>(w.x());
-    p.y = static_cast<float>(w.y());
-    p.z = static_cast<float>(w.z() - o.z());
-  }
+  auto apply = [&](std::vector<Point3f> & v) {
+      for (auto & p : v) {
+        const tf2::Vector3 w = R * tf2::Vector3(p.x, p.y, p.z);
+        p.x = static_cast<float>(w.x());
+        p.y = static_cast<float>(w.y());
+        p.z = static_cast<float>(w.z() - o.z());
+      }
+    };
+  apply(pts);
+  apply(trajectory);
   std::cout << "  - AutoLevel: tilt " << std::fixed << std::setprecision(2) << tilt * 180.0 / M_PI
             << " deg corrected (" << source << " inliers " << best_n << "/" << cand.size() << ")\n";
 }
 
+bool writeTrajectory(const fs::path & path, const std::vector<Point3f> & traj)
+{
+  std::ofstream ofs(path);
+  if (!ofs.is_open()) {return false;}
+  ofs << std::fixed << std::setprecision(4);
+  for (const auto & p : traj) {ofs << p.x << "," << p.y << "," << p.z << "\n";}
+  return true;
+}
+
+std::vector<Point3f> readTrajectory(const std::string & path)
+{
+  std::vector<Point3f> traj;
+  std::ifstream ifs(path);
+  std::string line;
+  while (std::getline(ifs, line)) {
+    Point3f p;
+    if (std::sscanf(line.c_str(), "%f,%f,%f", &p.x, &p.y, &p.z) == 3) {traj.push_back(p);}
+  }
+  return traj;
+}
+
 bool exportOccupancyGrid(
   const std::vector<Point3f> & raw_pts, const MapperConfig & cfg,
-  const std::vector<Point3f> & trajectory = {})
+  std::vector<Point3f> trajectory = {})
 {
   if (raw_pts.empty()) {
     std::cerr << "[WARN] Point cloud is empty. Nothing to export.\n";
@@ -287,6 +314,11 @@ bool exportOccupancyGrid(
   std::vector<Point3f> pts = raw_pts;
   if (cfg.auto_level) {
     autoLevel(pts, cfg, trajectory);
+  }
+  if (!trajectory.empty()) {
+    // Trajectory in the exported map frame (after leveling) for localization/evaluation
+    fs::create_directories(cfg.maps_dir);
+    writeTrajectory(fs::path(cfg.maps_dir) / (cfg.map_name + "_traj.csv"), trajectory);
   }
   float x_min = pts[0].x, x_max = pts[0].x;
   float y_min = pts[0].y, y_max = pts[0].y;
@@ -510,6 +542,7 @@ public:
     cfg_.duration_sec = declare_parameter<double>("duration_sec", 0.0);
     cfg_.local_level = declare_parameter<bool>("local_level", true);
     cfg_.auto_level = declare_parameter<bool>("auto_level", true);
+    cfg_.trajectory_path = declare_parameter<std::string>("trajectory_path", "");
     cfg_.level_cell_m = declare_parameter<double>("level_cell_m", 0.5);
     cfg_.level_inlier_m = declare_parameter<double>("level_inlier_m", 0.05);
     cfg_.set_default = declare_parameter<bool>("set_default", true);
@@ -539,6 +572,7 @@ public:
     }
     fs::path pcd_out = fs::path(cfg_.maps_dir) / (cfg_.map_name + ".pcd");
     writePcdFile(pcd_out.string(), accumulated_pts_);
+    writeTrajectory(fs::path(cfg_.maps_dir) / (cfg_.map_name + "_traj_raw.csv"), trajectory_);
     std::cout << "\n[DONE] 3D PCD saved: " << pcd_out.string()
               << " (" << accumulated_pts_.size() << " pts)\n";
 
@@ -666,7 +700,12 @@ int main(int argc, char ** argv)
       return 1;
     }
     std::cout << "  loaded " << pts.size() << " valid 3D points\n";
-    bool ok = exportOccupancyGrid(pts, cfg);
+    std::vector<Point3f> traj;
+    if (!cfg.trajectory_path.empty()) {
+      traj = readTrajectory(cfg.trajectory_path);
+      std::cout << "  loaded " << traj.size() << " trajectory poses\n";
+    }
+    bool ok = exportOccupancyGrid(pts, cfg, traj);
     rclcpp::shutdown();
     return ok ? 0 : 1;
   }
