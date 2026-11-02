@@ -1,19 +1,89 @@
+# EGO-Planner (Go2 ground) parameters. Every tunable of the node lives here.
+# Runtime-changeable with `ros2 param set /ego_planner_node <name> <value>`:
+#   min_obs_h, max_obs_h, max_vel, max_acc, max_wz, max_vy, safe_dist, goal_tol
+# Everything else needs a node restart.
+
 ego_planner_node:
   ros__parameters:
-    odom_topic: "/Odometry_filtered"
+    # ---- Topics / frames ----------------------------------------------------------------------
+    odom_topic: "/Odometry"            # FAST-LIO odometry (pose in camera_init). Twist is estimated if empty.
     goal_topic: "/goal_pose"
-    cloud_topic: "/cloud_registered"   # World-frame registered point cloud from FAST-LIO
     cmd_vel_topic: "/cmd_vel"
     map_frame: "camera_init"
+    # Obstacle input:
+    #   "scan"  : 2D scan from cloud_bridge scan_mode:=vertical. Only vertical surfaces become
+    #             obstacles, so ramps / stair treads never block the path (recommended).
+    #   "cloud" : original height filter on /cloud_registered (min_obs_h..max_obs_h above the
+    #             robot base). Ramps rising ahead turn into obstacles (10 deg ramp -> ~2.3 m ahead).
+    obstacle_source: "scan"
+    scan_topic: "/scan"
+    cloud_topic: "/cloud_registered"
 
-    max_vel: 0.8         # Maximum forward velocity (m/s)
-    max_acc: 1.2         # Maximum acceleration (m/s^2)
-    max_wz: 1.5          # Maximum angular velocity (rad/s)
-    goal_tol: 0.25       # Goal arrival tolerance (m)
-    safe_dist: 0.45      # Minimum clearance from obstacles (m) - maintains >27cm margin from Go2 robot body
-    min_obs_h: -0.17     # Min height: 18cm above floor (rejects ground noise, detects low obstacles)
-    max_obs_h: 1.10      # Max height: up to 1.45m above floor (detects tables, people, doors)
-    replan_gap: 0.4      # Min interval between replans (s)
-    use_prior_map: true  # Load clean processed obstacle avoidance layer
-    static_map_path: "/home/ilovehan9283/go2_ws/maps/room_obstacles.bin"
+    # ---- Limits ---------------------------------------------------------------------------------
+    max_vel: 0.6                       # m/s  (original 0.8; 1 m corridors, 90 deg corners)
+    max_acc: 1.2                       # m/s^2
+    max_wz: 1.5                        # rad/s
+    max_vy: 0.25                       # m/s lateral (Go2 can strafe)
+    goal_tol: 0.25                     # m
 
+    # ---- Clearance ------------------------------------------------------------------------------
+    # The original used safe_dist (0.45) for both the hard A* inflation and the soft optimizer
+    # repulsion. On the 누리관 bag map 42.9 % of the path the robot actually walked fell inside a
+    # 0.45 m inflation (0.30 m: 5.7 %, 0.25 m: 2.4 %). Hard and soft are now separate:
+    inflate_radius: 0.28               # m, hard: A* never enters (Go2 half width 0.155 + margin)
+    safe_dist: 0.45                    # m, soft: optimizer pushes the curve out to this distance
+
+    # ---- "cloud" source height filter (relative to robot base height) ---------------------------
+    # Obstacle = point with  min_obs_h + d * grid.adaptive_slope <= z_rel <= max_obs_h.
+    # Raising min_obs_h ignores more ground; LOWERING it marks more ground as obstacle.
+    min_obs_h: -0.17
+    max_obs_h: 1.10
+
+    # ---- Local grid ---------------------------------------------------------------------------
+    grid:
+      resolution: 0.1                  # m
+      size: 20.0                       # m, square, re-centred on the robot every update
+      min_range: 0.25                  # m, ignore closer returns
+      max_range: 10.0                  # m, ignore farther returns
+      body_x_min: -0.35                # self-filter box (body frame, m)
+      body_x_max: 0.33
+      body_y_abs: 0.22
+      body_z_max: 0.20
+      adaptive_slope: 0.045            # "cloud" source: min height grows by this per metre
+
+    use_prior_map: false               # a prior obstacle layer once blocked 93 % of the course
+    static_map_path: ""
+
+    # ---- Search ---------------------------------------------------------------------------------
+    planner:
+      horizon: 7.5                     # m, goals farther away are clipped to this
+      astar_max_iters: 15000
+      astar_min_partial: 0.8           # m, accept a partial A* path only past this progress
+
+    # ---- B-spline optimizer -------------------------------------------------------------------
+    optimizer:
+      lambda_smooth: 1.0
+      lambda_obs: 120.0                # original 30; 120: 88 % vs 75-80 % valid plans on the 누리관 map
+      lambda_feas: 2.0
+      dt: 0.2                          # s per spline segment
+      iterations: 35
+      step_size: 0.02
+      max_step: 0.04                   # m per iteration per control point
+      ctrl_spacing: 0.8                # control point spacing = max_vel * dt * this (0.15..0.35 m)
+      validate: true                   # reject a smoothed curve that cuts into the inflation
+
+    # ---- Replanning / safety ------------------------------------------------------------------
+    replan_gap: 0.4                    # s, periodic replan
+    replan:
+      min_gap: 0.2                     # s, between event-triggered replans
+      collision_horizon: 1.5           # s, look-ahead that triggers a replan
+      stop_horizon: 0.6                # s, collision this close with no free replan -> hold still
+      stitch_lead: 0.06                # s, expected planning time for the C2 hand-over
+
+    # ---- Tracking controller -------------------------------------------------------------------
+    control:
+      kp_x: 1.0
+      kp_y: 0.8
+      kp_yaw: 2.5
+      rotate_in_place_rad: 1.20        # heading error above this: rotate first
+      estimate_vel_from_pose: true     # FAST-LIO /Odometry has no twist

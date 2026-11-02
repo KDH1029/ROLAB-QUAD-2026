@@ -48,6 +48,8 @@ ament_target_dependencies(ego_planner_node
   tf2_ros
 )
 
+add_executable(test_plan_on_map src/test_plan_on_map.cpp)
+target_link_libraries(test_plan_on_map ego_planner_core)
 add_executable(test_abpolicy src/test_abpolicy.cpp)
 target_link_libraries(test_abpolicy ego_planner_core)
 ament_target_dependencies(test_abpolicy
@@ -58,6 +60,7 @@ install(TARGETS
   ego_planner_core
   ego_planner_node
   test_abpolicy
+  test_plan_on_map
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}

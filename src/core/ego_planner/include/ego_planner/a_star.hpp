@@ -36,11 +36,20 @@ public:
   ~AStar() = default;
 
   void init(const std::shared_ptr<GridMap> & grid_map);
+  // max_iters: node expansions before giving up; min_partial_progress: accept the closest node
+  // as a partial path only if it is at least this far (m, path cost) from the start
+  void setSearchParams(int max_iters, double min_partial_progress)
+  {
+    max_iters_ = max_iters;
+    min_partial_progress_ = min_partial_progress;
+  }
   bool search(const Eigen::Vector2d & start, const Eigen::Vector2d & goal,
               std::vector<Eigen::Vector2d> & path);
 
 private:
   std::shared_ptr<GridMap> grid_map_;
+  int max_iters_{15000};
+  double min_partial_progress_{0.8};
 
   double heuristic(int x1, int y1, int x2, int y2) const;
   void simplifyPath(const std::vector<Eigen::Vector2d> & raw_path,

@@ -107,7 +107,22 @@ void BsplineOptimizer::init(const std::shared_ptr<GridMap> & grid_map,
   max_vel_ = max_vel;
   max_acc_ = max_acc;
   safe_dist_ = safe_dist;
-  dt_ = 0.2;
+}
+
+bool BsplineOptimizer::isCollisionFree(const BsplineTrajectory & traj, double sample_dt, double t0) const
+{
+  if (!grid_map_) return true;
+  const double T = traj.getTotalDuration();
+  bool escaping = true;  // still inside the inflation we started in
+  for (double t = std::max(0.0, t0); t <= T + 1e-9; t += sample_dt) {
+    const bool hit = grid_map_->isInflated(traj.evaluatePosition(std::min(t, T)));
+    if (!hit) {
+      escaping = false;
+    } else if (!escaping) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void BsplineOptimizer::computeCostAndGrad(const std::vector<Eigen::Vector2d> & q,
@@ -185,18 +200,28 @@ bool BsplineOptimizer::optimizeWithContinuity(const std::vector<Eigen::Vector2d>
 {
   if (guide_path.size() < 2) return false;
 
-  // Resample guide path into uniform control points
+  // Resample the guide path into uniformly spaced control points along its length.
+  // The original only kept guide-path vertices; after A* line-of-sight simplification those are
+  // just the corners, so long segments had no control points and the spline cut the corners
+  // into the inflation (13 of 41 recorded-path plans on the 누리관 map).
   std::vector<Eigen::Vector2d> q;
-  const double step_dist = std::clamp(max_vel_ * dt_ * 0.8, 0.15, 0.35);
-
+  const double step_dist = std::clamp(max_vel_ * dt_ * ctrl_spacing_, 0.15, 0.35);
   q.push_back(p0);
-  double dist_accum = 0.0;
+  double carry = 0.0;  // distance already covered since the last control point
   for (size_t i = 1; i < guide_path.size(); ++i) {
-    dist_accum += (guide_path[i] - guide_path[i - 1]).norm();
-    if (dist_accum >= step_dist || i == guide_path.size() - 1) {
-      q.push_back(guide_path[i]);
-      dist_accum = 0.0;
+    const Eigen::Vector2d a = guide_path[i - 1];
+    const Eigen::Vector2d b = guide_path[i];
+    const double seg = (b - a).norm();
+    if (seg < 1e-9) continue;
+    double s = step_dist - carry;
+    while (s <= seg) {
+      q.push_back(a + (b - a) * (s / seg));
+      s += step_dist;
     }
+    carry = seg - (s - step_dist);
+  }
+  if ((q.back() - guide_path.back()).norm() > 1e-6) {
+    q.push_back(guide_path.back());
   }
 
   // Ensure enough points for C2 boundary conditions at start and zero vel/acc at goal (at least 7 points)
@@ -233,8 +258,8 @@ bool BsplineOptimizer::optimizeWithContinuity(const std::vector<Eigen::Vector2d>
   q[N - 3] = goal;
 
   // Optimize interior control points q[3] .. q[N - 4] using Gradient Descent
-  const int max_iters = 35;
-  const double alpha = 0.02;
+  const int max_iters = max_iters_;
+  const double alpha = step_size_;
 
   std::vector<Eigen::Vector2d> grad;
   double prev_cost = 0.0;
@@ -258,7 +283,7 @@ bool BsplineOptimizer::optimizeWithContinuity(const std::vector<Eigen::Vector2d>
     if (max_grad < 1e-3) break;
 
     // Gradient step with trust-region clamping (max 0.04m per step to prevent gradient explosion)
-    const double max_step = 0.04;
+    const double max_step = max_step_;
     for (size_t i = 3; i < N - 3; ++i) {
       Eigen::Vector2d step = alpha * grad[i];
       const double step_norm = step.norm();

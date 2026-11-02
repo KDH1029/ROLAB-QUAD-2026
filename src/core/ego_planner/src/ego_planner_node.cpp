@@ -11,24 +11,69 @@ namespace ego_planner
 EgoPlannerNode::EgoPlannerNode()
 : Node("ego_planner_node")
 {
-  odom_topic_ = declare_parameter<std::string>("odom_topic", "/Odometry_filtered");
+  // Topics / frames
+  odom_topic_ = declare_parameter<std::string>("odom_topic", "/Odometry");
   goal_topic_ = declare_parameter<std::string>("goal_topic", "/goal_pose");
   cloud_topic_ = declare_parameter<std::string>("cloud_topic", "/cloud_registered");
+  scan_topic_ = declare_parameter<std::string>("scan_topic", "/scan");
+  obstacle_source_ = declare_parameter<std::string>("obstacle_source", "cloud");
   cmd_vel_topic_ = declare_parameter<std::string>("cmd_vel_topic", "/cmd_vel");
   map_frame_ = declare_parameter<std::string>("map_frame", "camera_init");
 
+  // Limits and safety distances
   max_vel_ = declare_parameter<double>("max_vel", 0.8);
   max_acc_ = declare_parameter<double>("max_acc", 1.2);
   max_wz_ = declare_parameter<double>("max_wz", 1.5);
+  max_vy_ = declare_parameter<double>("max_vy", 0.25);
   goal_tol_ = declare_parameter<double>("goal_tol", 0.25);
+  inflate_radius_ = declare_parameter<double>("inflate_radius", 0.28);
   safe_dist_ = declare_parameter<double>("safe_dist", 0.45);
-  min_obs_h_ = declare_parameter<double>("min_obs_h", 0.08);
-  max_obs_h_ = declare_parameter<double>("max_obs_h", 0.80);
-  replan_gap_ = declare_parameter<double>("replan_gap", 0.5);
+  min_obs_h_ = declare_parameter<double>("min_obs_h", -0.17);
+  max_obs_h_ = declare_parameter<double>("max_obs_h", 1.10);
+  replan_gap_ = declare_parameter<double>("replan_gap", 0.4);
+
+  // Local grid
+  map_resolution_ = declare_parameter<double>("grid.resolution", 0.1);
+  map_size_ = declare_parameter<double>("grid.size", 20.0);
+  filter_cfg_.min_range = declare_parameter<double>("grid.min_range", 0.25);
+  filter_cfg_.max_range = declare_parameter<double>("grid.max_range", 10.0);
+  filter_cfg_.body_x_min = declare_parameter<double>("grid.body_x_min", -0.35);
+  filter_cfg_.body_x_max = declare_parameter<double>("grid.body_x_max", 0.33);
+  filter_cfg_.body_y_abs = declare_parameter<double>("grid.body_y_abs", 0.22);
+  filter_cfg_.body_z_max = declare_parameter<double>("grid.body_z_max", 0.20);
+  filter_cfg_.adaptive_slope = declare_parameter<double>("grid.adaptive_slope", 0.045);
+
+  // Search / optimizer
+  plan_horizon_ = declare_parameter<double>("planner.horizon", 7.5);
+  astar_max_iters_ = declare_parameter<int>("planner.astar_max_iters", 15000);
+  astar_min_partial_ = declare_parameter<double>("planner.astar_min_partial", 0.8);
+  lambda_smooth_ = declare_parameter<double>("optimizer.lambda_smooth", 1.0);
+  lambda_obs_ = declare_parameter<double>("optimizer.lambda_obs", 30.0);
+  lambda_feas_ = declare_parameter<double>("optimizer.lambda_feas", 2.0);
+  opt_dt_ = declare_parameter<double>("optimizer.dt", 0.2);
+  opt_iters_ = declare_parameter<int>("optimizer.iterations", 35);
+  opt_step_ = declare_parameter<double>("optimizer.step_size", 0.02);
+  opt_max_step_ = declare_parameter<double>("optimizer.max_step", 0.04);
+  opt_ctrl_spacing_ = declare_parameter<double>("optimizer.ctrl_spacing", 0.8);
+  validate_traj_ = declare_parameter<bool>("optimizer.validate", true);
+
+  // Replanning / safety
+  collision_check_horizon_ = declare_parameter<double>("replan.collision_horizon", 1.5);
+  stop_horizon_ = declare_parameter<double>("replan.stop_horizon", 0.6);
+  replan_min_gap_ = declare_parameter<double>("replan.min_gap", 0.2);
+  stitch_lead_ = declare_parameter<double>("replan.stitch_lead", 0.06);
+
+  // Tracking controller
+  kp_x_ = declare_parameter<double>("control.kp_x", 1.0);
+  kp_y_ = declare_parameter<double>("control.kp_y", 0.8);
+  kp_yaw_ = declare_parameter<double>("control.kp_yaw", 2.5);
+  rotate_in_place_rad_ = declare_parameter<double>("control.rotate_in_place_rad", 1.20);
+  estimate_vel_from_pose_ = declare_parameter<bool>("control.estimate_vel_from_pose", true);
 
   // Initialize algorithmic modules
   grid_map_ = std::make_shared<GridMap>();
-  grid_map_->init(0.1, 20.0, 20.0, safe_dist_);
+  grid_map_->init(map_resolution_, map_size_, map_size_, inflate_radius_);
+  grid_map_->setFilterConfig(filter_cfg_);
 
   std::string static_map = declare_parameter<std::string>("static_map_path", "");
   bool use_prior_map = declare_parameter<bool>("use_prior_map", false);
@@ -38,47 +83,41 @@ EgoPlannerNode::EgoPlannerNode()
       const char * home = getenv("HOME");
       if (home) resolved_path = std::string(home) + resolved_path.substr(1);
     }
-    if (resolved_path[0] != '/' && access(resolved_path.c_str(), R_OK) != 0) {
-      const char * home = getenv("HOME");
-      if (home) {
-        std::string ws_path = std::string(home) + "/go2_ws/" + resolved_path;
-        if (access(ws_path.c_str(), R_OK) == 0) {
-          resolved_path = ws_path;
-        }
-      }
-    }
     if (grid_map_->loadPriorMap(resolved_path)) {
-      RCLCPP_INFO(get_logger(), "Loaded clean obstacle avoidance layer (%zu points) from %s",
+      RCLCPP_INFO(get_logger(), "Loaded prior obstacle layer (%zu points) from %s",
                   grid_map_->getStaticObstacles().size(), resolved_path.c_str());
       grid_map_->updateStaticOnly(Eigen::Vector2d(0.0, 0.0));
     } else {
-      RCLCPP_WARN(get_logger(), "Failed to load prior obstacle map from %s (resolved: %s). Using live LiDAR only.",
-                  static_map.c_str(), resolved_path.c_str());
+      RCLCPP_WARN(get_logger(), "Failed to load prior obstacle map from %s. Using live sensing only.",
+                  resolved_path.c_str());
     }
-  } else {
-    RCLCPP_INFO(get_logger(), "Operating in Pure Real-time 360° LiDAR mode (No ghost walls).");
   }
 
   a_star_ = std::make_shared<AStar>();
-  a_star_->init(grid_map_);
-
   optimizer_ = std::make_shared<BsplineOptimizer>();
-  optimizer_->init(grid_map_, 1.0, 30.0, 2.0, max_vel_, max_acc_, safe_dist_);
+  configurePlanners(*a_star_, *optimizer_, grid_map_);
 
   // ROS subscribers & publishers
   odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
     odom_topic_, 10, std::bind(&EgoPlannerNode::onOdom, this, std::placeholders::_1));
-
   goal_sub_ = create_subscription<geometry_msgs::msg::PoseStamped>(
     goal_topic_, 10, std::bind(&EgoPlannerNode::onGoal, this, std::placeholders::_1));
-
-  cloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
-    cloud_topic_, rclcpp::SensorDataQoS(),
-    std::bind(&EgoPlannerNode::onCloud, this, std::placeholders::_1));
+  if (obstacle_source_ == "scan") {
+    scan_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
+      scan_topic_, rclcpp::SensorDataQoS(),
+      std::bind(&EgoPlannerNode::onScan, this, std::placeholders::_1));
+  } else {
+    cloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
+      cloud_topic_, rclcpp::SensorDataQoS(),
+      std::bind(&EgoPlannerNode::onCloud, this, std::placeholders::_1));
+  }
 
   cmd_vel_pub_ = create_publisher<geometry_msgs::msg::Twist>(cmd_vel_topic_, 10);
   path_pub_ = create_publisher<nav_msgs::msg::Path>("/ego_planner/trajectory", 10);
   map_vis_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("/ego_planner/grid_map", 10);
+
+  param_cb_ = add_on_set_parameters_callback(
+    std::bind(&EgoPlannerNode::onParamChange, this, std::placeholders::_1));
 
   // 20Hz control and planning loop
   timer_ = create_wall_timer(50ms, std::bind(&EgoPlannerNode::controlLoop, this));
@@ -86,8 +125,11 @@ EgoPlannerNode::EgoPlannerNode()
   traj_start_time_ = now();
   last_replan_time_ = now();
 
-  RCLCPP_INFO(get_logger(), "EGO-Planner Ground Node initialized (odom: %s, cloud: %s, cmd: %s)",
-              odom_topic_.c_str(), cloud_topic_.c_str(), cmd_vel_topic_.c_str());
+  RCLCPP_INFO(get_logger(),
+    "EGO-Planner ready (odom: %s, obstacles: %s %s, inflate %.2f m, safe_dist %.2f m)",
+    odom_topic_.c_str(), obstacle_source_.c_str(),
+    obstacle_source_ == "scan" ? scan_topic_.c_str() : cloud_topic_.c_str(),
+    inflate_radius_, safe_dist_);
 }
 
 EgoPlannerNode::~EgoPlannerNode()
@@ -97,16 +139,71 @@ EgoPlannerNode::~EgoPlannerNode()
   }
 }
 
+void EgoPlannerNode::configurePlanners(
+  AStar & astar, BsplineOptimizer & opt, const std::shared_ptr<GridMap> & map) const
+{
+  astar.init(map);
+  astar.setSearchParams(astar_max_iters_, astar_min_partial_);
+  opt.init(map, lambda_smooth_, lambda_obs_, lambda_feas_, max_vel_, max_acc_, safe_dist_);
+  opt.setSolverParams(opt_dt_, opt_iters_, opt_step_, opt_max_step_, opt_ctrl_spacing_);
+}
+
+rcl_interfaces::msg::SetParametersResult EgoPlannerNode::onParamChange(
+  const std::vector<rclcpp::Parameter> & params)
+{
+  rcl_interfaces::msg::SetParametersResult result;
+  result.successful = true;
+  for (const auto & p : params) {
+    const auto & n = p.get_name();
+    if (n == "min_obs_h") {
+      min_obs_h_ = p.as_double();
+    } else if (n == "max_obs_h") {
+      max_obs_h_ = p.as_double();
+    } else if (n == "max_vel" || n == "max_acc" || n == "safe_dist") {
+      const double v = p.as_double();
+      if (v <= 0.0) {
+        result.successful = false;
+        result.reason = n + " must be positive";
+        continue;
+      }
+      (n == "max_vel" ? max_vel_ : n == "max_acc" ? max_acc_ : safe_dist_) = v;
+    } else if (n == "max_wz") {
+      max_wz_ = p.as_double();
+    } else if (n == "max_vy") {
+      max_vy_ = p.as_double();
+    } else if (n == "goal_tol") {
+      goal_tol_ = p.as_double();
+    } else {
+      continue;  // others need a restart (grid size, inflation, topics)
+    }
+    RCLCPP_INFO(get_logger(), "runtime parameter %s -> %s", n.c_str(), p.value_to_string().c_str());
+  }
+  // The original only read limits in the constructor; re-init so the next plan uses new ones.
+  configurePlanners(*a_star_, *optimizer_, grid_map_);
+  return result;
+}
+
 void EgoPlannerNode::onOdom(const nav_msgs::msg::Odometry::SharedPtr msg)
 {
-  has_odom_ = true;
-  robot_pos_.x() = msg->pose.pose.position.x;
-  robot_pos_.y() = msg->pose.pose.position.y;
-  robot_pos_.z() = msg->pose.pose.position.z;
+  const rclcpp::Time t(msg->header.stamp);
+  const Eigen::Vector3d pos(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z);
+  Eigen::Vector3d vel(msg->twist.twist.linear.x, msg->twist.twist.linear.y, msg->twist.twist.linear.z);
+  // FAST-LIO /Odometry carries no twist; without this the replan start velocity is always 0.
+  if (estimate_vel_from_pose_ && vel.norm() < 1e-9 && have_last_odom_) {
+    const double dt = (t - last_odom_time_).seconds();
+    if (dt > 1e-3 && dt < 0.5) {
+      vel = 0.7 * robot_vel_ + 0.3 * (pos - last_odom_pos_) / dt;
+    } else {
+      vel = robot_vel_;
+    }
+  }
+  last_odom_time_ = t;
+  last_odom_pos_ = pos;
+  have_last_odom_ = true;
 
-  robot_vel_.x() = msg->twist.twist.linear.x;
-  robot_vel_.y() = msg->twist.twist.linear.y;
-  robot_vel_.z() = msg->twist.twist.linear.z;
+  has_odom_ = true;
+  robot_pos_ = pos;
+  robot_vel_ = vel;
 
   tf2::Quaternion q(
     msg->pose.pose.orientation.x,
@@ -133,14 +230,19 @@ void EgoPlannerNode::onCloud(const sensor_msgs::msg::PointCloud2::ConstSharedPtr
   grid_map_->updateCloud(msg, robot_pos_, robot_yaw_, min_obs_h_, max_obs_h_);
 }
 
+void EgoPlannerNode::onScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr msg)
+{
+  if (!has_odom_) return;
+  has_cloud_ = true;
+  grid_map_->updateScan(msg, robot_pos_, robot_yaw_);
+}
+
 void EgoPlannerNode::onGoal(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
 {
   if (!has_odom_) {
     RCLCPP_WARN(get_logger(), "Received goal pose but no Odometry yet!");
     return;
   }
-
-  // Cancel any running async replan
   if (is_replanning_ && async_plan_future_.valid()) {
     async_plan_future_.wait_for(20ms);
   }
@@ -149,12 +251,10 @@ void EgoPlannerNode::onGoal(const geometry_msgs::msg::PoseStamped::SharedPtr msg
   goal_pos_ = Eigen::Vector2d(msg->pose.position.x, msg->pose.position.y);
   has_goal_ = true;
   state_ = PlannerState::PLANNING;
-
   RCLCPP_INFO(get_logger(), "Received new target goal: (%.2f, %.2f)", goal_pos_.x(), goal_pos_.y());
 
   Eigen::Vector2d start_pos(robot_pos_.x(), robot_pos_.y());
   Eigen::Vector2d start_vel(robot_vel_.x(), robot_vel_.y());
-
   if (planTrajectory(start_pos, start_vel, goal_pos_)) {
     state_ = PlannerState::EXECUTING;
     traj_start_time_ = now();
@@ -166,29 +266,42 @@ void EgoPlannerNode::onGoal(const geometry_msgs::msg::PoseStamped::SharedPtr msg
   }
 }
 
+bool EgoPlannerNode::planOn(
+  const std::shared_ptr<GridMap> & map, const Eigen::Vector2d & p0, const Eigen::Vector2d & v0,
+  const Eigen::Vector2d & a0, const Eigen::Vector2d & goal, BsplineTrajectory & out) const
+{
+  // Clip distant goal to the local planning horizon
+  Eigen::Vector2d local_subgoal = goal;
+  if ((goal - p0).norm() > plan_horizon_) {
+    local_subgoal = p0 + (goal - p0).normalized() * plan_horizon_;
+  }
+  AStar astar;
+  BsplineOptimizer opt;
+  configurePlanners(astar, opt, map);
+  std::vector<Eigen::Vector2d> a_star_path;
+  if (!astar.search(p0, local_subgoal, a_star_path)) {
+    return false;
+  }
+  BsplineTrajectory traj;
+  if (!opt.optimizeWithContinuity(a_star_path, p0, v0, a0, traj)) {
+    return false;
+  }
+  // The smoothed curve can cut corners into the inflated zone even when the A* path is free.
+  if (validate_traj_ && !opt.isCollisionFree(traj, 0.05)) {
+    return false;
+  }
+  out = std::move(traj);
+  return true;
+}
+
 bool EgoPlannerNode::planTrajectory(const Eigen::Vector2d & start_pos,
                                    const Eigen::Vector2d & start_vel,
                                    const Eigen::Vector2d & goal_pos)
 {
-  // Clip distant goal to local planning horizon (7.5m) within 20m x 20m local grid
-  Eigen::Vector2d local_subgoal = goal_pos;
-  const double dist_to_goal = (goal_pos - start_pos).norm();
-  const double max_horizon = 7.5;
-  if (dist_to_goal > max_horizon) {
-    local_subgoal = start_pos + (goal_pos - start_pos).normalized() * max_horizon;
-  }
-
-  std::vector<Eigen::Vector2d> a_star_path;
-  if (!a_star_->search(start_pos, local_subgoal, a_star_path)) {
-    RCLCPP_WARN(get_logger(), "A* search failed to reach target on local grid map!");
+  if (!planOn(grid_map_, start_pos, start_vel, Eigen::Vector2d::Zero(), goal_pos, current_traj_)) {
+    RCLCPP_WARN(get_logger(), "No collision-free trajectory on the local grid");
     return false;
   }
-
-  if (!optimizer_->optimizeWithContinuity(a_star_path, start_pos, start_vel, Eigen::Vector2d::Zero(), current_traj_)) {
-    RCLCPP_WARN(get_logger(), "B-spline optimization failed!");
-    return false;
-  }
-
   return true;
 }
 
@@ -199,28 +312,10 @@ bool EgoPlannerNode::asyncReplanWorker(const std::shared_ptr<GridMap> & map_snap
                                       const Eigen::Vector2d & goal)
 {
   if (!map_snapshot) return false;
-
-  Eigen::Vector2d local_subgoal = goal;
-  const double dist_to_goal = (goal - p0).norm();
-  const double max_horizon = 7.5;
-  if (dist_to_goal > max_horizon) {
-    local_subgoal = p0 + (goal - p0).normalized() * max_horizon;
-  }
-
-  AStar astar;
-  astar.init(map_snapshot);
-  std::vector<Eigen::Vector2d> a_star_path;
-  if (!astar.search(p0, local_subgoal, a_star_path)) {
-    return false;
-  }
-
-  BsplineOptimizer opt;
-  opt.init(map_snapshot, 1.0, 30.0, 2.0, max_vel_, max_acc_, safe_dist_);
   BsplineTrajectory traj;
-  if (!opt.optimizeWithContinuity(a_star_path, p0, v0, a0, traj)) {
+  if (!planOn(map_snapshot, p0, v0, a0, goal, traj)) {
     return false;
   }
-
   std::lock_guard<std::mutex> lock(traj_mutex_);
   next_traj_ = std::move(traj);
   return true;
@@ -229,14 +324,17 @@ bool EgoPlannerNode::asyncReplanWorker(const std::shared_ptr<GridMap> & map_snap
 bool EgoPlannerNode::checkCollisionOnTrajectory(double horizon_s) const
 {
   if (current_traj_.getControlPoints().empty()) return true;
-
   const double t_cur = (now() - traj_start_time_).seconds();
   const double dt_check = 0.08;
   const double t_end = std::min(t_cur + horizon_s, current_traj_.getTotalDuration());
-
+  // Skip the stretch the robot is already standing in (closer to a wall than inflate_radius);
+  // otherwise every check fires and the robot holds forever next to the wall.
+  bool escaping = true;
   for (double t = std::max(0.0, t_cur); t <= t_end; t += dt_check) {
-    Eigen::Vector2d pt = current_traj_.evaluatePosition(t);
-    if (grid_map_->isInflated(pt)) {
+    const bool hit = grid_map_->isInflated(current_traj_.evaluatePosition(t));
+    if (!hit) {
+      escaping = false;
+    } else if (!escaping) {
       return true;
     }
   }
@@ -245,7 +343,6 @@ bool EgoPlannerNode::checkCollisionOnTrajectory(double horizon_s) const
 
 void EgoPlannerNode::controlLoop()
 {
-  // Periodically publish obstacle grid map and planned trajectory visualization (5 Hz)
   static int vis_cnt = 0;
   if (++vis_cnt % 4 == 0) {
     publishMapVisualization();
@@ -267,7 +364,7 @@ void EgoPlannerNode::controlLoop()
     return;
   }
 
-  // 1. ABPolicy: Non-blocking check for completed background trajectory
+  // 1. Non-blocking check for a completed background trajectory
   if (is_replanning_) {
     if (async_plan_future_.wait_for(0s) == std::future_status::ready) {
       bool success = async_plan_future_.get();
@@ -277,14 +374,14 @@ void EgoPlannerNode::controlLoop()
         current_traj_ = std::move(next_traj_);
         traj_start_time_ = next_traj_start_time_;
         last_replan_time_ = now();
+        if (blocked_stop_) {
+          RCLCPP_INFO(get_logger(), "Free trajectory found again, resuming");
+          blocked_stop_ = false;
+        }
         publishVisualizations();
-        RCLCPP_INFO(get_logger(),
-          "[ABPolicy] Seamless C2 Handover succeeded! New duration: %.2fs (StitchLag: %.1fms)",
-          current_traj_.getTotalDuration(),
-          (now() - next_traj_start_time_).seconds() * 1000.0);
       } else {
         RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
-          "[ABPolicy] Async replanning attempt failed. Continuing current trajectory.");
+          "Async replanning failed. Continuing current trajectory.");
       }
     }
   }
@@ -292,44 +389,34 @@ void EgoPlannerNode::controlLoop()
   const double t_cur = (now() - traj_start_time_).seconds();
   const double total_duration = current_traj_.getTotalDuration();
 
-  // 2. Check replanning trigger conditions
-  const bool collision_ahead = checkCollisionOnTrajectory(1.5);
+  // 2. Replanning triggers
+  const bool collision_ahead = checkCollisionOnTrajectory(collision_check_horizon_);
   const bool traj_expiring = (t_cur >= total_duration - 0.3);
   const double time_since_replan = (now() - last_replan_time_).seconds();
 
-  // If trajectory fully expired and no background plan is running, bring robot to safe stop
   if (t_cur >= total_duration + 0.2 && !is_replanning_) {
     RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 1000, "Trajectory finished, awaiting new commands.");
     stopRobot();
     return;
   }
 
-  const bool need_replan = (collision_ahead && time_since_replan >= 0.2) ||
-                           (traj_expiring && time_since_replan >= 0.2) ||
+  const bool need_replan = (collision_ahead && time_since_replan >= replan_min_gap_) ||
+                           (traj_expiring && time_since_replan >= replan_min_gap_) ||
                            (time_since_replan >= replan_gap_);
 
   if (!is_replanning_ && need_replan) {
-    // ABPolicy Asynchronous Planning Decoupling:
-    // Estimate computation time dt_est (60ms) and evaluate handover state at t_stitch
-    const double dt_est = 0.06;
-    double t_stitch = t_cur + dt_est;
-    if (t_stitch > total_duration) {
-      t_stitch = total_duration;
-    }
-
+    double t_stitch = std::min(t_cur + stitch_lead_, total_duration);
     Eigen::Vector2d p0 = current_traj_.evaluatePosition(t_stitch);
     Eigen::Vector2d v0 = current_traj_.evaluateVelocity(t_stitch);
     Eigen::Vector2d a0 = current_traj_.evaluateAcceleration(t_stitch);
-
-    if (t_cur > total_duration || v0.norm() < 0.02) {
+    if (t_cur > total_duration || v0.norm() < 0.02 || blocked_stop_) {
       p0 = robot_pos_.head<2>();
-      v0 = robot_vel_.head<2>();
+      v0 = blocked_stop_ ? Eigen::Vector2d::Zero() : Eigen::Vector2d(robot_vel_.head<2>());
       a0.setZero();
+      t_stitch = t_cur;
     }
-
     rclcpp::Time stitch_wall_time = traj_start_time_ + rclcpp::Duration::from_seconds(t_stitch);
     auto map_snapshot = grid_map_->clone();
-
     is_replanning_ = true;
     next_traj_start_time_ = stitch_wall_time;
     async_plan_future_ = std::async(
@@ -339,25 +426,29 @@ void EgoPlannerNode::controlLoop()
       });
   }
 
-  // Evaluate B-spline trajectory at current time
+  // 3. Safety: the original kept following a trajectory that runs into an obstacle while
+  // replans failed. Hold still if the collision is within stop_horizon; replanning continues.
+  if (checkCollisionOnTrajectory(stop_horizon_)) {
+    if (!blocked_stop_) {
+      RCLCPP_WARN(get_logger(), "Obstacle on trajectory within %.1f s and no free replan: holding", stop_horizon_);
+    }
+    blocked_stop_ = true;
+    stopRobot();
+    return;
+  }
+
+  // 4. Track the B-spline (feedforward + P, body frame, holonomic)
   Eigen::Vector2d des_pos = current_traj_.evaluatePosition(t_cur);
   Eigen::Vector2d des_vel = current_traj_.evaluateVelocity(t_cur);
-
-  // Position error in global frame
   Eigen::Vector2d pos_err = des_pos - robot_pos_.head<2>();
 
-  // Rotate velocity and error into robot body frame
   const double c_yaw = std::cos(robot_yaw_);
   const double s_yaw = std::sin(robot_yaw_);
-
-  // Body frame tracking
   const double err_body_x =  c_yaw * pos_err.x() + s_yaw * pos_err.y();
   const double err_body_y = -s_yaw * pos_err.x() + c_yaw * pos_err.y();
-
   const double v_ff_x =  c_yaw * des_vel.x() + s_yaw * des_vel.y();
   const double v_ff_y = -s_yaw * des_vel.x() + c_yaw * des_vel.y();
 
-  // Desired heading aligns with trajectory tangent
   double des_yaw = robot_yaw_;
   if (des_vel.norm() > 0.05) {
     des_yaw = std::atan2(des_vel.y(), des_vel.x());
@@ -365,26 +456,17 @@ void EgoPlannerNode::controlLoop()
     Eigen::Vector2d to_goal = goal_pos_ - robot_pos_.head<2>();
     des_yaw = std::atan2(to_goal.y(), to_goal.x());
   }
+  double yaw_err = std::remainder(des_yaw - robot_yaw_, 2.0 * M_PI);
 
-  // Heading error wrapped to [-pi, pi]
-  double yaw_err = des_yaw - robot_yaw_;
-  while (yaw_err > M_PI) yaw_err -= 2.0 * M_PI;
-  while (yaw_err < -M_PI) yaw_err += 2.0 * M_PI;
-
-  // Heading-priority scaling:
-  // Smoothly scale forward drive with cos(yaw_err).
-  // If heading error is large (> 68 deg = ~1.20 rad), prioritize in-place rotation to align.
   double heading_factor = std::max(0.0, std::cos(yaw_err));
-  if (std::abs(yaw_err) > 1.20) {
+  if (std::abs(yaw_err) > rotate_in_place_rad_) {
     heading_factor = 0.0;
   }
 
-  // Controller output (P + Feedforward with heading scaling)
   geometry_msgs::msg::Twist cmd;
-  cmd.linear.x = std::clamp((v_ff_x + 1.0 * err_body_x) * heading_factor, -max_vel_, max_vel_);
-  cmd.linear.y = std::clamp((v_ff_y + 0.8 * err_body_y) * heading_factor, -0.25, 0.25);
-  cmd.angular.z = std::clamp(2.5 * yaw_err, -max_wz_, max_wz_);
-
+  cmd.linear.x = std::clamp((v_ff_x + kp_x_ * err_body_x) * heading_factor, -max_vel_, max_vel_);
+  cmd.linear.y = std::clamp((v_ff_y + kp_y_ * err_body_y) * heading_factor, -max_vy_, max_vy_);
+  cmd.angular.z = std::clamp(kp_yaw_ * yaw_err, -max_wz_, max_wz_);
   cmd_vel_pub_->publish(cmd);
 }
 
@@ -399,6 +481,9 @@ void EgoPlannerNode::stopRobot()
 
 void EgoPlannerNode::publishVisualizations()
 {
+  if (path_pub_->get_subscription_count() == 0) {
+    return;
+  }
   // 1. Publish planned path
   nav_msgs::msg::Path path_msg;
   path_msg.header.stamp = now();
@@ -425,8 +510,9 @@ void EgoPlannerNode::publishVisualizations()
 
 void EgoPlannerNode::publishMapVisualization()
 {
+  // Building this cloud every 200 ms costs CPU for nothing when nobody is listening
   if (!map_vis_pub_ || map_vis_pub_->get_subscription_count() == 0) {
-    // Only generate point cloud if someone is listening or for debug
+    return;
   }
 
   auto map_cloud = std::make_unique<sensor_msgs::msg::PointCloud2>();

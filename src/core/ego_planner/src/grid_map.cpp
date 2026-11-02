@@ -101,34 +101,36 @@ bool GridMap::loadPriorMap(const std::string & bin_path)
   return !static_obstacles_.empty();
 }
 
-void GridMap::updateStaticOnly(const Eigen::Vector2d & center)
+void GridMap::markOccupied(const Eigen::Vector2d & pt, std::vector<std::pair<int, int>> & occupied_indices)
 {
-  resetLocal(center);
-  std::vector<std::pair<int, int>> occupied_indices;
-  occupied_indices.reserve(static_obstacles_.size());
-
-  for (const auto & pt : static_obstacles_) {
-    int ix, iy;
-    posToIndex(pt, ix, iy);
-    if (isInMap(ix, iy)) {
-      int idx = toIndex(ix, iy);
-      if (occupancy_[idx] == 0) {
-        occupancy_[idx] = 100;
-        occupied_indices.emplace_back(ix, iy);
-      }
+  int ix, iy;
+  posToIndex(pt, ix, iy);
+  if (isInMap(ix, iy)) {
+    const int idx = toIndex(ix, iy);
+    if (occupancy_[idx] == 0) {
+      occupancy_[idx] = 100;
+      occupied_indices.emplace_back(ix, iy);
     }
   }
+}
 
+void GridMap::insertStatic(std::vector<std::pair<int, int>> & occupied_indices)
+{
+  for (const auto & pt : static_obstacles_) {
+    markOccupied(pt, occupied_indices);
+  }
+}
+
+void GridMap::inflate(const std::vector<std::pair<int, int>> & occupied_indices)
+{
   const int r = inflate_cells_;
   const int r2 = r * r;
   for (const auto & pt : occupied_indices) {
-    const int cx = pt.first;
-    const int cy = pt.second;
     for (int dx = -r; dx <= r; ++dx) {
       for (int dy = -r; dy <= r; ++dy) {
         if (dx * dx + dy * dy <= r2) {
-          const int nx = cx + dx;
-          const int ny = cy + dy;
+          const int nx = pt.first + dx;
+          const int ny = pt.second + dy;
           if (isInMap(nx, ny)) {
             inflated_[toIndex(nx, ny)] = 100;
           }
@@ -136,6 +138,15 @@ void GridMap::updateStaticOnly(const Eigen::Vector2d & center)
       }
     }
   }
+}
+
+void GridMap::updateStaticOnly(const Eigen::Vector2d & center)
+{
+  resetLocal(center);
+  std::vector<std::pair<int, int>> occupied_indices;
+  occupied_indices.reserve(static_obstacles_.size());
+  insertStatic(occupied_indices);
+  inflate(occupied_indices);
 }
 
 void GridMap::updateCloud(const sensor_msgs::msg::PointCloud2::ConstSharedPtr & cloud_msg,
@@ -150,17 +161,7 @@ void GridMap::updateCloud(const sensor_msgs::msg::PointCloud2::ConstSharedPtr & 
   occupied_indices.reserve(static_obstacles_.size() + 2000);
 
   // 1. Insert static obstacles from prior map (walls, permanent furniture)
-  for (const auto & pt : static_obstacles_) {
-    int ix, iy;
-    posToIndex(pt, ix, iy);
-    if (isInMap(ix, iy)) {
-      int idx = toIndex(ix, iy);
-      if (occupancy_[idx] == 0) {
-        occupancy_[idx] = 100;
-        occupied_indices.emplace_back(ix, iy);
-      }
-    }
-  }
+  insertStatic(occupied_indices);
 
   // 2. Insert real-time live LiDAR points
   int off_x = -1, off_y = -1, off_z = -1;
@@ -174,7 +175,6 @@ void GridMap::updateCloud(const sensor_msgs::msg::PointCloud2::ConstSharedPtr & 
   const size_t n_pts = cloud_msg->width * cloud_msg->height;
   const uint8_t * data = cloud_msg->data.data();
   const size_t step = cloud_msg->point_step;
-
   const double c_yaw = std::cos(robot_yaw);
   const double s_yaw = std::sin(robot_yaw);
 
@@ -184,65 +184,60 @@ void GridMap::updateCloud(const sensor_msgs::msg::PointCloud2::ConstSharedPtr & 
     std::memcpy(&x, p + off_x, sizeof(float));
     std::memcpy(&y, p + off_y, sizeof(float));
     std::memcpy(&z, p + off_z, sizeof(float));
-
     if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) continue;
 
     // Relative to robot position in world frame
     const double dx = x - robot_pos.x();
     const double dy = y - robot_pos.y();
     const double d_xy = std::hypot(dx, dy);
-
-    // Range filtering: points closer than 25cm (LiDAR bracket) or farther than 10m are ignored
-    if (d_xy < 0.25 || d_xy > 10.0) continue;
+    if (d_xy < filter_.min_range || d_xy > filter_.max_range) continue;
 
     // Relative height and body frame coordinates
     const double rel_z = z - robot_pos.z();
     const double bx =  c_yaw * dx + s_yaw * dy;
     const double by = -s_yaw * dx + c_yaw * dy;
 
-    // Geometric body self-filter (Go2 body + leg swing envelope):
-    // Covers body + swinging knees/feet: X in [-0.35m, +0.33m], |Y| <= 0.22m, rel_z < 0.20m
-    if (bx >= -0.35 && bx <= 0.33 && std::abs(by) <= 0.22 && rel_z < 0.20) {
+    // Geometric body self-filter (Go2 body + leg swing envelope)
+    if (bx >= filter_.body_x_min && bx <= filter_.body_x_max &&
+      std::abs(by) <= filter_.body_y_abs && rel_z < filter_.body_z_max)
+    {
       continue;
     }
 
-    // Distance-adaptive ground clearance filter:
-    // Takes into account walking pitch/roll variations (~2.6 deg slope margin = 0.045 rad)
-    // so floor points at 1.5m ~ 4.0m are never mistaken for obstacle walls.
-    const double adaptive_min_h = min_h + d_xy * 0.045;
+    // Distance-adaptive ground clearance filter (walking pitch/roll margin).
+    // Note: obstacles are points ABOVE min_h, so lowering min_h marks more ground, not less.
+    const double adaptive_min_h = min_h + d_xy * filter_.adaptive_slope;
     if (rel_z < adaptive_min_h || rel_z > max_h) continue;
 
-    int ix, iy;
-    posToIndex(Eigen::Vector2d(x, y), ix, iy);
-    if (isInMap(ix, iy)) {
-      int idx = toIndex(ix, iy);
-      if (occupancy_[idx] == 0) {
-        occupancy_[idx] = 100;
-        occupied_indices.emplace_back(ix, iy);
-      }
-    }
+    markOccupied(Eigen::Vector2d(x, y), occupied_indices);
   }
 
-  // Inflate occupied cells by robot clearance
-  const int r = inflate_cells_;
-  const int r2 = r * r;
+  inflate(occupied_indices);
+}
 
-  for (const auto & pt : occupied_indices) {
-    const int cx = pt.first;
-    const int cy = pt.second;
+void GridMap::updateScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scan_msg,
+                         const Eigen::Vector3d & robot_pos,
+                         double robot_yaw)
+{
+  resetLocal(Eigen::Vector2d(robot_pos.x(), robot_pos.y()));
+  std::vector<std::pair<int, int>> occupied_indices;
+  occupied_indices.reserve(static_obstacles_.size() + scan_msg->ranges.size());
+  insertStatic(occupied_indices);
 
-    for (int dx = -r; dx <= r; ++dx) {
-      for (int dy = -r; dy <= r; ++dy) {
-        if (dx * dx + dy * dy <= r2) {
-          const int nx = cx + dx;
-          const int ny = cy + dy;
-          if (isInMap(nx, ny)) {
-            inflated_[toIndex(nx, ny)] = 100;
-          }
-        }
-      }
-    }
+  // The scan frame (base_stab) is levelled at the robot base, so only the yaw is needed.
+  const double c_yaw = std::cos(robot_yaw);
+  const double s_yaw = std::sin(robot_yaw);
+  for (size_t i = 0; i < scan_msg->ranges.size(); ++i) {
+    const double r = scan_msg->ranges[i];
+    if (!std::isfinite(r) || r < filter_.min_range || r > filter_.max_range) continue;
+    const double a = scan_msg->angle_min + static_cast<double>(i) * scan_msg->angle_increment;
+    const double bx = r * std::cos(a);
+    const double by = r * std::sin(a);
+    markOccupied(
+      Eigen::Vector2d(robot_pos.x() + c_yaw * bx - s_yaw * by, robot_pos.y() + s_yaw * bx + c_yaw * by),
+      occupied_indices);
   }
+  inflate(occupied_indices);
 }
 
 double GridMap::evaluateCostAndGrad(const Eigen::Vector2d & pos, Eigen::Vector2d & grad, double safe_dist) const

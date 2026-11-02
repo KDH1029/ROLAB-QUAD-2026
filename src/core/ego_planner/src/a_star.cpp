@@ -128,7 +128,7 @@ bool AStar::search(const Eigen::Vector2d & start, const Eigen::Vector2d & goal,
   std::shared_ptr<Node2D> closest_node = nullptr;
   double min_h_dist = 1e9;
   int iters = 0;
-  const int max_iters = 15000;
+  const int max_iters = max_iters_;
 
   while (!open_list.empty() && ++iters < max_iters) {
     auto current = open_list.top();
@@ -172,7 +172,7 @@ bool AStar::search(const Eigen::Vector2d & start, const Eigen::Vector2d & goal,
   if (!goal_node) {
     // Best-effort fallback: if exact goal wasn't reached but we made forward progress (>0.8m),
     // navigate as far forward along the obstacle-free corridor as possible.
-    if (closest_node && closest_node->g_cost > 0.8) {
+    if (closest_node && closest_node->g_cost > min_partial_progress_) {
       goal_node = closest_node;
     } else {
       return false;

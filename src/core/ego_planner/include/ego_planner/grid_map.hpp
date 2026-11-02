@@ -6,9 +6,22 @@
 #include <algorithm>
 #include <Eigen/Core>
 #include "sensor_msgs/msg/point_cloud2.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 namespace ego_planner
 {
+
+// Point filter for building the local obstacle grid (all from ego_planner_params.yaml)
+struct CloudFilterConfig
+{
+  double min_range{0.25};       // ignore returns closer than this (m, horizontal from robot)
+  double max_range{10.0};       // ignore returns farther than this (m)
+  double body_x_min{-0.35};     // self-filter box in body frame (m)
+  double body_x_max{0.33};
+  double body_y_abs{0.22};
+  double body_z_max{0.20};      // relative to robot base height
+  double adaptive_slope{0.045}; // min height grows by this per metre (walking pitch/roll margin)
+};
 
 class GridMap
 {
@@ -23,6 +36,12 @@ public:
                    const Eigen::Vector3d & robot_pos,
                    double robot_yaw,
                    double min_h, double max_h);
+  // Obstacles from a gravity-levelled 2D scan (e.g. cloud_bridge scan_mode:=vertical, which keeps
+  // only vertical surfaces, so ramps and stair treads never become obstacles).
+  void updateScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scan_msg,
+                  const Eigen::Vector3d & robot_pos,
+                  double robot_yaw);
+  void setFilterConfig(const CloudFilterConfig & cfg) { filter_ = cfg; }
 
   bool isOccupied(const Eigen::Vector2d & pos) const;
   bool isOccupied(int idx_x, int idx_y) const;
@@ -66,6 +85,11 @@ private:
   std::vector<uint8_t> occupancy_;
   std::vector<uint8_t> inflated_;
   std::vector<Eigen::Vector2d> static_obstacles_;
+  CloudFilterConfig filter_;
+
+  void insertStatic(std::vector<std::pair<int, int>> & occupied_indices);
+  void markOccupied(const Eigen::Vector2d & pt, std::vector<std::pair<int, int>> & occupied_indices);
+  void inflate(const std::vector<std::pair<int, int>> & occupied_indices);
 
   inline int toIndex(int ix, int iy) const {
     return iy * size_x_ + ix;
