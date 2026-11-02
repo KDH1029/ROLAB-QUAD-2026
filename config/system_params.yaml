@@ -46,16 +46,21 @@ terrain_scan_slicer:
   azimuth_bins: 360                 # Angular resolution (bins per 360 deg)
 
 # 4. 3D Mapping & PCD-to-2D Projection
+# Tuned 2026-11-02 on bag gosu_20261030_001126 (누리관 X구간, 542s): driven-path cells marked
+# occupied 99% (original) -> 10.2%. Metric/sweep: ~/ws/merge_tmp_20261102/map_test/sweep.py
 mapping:
   resolution: 0.03                  # Occupancy grid resolution (m/pixel)
-  local_floor_cell_m: 0.50          # Grid cell size for local ground elevation estimation (m)
-  local_floor_percentile: 5.0       # Height percentile used as local floor reference (%)
-  wall_z_min: 0.22                  # Minimum wall height above local floor (m)
-  wall_z_max: 1.15                  # Maximum wall height above local floor (m)
-  min_pts_per_cell: 2               # Minimum points per cell required to mark as occupied
-  free_pad_m: 0.80                  # Free-space clearing radius around observed points (m)
+  local_floor_cell_m: 1.00          # Cell size for local floor estimation (m). 0.5 split ramps from the floor beside them
+  local_floor_percentile: 20.0      # Height percentile used as local floor (%). 5 picked the lower floor next to raised ramps
+  wall_z_min: 0.40                  # Min wall height above local floor (m). Below this: ramps/steps the robot walks on (cones: vision)
+  wall_z_max: 0.80                  # Max wall height above local floor (m). Track walls are ~0.6 m; higher returns are people/fixtures
+  min_pts_per_cell: 8               # Min points per occupied cell. Paired with cloud_stride 2 + keyframe 0.10 m / 5 deg
+  free_pad_m: 0.80                  # Free-space clearing radius around observed points (m, capped at 8 cells)
   keyframe_dist_m: 0.10             # Translation threshold for live mapping keyframes (m)
   keyframe_angle_deg: 5.0           # Rotation threshold for live mapping keyframes (deg)
+  cloud_stride: 2                   # Use every Nth LiDAR point while accumulating (live)
+  min_range_m: 0.6                  # Ignore returns closer than this to the LiDAR (robot body / legs)
+  max_range_m: 12.0                 # Ignore returns farther than this (outside the arena)
 
 # 5. Odometry & Goal Navigation Control
 navigation_control:

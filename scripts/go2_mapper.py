@@ -37,6 +37,9 @@ def load_mapping_config():
         'free_pad_m': 0.80,
         'keyframe_dist_m': 0.10,
         'keyframe_angle_deg': 5.0,
+        'cloud_stride': 2,
+        'min_range_m': 0.6,
+        'max_range_m': 12.0,
     }
     if HAS_YAML and SYS_CONFIG_FILE.exists():
         try:
@@ -86,7 +89,6 @@ def main():
 
     p_live = sub.add_parser('live', help='Real-time odometry + LiDAR mapping (C++ mapper_node)')
     p_live.add_argument('--name', type=str, default=f"map_{time.strftime('%m%d_%H%M')}", help='Output map name')
-    p_live.add_argument('--scan-topic', type=str, default='/scan', help='2D LaserScan topic')
     p_live.add_argument('--cloud-topic', type=str, default='/velodyne_points', help='3D PointCloud2 topic')
     p_live.add_argument('--res', type=float, default=cfg['resolution'], help='Grid resolution (m)')
     p_live.add_argument('--zmin', type=float, default=cfg['wall_z_min'], help='Min wall height above local floor (m)')
@@ -114,7 +116,6 @@ def main():
             'mode': 'live',
             'maps_dir': str(MAPS_DIR),
             'map_name': args.name,
-            'scan_topic': args.scan_topic,
             'cloud_topic': args.cloud_topic,
             'resolution': float(args.res),
             'local_floor_cell_m': float(cfg['local_floor_cell_m']),
@@ -124,6 +125,10 @@ def main():
             'free_pad_m': float(args.free_pad),
             'keyframe_dist_m': float(args.keyframe_dist),
             'keyframe_angle_deg': float(args.keyframe_deg),
+            'min_pts_per_cell': int(cfg['min_pts_per_cell']),
+            'cloud_stride': int(cfg['cloud_stride']),
+            'min_range_m': float(cfg['min_range_m']),
+            'max_range_m': float(cfg['max_range_m']),
             'duration_sec': float(args.duration),
             'set_default': bool(args.set_default),
         })

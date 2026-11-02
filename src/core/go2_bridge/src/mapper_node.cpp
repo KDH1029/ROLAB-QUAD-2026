@@ -24,7 +24,7 @@
 #include <vector>
 
 #include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/laser_scan.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -51,7 +51,6 @@ struct MapperConfig
   std::string pcd_path = "";
   std::string maps_dir = "maps";
   std::string map_name = "map_live";
-  std::string scan_topic = "/scan";
   std::string cloud_topic = "/velodyne_points";
   double resolution = 0.03;
   double local_floor_cell_m = 0.50;
@@ -62,6 +61,11 @@ struct MapperConfig
   double free_pad_m = 0.80;
   double keyframe_dist_m = 0.10;
   double keyframe_angle_deg = 5.0;
+  int cloud_stride = 4;
+  double min_range_m = 0.5;
+  double max_range_m = 12.0;
+  std::string odom_frame = "odom";
+  std::string base_frame = "base_link";
   double duration_sec = 0.0;
   bool local_level = true;
   bool set_default = true;
@@ -390,7 +394,6 @@ public:
     cfg_.pcd_path = declare_parameter<std::string>("pcd_path", "");
     cfg_.maps_dir = declare_parameter<std::string>("maps_dir", "maps");
     cfg_.map_name = declare_parameter<std::string>("map_name", "map_live");
-    cfg_.scan_topic = declare_parameter<std::string>("scan_topic", "/scan");
     cfg_.cloud_topic = declare_parameter<std::string>("cloud_topic", "/velodyne_points");
     cfg_.resolution = declare_parameter<double>("resolution", 0.03);
     cfg_.local_floor_cell_m = declare_parameter<double>("local_floor_cell_m", 0.50);
@@ -401,6 +404,13 @@ public:
     cfg_.free_pad_m = declare_parameter<double>("free_pad_m", 0.80);
     cfg_.keyframe_dist_m = declare_parameter<double>("keyframe_dist_m", 0.10);
     cfg_.keyframe_angle_deg = declare_parameter<double>("keyframe_angle_deg", 5.0);
+    cfg_.cloud_stride = std::max(1, static_cast<int>(declare_parameter<int>("cloud_stride", 4)));
+    // Sensor-range gate: inside min_range are the robot's own body/legs, which otherwise paint the
+    // whole driven path as occupied.
+    cfg_.min_range_m = declare_parameter<double>("min_range_m", 0.5);
+    cfg_.max_range_m = declare_parameter<double>("max_range_m", 12.0);
+    cfg_.odom_frame = declare_parameter<std::string>("odom_frame", "odom");
+    cfg_.base_frame = declare_parameter<std::string>("base_frame", "base_link");
     cfg_.duration_sec = declare_parameter<double>("duration_sec", 0.0);
     cfg_.local_level = declare_parameter<bool>("local_level", true);
     cfg_.set_default = declare_parameter<bool>("set_default", true);
@@ -408,16 +418,15 @@ public:
     if (cfg_.mode == "live") {
       accumulated_pts_.reserve(500000);
       auto qos = rclcpp::SensorDataQoS();
-      scan_sub_ = create_subscription<sensor_msgs::msg::LaserScan>(
-        cfg_.scan_topic, qos,
-        std::bind(&Go2MapperNode::onScan, this, std::placeholders::_1));
+      // /scan is not accumulated: its 2D returns have no height, and placing them at a fixed z
+      // put every return inside the wall band.
       cloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
         cfg_.cloud_topic, qos,
         std::bind(&Go2MapperNode::onCloud, this, std::placeholders::_1));
 
       RCLCPP_INFO(
-        get_logger(), "mapper_node (live): map=%s, scan=%s, cloud=%s",
-        cfg_.map_name.c_str(), cfg_.scan_topic.c_str(), cfg_.cloud_topic.c_str());
+        get_logger(), "mapper_node (live): map=%s, cloud=%s, stride=%d",
+        cfg_.map_name.c_str(), cfg_.cloud_topic.c_str(), cfg_.cloud_stride);
     }
   }
 
@@ -434,37 +443,12 @@ public:
     std::cout << "\n[DONE] 3D PCD saved: " << pcd_out.string()
               << " (" << accumulated_pts_.size() << " pts)\n";
 
-    MapperConfig live_cfg = cfg_;
-    live_cfg.min_pts_per_cell = 1;
-    exportOccupancyGrid(accumulated_pts_, live_cfg);
+    exportOccupancyGrid(accumulated_pts_, cfg_);
   }
 
 private:
-  bool lookupOdomPose(const std::string & src_frame, double & tx, double & ty, double & tz, double & yaw)
-  {
-    const std::vector<std::string> frames = {src_frame, "base_stab", "base_link"};
-    for (const auto & f : frames) {
-      if (f.empty()) continue;
-      try {
-        auto tr = tf_buffer_.lookupTransform("odom", f, tf2::TimePointZero);
-        tx = tr.transform.translation.x;
-        ty = tr.transform.translation.y;
-        tz = tr.transform.translation.z;
-        tf2::Quaternion q(
-          tr.transform.rotation.x,
-          tr.transform.rotation.y,
-          tr.transform.rotation.z,
-          tr.transform.rotation.w);
-        double r, p;
-        tf2::Matrix3x3(q).getRPY(r, p, yaw);
-        return true;
-      } catch (const tf2::TransformException &) {
-        continue;
-      }
-    }
-    return false;
-  }
-
+  // Keyframes are decided on the robot base pose only. Deciding on the pose of whichever sensor
+  // frame arrived made poses alternate between frames, so every message became a keyframe.
   bool checkKeyframe(double tx, double ty, double yaw)
   {
     if (!has_last_pose_) {
@@ -482,68 +466,75 @@ private:
       last_yaw_ = yaw;
       return true;
     }
-    return keyframes_ < 10;
+    return false;
   }
 
-  void onScan(const sensor_msgs::msg::LaserScan::SharedPtr msg)
+  // Transform at the cloud stamp; fall back to the latest one if the buffer does not reach it.
+  bool lookup(const std::string & child, const rclcpp::Time & stamp, geometry_msgs::msg::TransformStamped & out)
   {
-    double tx, ty, tz, yaw;
-    if (!lookupOdomPose(msg->header.frame_id, tx, ty, tz, yaw)) return;
-    if (!checkKeyframe(tx, ty, yaw)) return;
-
-    accumulated_pts_.push_back({static_cast<float>(tx), static_cast<float>(ty), static_cast<float>(tz)});
-    for (size_t i = 0; i < msg->ranges.size(); ++i) {
-      const float r = msg->ranges[i];
-      if (!std::isfinite(r) || r < msg->range_min || r > msg->range_max) continue;
-      const double ang = msg->angle_min + static_cast<double>(i) * msg->angle_increment + yaw;
-      accumulated_pts_.push_back({
-        static_cast<float>(tx + r * std::cos(ang)),
-        static_cast<float>(ty + r * std::sin(ang)),
-        static_cast<float>(tz + 0.5)
-      });
+    try {
+      out = tf_buffer_.lookupTransform(cfg_.odom_frame, child, stamp, rclcpp::Duration::from_seconds(0.05));
+      return true;
+    } catch (const tf2::TransformException &) {
     }
-    keyframes_++;
-    if (keyframes_ % 10 == 0) {
-      std::cout << "\r  keyframes=" << keyframes_ << " | pts=" << accumulated_pts_.size()
-                << " | pose=(" << std::fixed << std::setprecision(2)
-                << tx << ", " << ty << ", z=" << tz << "m)" << std::flush;
+    try {
+      out = tf_buffer_.lookupTransform(cfg_.odom_frame, child, tf2::TimePointZero);
+      return true;
+    } catch (const tf2::TransformException &) {
+      return false;
     }
   }
 
   void onCloud(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
   {
-    double tx, ty, tz, yaw;
-    if (!lookupOdomPose(msg->header.frame_id, tx, ty, tz, yaw)) return;
-    if (!checkKeyframe(tx, ty, yaw)) return;
+    const rclcpp::Time stamp(msg->header.stamp);
+    geometry_msgs::msg::TransformStamped base_tf, sensor_tf;
+    if (!lookup(cfg_.base_frame, stamp, base_tf)) return;
+    if (!lookup(msg->header.frame_id, stamp, sensor_tf)) return;
+
+    const auto & bq = base_tf.transform.rotation;
+    double br, bp, byaw;
+    tf2::Matrix3x3(tf2::Quaternion(bq.x, bq.y, bq.z, bq.w)).getRPY(br, bp, byaw);
+    if (!checkKeyframe(base_tf.transform.translation.x, base_tf.transform.translation.y, byaw)) return;
 
     const size_t n_pts = static_cast<size_t>(msg->width) * static_cast<size_t>(msg->height);
     const size_t step = msg->point_step;
     if (n_pts == 0 || step < 12) return;
 
-    const double c = std::cos(yaw);
-    const double s = std::sin(yaw);
+    // Full 3D rotation (roll/pitch included) so sloped walking does not smear the walls.
+    const auto & q = sensor_tf.transform.rotation;
+    const tf2::Matrix3x3 R(tf2::Quaternion(q.x, q.y, q.z, q.w));
+    const auto & t = sensor_tf.transform.translation;
     const uint8_t * raw = msg->data.data();
+    const double min_r2 = cfg_.min_range_m * cfg_.min_range_m;
+    const double max_r2 = cfg_.max_range_m * cfg_.max_range_m;
 
-    for (size_t i = 0; i < n_pts; i += 4) {
+    for (size_t i = 0; i < n_pts; i += static_cast<size_t>(cfg_.cloud_stride)) {
       float lx, ly, lz;
       std::memcpy(&lx, raw + i * step + 0, sizeof(float));
       std::memcpy(&ly, raw + i * step + 4, sizeof(float));
       std::memcpy(&lz, raw + i * step + 8, sizeof(float));
       if (!std::isfinite(lx) || !std::isfinite(ly) || !std::isfinite(lz)) continue;
-
+      const double r2 = static_cast<double>(lx) * lx + static_cast<double>(ly) * ly + static_cast<double>(lz) * lz;
+      if (r2 < min_r2 || r2 > max_r2) continue;
+      const tf2::Vector3 w = R * tf2::Vector3(lx, ly, lz);
       accumulated_pts_.push_back({
-        static_cast<float>(tx + c * lx - s * ly),
-        static_cast<float>(ty + s * lx + c * ly),
-        static_cast<float>(tz + lz)
+        static_cast<float>(t.x + w.x()),
+        static_cast<float>(t.y + w.y()),
+        static_cast<float>(t.z + w.z())
       });
     }
     keyframes_++;
+    if (keyframes_ % 20 == 0) {
+      std::cout << "\r  keyframes=" << keyframes_ << " | pts=" << accumulated_pts_.size()
+                << " | pose=(" << std::fixed << std::setprecision(2)
+                << base_tf.transform.translation.x << ", " << base_tf.transform.translation.y << ")" << std::flush;
+    }
   }
 
   MapperConfig cfg_;
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
-  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_;
 
   std::vector<Point3f> accumulated_pts_;

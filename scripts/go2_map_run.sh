@@ -65,12 +65,15 @@ fi
 
 if [ "$SIM_MODE" = false ]; then
     export ROS_DOMAIN_ID=0
-    for iface in eno1 eth0; do
-        if ip link show "$iface" >/dev/null 2>&1 && [ "$(cat /sys/class/net/${iface}/carrier 2>/dev/null)" = "1" ]; then
-            export CYCLONEDDS_URI="<CycloneDDS><Domain><General><NetworkInterfaceAddress>${iface}</NetworkInterfaceAddress></General></Domain></CycloneDDS>"
-            break
-        fi
-    done
+    # The robot-side interface is whichever one holds a 192.168.123.x address (eno1, enp86s0, robot-br, ...)
+    iface=$(ip -o -4 addr show | awk '$4 ~ /^192\.168\.123\./ {print $2; exit}')
+    if [ -z "$iface" ]; then
+        echo "[ERROR] No interface with a 192.168.123.x address. Is the robot connected?"
+        exit 1
+    fi
+    export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    export CYCLONEDDS_URI="<CycloneDDS><Domain><General><NetworkInterfaceAddress>${iface}</NetworkInterfaceAddress></General></Domain></CycloneDDS>"
+    echo "[INFO] Bound CycloneDDS to interface: ${iface}"
 else
     export ROS_LOCALHOST_ONLY=1
 fi
@@ -84,8 +87,8 @@ echo "----------------------------------------------------------------------"
 
 cleanup() {
     echo -e "\n[INFO] Stopping mapping bridge nodes..."
-    pkill -P $$ 2>/dev/null || true
-    pkill -f "odom_tf_node|imu_bridge_node|cloud_bridge_node|mapper_node" 2>/dev/null || true
+    # Only our own children; a name-based pkill -f would also kill other workspaces' bridges.
+    pkill -INT -P $$ 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
