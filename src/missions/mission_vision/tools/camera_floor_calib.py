@@ -16,6 +16,10 @@ hid it). Fallback: IMU roll/pitch with floor_z from the params. Pitch and roll o
 the two "up"s agree; yaw and the x/y position (not visible from the floor) are kept exactly;
 z = camera height above the floor + floor height in base_link.
 
+--write-params cone_tracker_params.yaml also moves the floor there: fusion.floor_z = the floor
+under the feet (base_link height above the floor depends on the standing height, not on the camera),
+and refine.z_min / z_max keep their height above the floor (cone band). Needs the feet (/lowstate).
+
 Refuses to write when the robot moved, the floor was not found in enough frames, or the frames
 disagree (spread > 0.5 deg). The old file is kept as a .bak_<time> copy.
 """
@@ -197,6 +201,25 @@ def read_floor_z(path):
         return -0.30
 
 
+def write_floor(path, floor_z_new):
+    """Move fusion.floor_z to floor_z_new and shift refine.z_min / z_max by the same amount."""
+    s = open(path).read()
+    vals = {}
+    for key in ('floor_z', 'z_min', 'z_max'):
+        m = re.search(rf'^(\s*{key}:\s*)(-?[0-9.]+)', s, flags=re.M)
+        if not m:
+            raise RuntimeError(f'{key} not found in {path}')
+        vals[key] = float(m.group(2))
+    d = floor_z_new - vals['floor_z']
+    new = {'floor_z': floor_z_new, 'z_min': vals['z_min'] + d, 'z_max': vals['z_max'] + d}
+    for key, v in new.items():
+        s = re.sub(rf'^(\s*{key}:\s*)(-?[0-9.]+)', lambda m: f'{m.group(1)}{v:.3f}', s, count=1, flags=re.M)
+    bak = path + time.strftime('.bak_%Y%m%d_%H%M%S')
+    shutil.copy(path, bak)
+    open(path, 'w').write(s)
+    return vals, new, bak
+
+
 def write_config(path, T, note):
     s = open(path).read()
     xyz = '[' + ', '.join(f'{v:.4f}' for v in T[:3, 3]) + ']'
@@ -333,6 +356,8 @@ def main():
     ap.add_argument('--config', default='', help='camera_extrinsics.yaml with the current mount (default: package config)')
     ap.add_argument('--params', default='', help='cone_tracker_params.yaml for floor_z (default: package config)')
     ap.add_argument('--write', default='', help='camera_extrinsics.yaml to update (backup kept)')
+    ap.add_argument('--write-params', default='',
+                    help='cone_tracker_params.yaml: set fusion.floor_z from the feet, shift refine.z_min/z_max with it')
     a = ap.parse_args()
     cfgdir = __import__('pathlib').Path(__file__).resolve().parents[1] / 'config'
     if not cfgdir.exists():                       # installed: lib/mission_vision -> share/mission_vision
@@ -392,6 +417,12 @@ def main():
           f'  q_xyzw: [{", ".join(f"{v:.5f}" for v in R_to_quat(T1[:3, :3]))}]')
     if problems:
         print('NOT USABLE: ' + '; '.join(problems))
+    if a.write_params:
+        if problems or len(ff) < 20:
+            sys.exit('not writing params' + ('' if len(ff) >= 20 else ' (no feet / leg kinematics)'))
+        old, new, bak = write_floor(a.write_params, floor_z_used)
+        print(f"written {a.write_params} (backup {bak}): floor_z {old['floor_z']:+.3f} -> {new['floor_z']:+.3f}, "
+              f"refine.z_min {old['z_min']:+.3f} -> {new['z_min']:+.3f}, z_max {old['z_max']:+.3f} -> {new['z_max']:+.3f}")
     if a.write:
         if problems:
             sys.exit('not writing')

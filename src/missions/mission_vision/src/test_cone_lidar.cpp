@@ -3,6 +3,7 @@
 //   ros2 run mission_vision test_cone_lidar            (synthetic)
 //   ros2 run mission_vision test_cone_lidar pts.xyz    (file: "x y z" in base_link -> candidates)
 #include <cmath>
+#include <cstdlib>
 #include <cstdio>
 #include <random>
 #include <vector>
@@ -41,7 +42,9 @@ int main(int argc, char ** argv)
     double x, y, z;
     while (f && std::fscanf(f, "%lf %lf %lf", &x, &y, &z) == 3) pts.emplace_back(x, y, z);
     if (f) std::fclose(f);
-    for (const auto & c : cone_lidar::findCones(pts, Eigen::Vector2d(0.25, 0.0), cone_lidar::Config{})) {
+    cone_lidar::Config cfg;
+    if (argc > 3) {cfg.z_min = std::atof(argv[2]); cfg.z_max = std::atof(argv[3]);}   // [z_min z_max]
+    for (const auto & c : cone_lidar::findCones(pts, Eigen::Vector2d(0.25, 0.0), cfg)) {
       std::printf("%.3f %.3f %d %.3f\n", c.center.x(), c.center.y(), c.points, c.width);
     }
     return 0;
