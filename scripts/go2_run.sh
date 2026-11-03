@@ -4,6 +4,7 @@
 #   ./scripts/go2_run.sh --map maps/arena.yaml                    # SLAM + AMCL + EGO-Planner
 #   ./scripts/go2_run.sh --map maps/arena.yaml --no-motor         # same, cannot move the robot
 #   ./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"    # + AMCL start pose (x y yaw_deg)
+#   ./scripts/go2_run.sh --map maps/arena.yaml --cones            # + cone tracker (needs YOLO on the robot PC)
 #   ./scripts/go2_run.sh --mode patrol                            # RANSAC wall-runner fallback
 #
 # Then send goals in the map frame:  python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0
@@ -16,6 +17,7 @@ MODE=nav
 MAP=""
 MOTOR=true
 START=""
+CONES=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -23,6 +25,7 @@ while [[ $# -gt 0 ]]; do
         --map) MAP="$(realpath "$2")"; shift 2 ;;
         --no-motor) MOTOR=false; shift ;;
         --start) START="$2"; shift 2 ;;
+        --cones) CONES=true; shift ;;
         -h|--help) sed -n 2,11p "$0"; exit 0 ;;
         *) echo "[ERROR] unknown argument: $1"; exit 1 ;;
     esac
@@ -84,7 +87,7 @@ echo " Stop: Ctrl+C   |   software stop: ros2 lifecycle set /go2_cmd_vel_to_spor
 echo "----------------------------------------------------------------------"
 
 # Launch is a direct child (not inside a pipeline) so Ctrl+C / cleanup reaches it
-ros2 launch go2_navigation go2_stack.launch.py mode:="$MODE" motor:="$MOTOR" map:="$MAP" \
+ros2 launch go2_navigation go2_stack.launch.py mode:="$MODE" motor:="$MOTOR" map:="$MAP" cones:="$CONES" \
     fastlio_config:="$WS_DIR/config/fastlio/fastlio_xt16_odometry.yaml" > >(tee "$LOG_DIR/stack.log") 2>&1 &
 
 if [ "$MODE" = nav ] && [ -n "$START" ]; then

@@ -57,6 +57,12 @@ def stack(context):
         nodes.append(lc('ego_planner', 'ego_planner_node', 'ego_planner_node',
                         [share('ego_planner', 'config', 'ego_planner_params.yaml')]))
         managed.append('ego_planner_node')
+        if LaunchConfiguration('cones').perform(context).lower() == 'true':
+            # Cone tracker (YOLO runs on the robot PC and publishes /mission/cone_detections)
+            nodes.append(lc('mission_vision', 'cone_tracker_node', 'cone_tracker_node',
+                            [share('mission_vision', 'config', 'cone_tracker_params.yaml'),
+                             share('mission_vision', 'config', 'camera_extrinsics.yaml')]))
+            managed.append('cone_tracker_node')
     elif mode == 'patrol':
         nodes.append(lc('go2_wall_patrol', 'wall_runner_node', 'wall_runner_node',
                         [share('go2_wall_patrol', 'config', 'patrol_params.yaml')]))
@@ -85,6 +91,7 @@ def generate_launch_description():
         DeclareLaunchArgument('mode', default_value='nav', description='nav | patrol'),
         DeclareLaunchArgument('motor', default_value='true', description='false: no cmd_vel_to_sport'),
         DeclareLaunchArgument('map', default_value='', description='map yaml (mode:=nav)'),
+        DeclareLaunchArgument('cones', default_value='false', description='true: cone_tracker_node'),
         DeclareLaunchArgument('fastlio_config', default_value='',
                               description='FAST-LIO parameter file (mode:=nav)'),
         OpaqueFunction(function=stack),

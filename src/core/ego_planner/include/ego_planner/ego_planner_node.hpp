@@ -79,6 +79,10 @@ private:
   // into the odometry frame with the robot pose seen in both, again at every replan, so the
   // goal stays anchored to the map while the controller runs on the smooth odometry.
   bool resolveGoal(Eigen::Vector2d & goal_odom);
+  // Map points given in `frame` into the odometry frame (same robot-pose relation as goals)
+  bool toOdomFrame(const std::string & frame, const std::vector<Eigen::Vector2d> & in,
+                   std::vector<Eigen::Vector2d> & out);
+  void onExtraObstacles(const sensor_msgs::msg::PointCloud2::ConstSharedPtr msg);
 
   // Components
   std::shared_ptr<GridMap> grid_map_;
@@ -160,6 +164,8 @@ private:
   std::string static_map_path_;
   std::string goal_base_frame_{"base_link"};
   std::string goal_frame_;
+  std::string extra_obstacle_topic_;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr extra_sub_;
   Eigen::Vector2d goal_in_frame_{0, 0};
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;

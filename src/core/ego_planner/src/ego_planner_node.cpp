@@ -71,6 +71,7 @@ EgoPlannerNode::EgoPlannerNode()
   estimate_vel_from_pose_ = declare_parameter<bool>("control.estimate_vel_from_pose", true);
 
   goal_base_frame_ = declare_parameter<std::string>("goal_base_frame", "base_link");
+  extra_obstacle_topic_ = declare_parameter<std::string>("extra_obstacle_topic", "");
   static_map_path_ = declare_parameter<std::string>("static_map_path", "");
   use_prior_map_ = declare_parameter<bool>("use_prior_map", false);
 
@@ -138,6 +139,11 @@ CallbackReturn EgoPlannerNode::on_activate(const rclcpp_lifecycle::State &)
       std::bind(&EgoPlannerNode::onCloud, this, std::placeholders::_1));
   }
 
+  if (!extra_obstacle_topic_.empty()) {
+    extra_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
+      extra_obstacle_topic_, 10, std::bind(&EgoPlannerNode::onExtraObstacles, this, std::placeholders::_1));
+  }
+
   // 20Hz control and planning loop
   timer_ = create_wall_timer(50ms, std::bind(&EgoPlannerNode::controlLoop, this));
 
@@ -167,6 +173,7 @@ CallbackReturn EgoPlannerNode::on_deactivate(const rclcpp_lifecycle::State &)
   goal_sub_.reset();
   scan_sub_.reset();
   cloud_sub_.reset();
+  extra_sub_.reset();
   has_odom_ = has_cloud_ = have_last_odom_ = false;
   cmd_vel_pub_->on_deactivate();
   path_pub_->on_deactivate();
@@ -551,13 +558,33 @@ void EgoPlannerNode::controlLoop()
 
 bool EgoPlannerNode::resolveGoal(Eigen::Vector2d & goal_odom)
 {
-  if (goal_frame_.empty() || goal_frame_ == map_frame_) {
-    goal_odom = goal_in_frame_;
+  std::vector<Eigen::Vector2d> out;
+  if (!toOdomFrame(goal_frame_, {goal_in_frame_}, out)) return false;
+  goal_odom = out.front();
+  return true;
+}
+
+void EgoPlannerNode::onExtraObstacles(const sensor_msgs::msg::PointCloud2::ConstSharedPtr msg)
+{
+  std::vector<Eigen::Vector2d> pts, odom_pts;
+  sensor_msgs::PointCloud2ConstIterator<float> ix(*msg, "x"), iy(*msg, "y");
+  for (; ix != ix.end(); ++ix, ++iy) pts.emplace_back(*ix, *iy);
+  if (has_odom_ && toOdomFrame(msg->header.frame_id, pts, odom_pts)) {
+    grid_map_->setExtraObstacles(odom_pts);
+  }
+}
+
+bool EgoPlannerNode::toOdomFrame(const std::string & frame, const std::vector<Eigen::Vector2d> & in,
+                                 std::vector<Eigen::Vector2d> & out)
+{
+  out.clear();
+  if (frame.empty() || frame == map_frame_) {
+    out = in;
     return true;
   }
   geometry_msgs::msg::TransformStamped tr;
   try {
-    tr = tf_buffer_->lookupTransform(goal_frame_, goal_base_frame_, tf2::TimePointZero);
+    tr = tf_buffer_->lookupTransform(frame, goal_base_frame_, tf2::TimePointZero);
   } catch (const tf2::TransformException &) {
     return false;
   }
@@ -566,12 +593,14 @@ bool EgoPlannerNode::resolveGoal(Eigen::Vector2d & goal_odom)
   double r, p, yaw_g;
   tf2::Matrix3x3(q).getRPY(r, p, yaw_g);
   const Eigen::Vector2d pos_g(tr.transform.translation.x, tr.transform.translation.y);
-  // Goal relative to the robot, then placed around the robot pose in the odometry frame
-  const Eigen::Vector2d d = goal_in_frame_ - pos_g;
+  // Point relative to the robot, then placed around the robot pose in the odometry frame
   const double cg = std::cos(yaw_g), sg = std::sin(yaw_g);
-  const Eigen::Vector2d rel(cg * d.x() + sg * d.y(), -sg * d.x() + cg * d.y());
   const double co = std::cos(robot_yaw_), so = std::sin(robot_yaw_);
-  goal_odom = robot_pos_.head<2>() + Eigen::Vector2d(co * rel.x() - so * rel.y(), so * rel.x() + co * rel.y());
+  for (const auto & p : in) {
+    const Eigen::Vector2d d = p - pos_g;
+    const Eigen::Vector2d rel(cg * d.x() + sg * d.y(), -sg * d.x() + cg * d.y());
+    out.push_back(robot_pos_.head<2>() + Eigen::Vector2d(co * rel.x() - so * rel.y(), so * rel.x() + co * rel.y()));
+  }
   return true;
 }
 

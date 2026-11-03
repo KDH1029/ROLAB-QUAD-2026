@@ -119,6 +119,9 @@ void GridMap::insertStatic(std::vector<std::pair<int, int>> & occupied_indices)
   for (const auto & pt : static_obstacles_) {
     markOccupied(pt, occupied_indices);
   }
+  for (const auto & pt : extra_obstacles_) {
+    markOccupied(pt, occupied_indices);
+  }
 }
 
 void GridMap::inflate(const std::vector<std::pair<int, int>> & occupied_indices)

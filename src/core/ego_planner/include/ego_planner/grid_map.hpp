@@ -42,6 +42,8 @@ public:
                   const Eigen::Vector3d & robot_pos,
                   double robot_yaw);
   void setFilterConfig(const CloudFilterConfig & cfg) { filter_ = cfg; }
+  // Extra obstacles (already in the grid frame), inserted with the static layer on every update
+  void setExtraObstacles(const std::vector<Eigen::Vector2d> & pts) { extra_obstacles_ = pts; }
 
   bool isOccupied(const Eigen::Vector2d & pos) const;
   bool isOccupied(int idx_x, int idx_y) const;
@@ -86,6 +88,7 @@ private:
   std::vector<uint8_t> inflated_;
   std::vector<Eigen::Vector2d> static_obstacles_;
   CloudFilterConfig filter_;
+  std::vector<Eigen::Vector2d> extra_obstacles_;
 
   void insertStatic(std::vector<std::pair<int, int>> & occupied_indices);
   void markOccupied(const Eigen::Vector2d & pt, std::vector<std::pair<int, int>> & occupied_indices);

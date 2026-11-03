@@ -18,6 +18,9 @@ ego_planner_node:
     obstacle_source: "scan"
     scan_topic: "/scan"
     cloud_topic: "/cloud_registered"
+    # Confirmed cones from cone_tracker_node (map frame), mapped into the odometry frame like goals.
+    # "" disables. 23 cm cones are otherwise only seen by the vertical scan within ~1.2-1.5 m.
+    extra_obstacle_topic: "/mission/cone_obstacles"
 
     # ---- Limits ---------------------------------------------------------------------------------
     max_vel: 0.6                       # m/s  (original 0.8; 1 m corridors, 90 deg corners)

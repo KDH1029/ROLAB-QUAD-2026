@@ -23,6 +23,11 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import Image, LaserScan
 from geometry_msgs.msg import Pose, PoseArray
 from std_msgs.msg import Bool, String
+try:
+    from vision_msgs.msg import Detection2D, Detection2DArray, ObjectHypothesisWithPose
+    HAS_VISION_MSGS = True
+except ImportError:
+    HAS_VISION_MSGS = False
 
 # ==============================================================================
 # 1. Engine Abstraction (YOLO Version Agnostic)
@@ -268,6 +273,8 @@ class YoloDetectorNode(Node):
         self.declare_parameter('cone_poses_topic', '/mission/cone_poses')
         self.declare_parameter('parking_ready_topic', '/mission/parking_ready')
         self.declare_parameter('debug_image_topic', '/mission/yolo_debug_image')
+        # Raw cone boxes for cone_tracker_node (lidar/depth fusion, world-frame tracking)
+        self.declare_parameter('cone_detections_topic', '/mission/cone_detections')
         # yolo_mission.onnx 메타데이터 names = {0: traffic_light, 1: traffic_cone, 2: parking_sign}
         self.declare_parameter('class_traffic_light', 0)
         self.declare_parameter('class_cone', 1)
@@ -309,6 +316,10 @@ class YoloDetectorNode(Node):
         self.cone_pub = self.create_publisher(PoseArray, self.get_parameter('cone_poses_topic').value, 10)
         self.park_pub = self.create_publisher(Bool, self.get_parameter('parking_ready_topic').value, 10)
         self.debug_pub = self.create_publisher(Image, self.get_parameter('debug_image_topic').value, 5)
+        self.det_pub = None
+        if HAS_VISION_MSGS:
+            self.det_pub = self.create_publisher(
+                Detection2DArray, self.get_parameter('cone_detections_topic').value, 10)
 
         # Subscribers
         qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
@@ -343,6 +354,9 @@ class YoloDetectorNode(Node):
 
         detections = self.engine.predict(bgr, self.conf_thresh)
 
+        dets = Detection2DArray() if self.det_pub else None
+        if dets is not None:
+            dets.header = msg.header
         cone_poses = PoseArray()
         cone_poses.header = msg.header
         cone_poses.header.frame_id = "base_stab"
@@ -363,6 +377,18 @@ class YoloDetectorNode(Node):
                 cv2.putText(bgr, f"TL:{tl_state}", (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
             elif cls_id == self.cls_cone:
+                if dets is not None:
+                    d = Detection2D()
+                    d.header = msg.header
+                    d.bbox.center.position.x = 0.5 * (x1 + x2)
+                    d.bbox.center.position.y = 0.5 * (y1 + y2)
+                    d.bbox.size_x = float(x2 - x1)
+                    d.bbox.size_y = float(y2 - y1)
+                    h = ObjectHypothesisWithPose()
+                    h.hypothesis.class_id = 'cone'
+                    h.hypothesis.score = float(conf)
+                    d.results.append(h)
+                    dets.detections.append(d)
                 cv2.rectangle(bgr, (x1, y1), (x2, y2), (0, 140, 255), 2)
                 if self.last_depth is not None:
                     res3d = self.cone_handler.process(bbox, self.last_depth)
@@ -385,6 +411,8 @@ class YoloDetectorNode(Node):
         # Publish mission topics
         self.tl_pub.publish(String(data=tl_state))
         self.cone_pub.publish(cone_poses)
+        if dets is not None:
+            self.det_pub.publish(dets)
         self.park_pub.publish(Bool(data=parking_ready))
 
         if not self.publish_debug:

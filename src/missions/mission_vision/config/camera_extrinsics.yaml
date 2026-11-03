@@ -1,0 +1,16 @@
+# Camera / LiDAR extrinsics. OVERWRITTEN by tools/calib_capture.py --save.
+# Defaults below are NOT calibrated: D435i mount measured by depth floor fit (height 0.417 m above
+# floor, pitched down 32.1 deg), x offset guessed; LiDAR from bridge_params.yaml.
+cone_tracker_node:
+  ros__parameters:
+    base_to_color_optical:
+      xyz: [0.30, 0.0, 0.117]
+      q_xyzw: [-0.6187, 0.6187, -0.3423, 0.3423]
+    base_to_lidar:
+      xyz: [0.25, 0.0, 0.1588]
+      q_xyzw: [0.0024, 0.0063, 0.7071, 0.7070]
+    color_to_depth:
+      xyz: [-0.0148, 0.0, 0.0]
+      q_xyzw: [0.0, 0.0, 0.0, 1.0]
+    calibration_info:
+      calibrated: false        # true after calib_capture.py --save

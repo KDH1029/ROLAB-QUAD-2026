@@ -1,0 +1,33 @@
+# cone_tracker_node: YOLO cone boxes + LiDAR (preferred) / depth (fallback) -> world-frame cone tracks.
+# Camera/LiDAR extrinsics live in camera_extrinsics.yaml (written by tools/calib_capture.py);
+# pass both files: --params-file cone_tracker_params.yaml --params-file camera_extrinsics.yaml
+cone_tracker_node:
+  ros__parameters:
+    detections_topic: "/mission/cone_detections"   # vision_msgs/Detection2DArray from yolo_detector_node
+    color_info_topic: "/camera/color/camera_info"
+    depth_topic: "/camera/depth/image_rect_raw"      # raw depth; re-projected into colour, no alignment needed
+    depth_info_topic: "/camera/depth/camera_info"
+    cloud_topic: "/velodyne_points"                   # XT16 via cloud_bridge (hesai_lidar frame)
+    base_frame: "base_link"
+    world_frame: "map"                                # AMCL map
+
+    fusion:
+      box_shrink: 0.2          # use the inner 80 % of the box
+      min_lidar_points: 3      # fewer -> fall back to depth
+      near_fraction: 0.3       # nearest 30 % of hits inside the box (box also covers floor/wall behind)
+      depth_stride: 4          # px
+      depth_min: 0.25          # m
+      depth_max: 4.0
+      max_range: 4.0           # m from base_link; farther detections are ignored
+      min_score: 0.35
+      surface_to_center: 0.05  # m, near-surface estimate -> cone axis (base 14 cm, measured at ~7 cm height)
+
+    tracking:
+      assoc_dist: 0.30         # m, same cone if closer than this
+      confirm_hits: 3          # detections before a cone is published
+      tentative_timeout: 2.0   # s, unconfirmed tracks
+      confirmed_timeout: 30.0  # s, confirmed (cones are static)
+      ema_alpha: 0.3
+
+    output:
+      obstacle_radius: 0.08    # m, ring of points per cone on /mission/cone_obstacles (14 cm base)
