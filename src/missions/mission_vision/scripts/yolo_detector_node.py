@@ -9,6 +9,8 @@ from the competition mission post-processing handlers:
   3. ParkingHandler      : Verifies 'P' sign BBox and publishes parking_ready flag
 """
 
+import copy
+import json
 import math
 import os
 import sys
@@ -59,80 +61,167 @@ class MockYoloEngine(BaseYoloEngine):
         return dets
 
 
-class OpenCvDnnEngine(BaseYoloEngine):
-    """Native OpenCV DNN engine that runs any exported YOLO .onnx model without PyTorch."""
-    def __init__(self, onnx_path: str, in_w=640, in_h=640, device="cpu"):
+def onnx_class_names(onnx_path: str):
+    """Class names from an Ultralytics ONNX export's metadata ("names": "{0: 'traffic_light', ...}"),
+    read from the raw file so no onnx package is needed. {} when absent."""
+    import re
+    try:
+        raw = open(onnx_path, 'rb').read()
+    except OSError:
+        return {}
+    m = re.search(rb"\{(\s*\d+\s*:\s*'[^']*'\s*,?)+\s*\}", raw)
+    if not m:
+        return {}
+    return {int(k): v.decode() for k, v in re.findall(rb"(\d+)\s*:\s*'([^']*)'", m.group(0))}
+
+
+def decode_yolo(preds: np.ndarray, num_classes: int, layout: str, conf_thresh: float, iou: float,
+                sx: float, sy: float, orig_w: int, orig_h: int, px: float = 0.0, py: float = 0.0):
+    """Raw YOLO output -> [{'bbox': [x1, y1, x2, y2], 'conf', 'cls'}] in original image pixels.
+
+    Layouts (layout:=auto picks by shape; the exporter decides, not us):
+      v8   (1, 4+nc, N) or (1, N, 4+nc): cx cy w h + class scores      (YOLOv8 / v11 / v12)
+      v5   (1, N, 5+nc): cx cy w h objectness + class scores           (YOLOv5 / v7)
+      e2e  (1, N, 6): x1 y1 x2 y2 score class, NMS already done         (YOLOv10, nms=True exports)
+    Network-input pixel (u, v) -> original ((u - px) * sx, (v - py) * sy): px, py = letterbox padding.
+    NMS per class, like Ultralytics."""
+    p = np.asarray(preds, dtype=np.float32)
+    while p.ndim > 2:
+        p = p[0]
+    if p.ndim != 2:
+        raise ValueError(f'unexpected YOLO output shape {np.shape(preds)}')
+    a, b = p.shape
+    if layout == 'auto':
+        if min(a, b) in (6, 7) and max(a, b) <= 1000 and (num_classes <= 0 or num_classes + 4 != min(a, b)):
+            layout = 'e2e'
+        else:
+            c = min(a, b)
+            if num_classes > 0 and c == 5 + num_classes:
+                layout = 'v5'
+            else:
+                layout = 'v8'
+    if layout in ('v8', 'v5') and a < b:
+        p = p.T                                   # channels-first export
+    results = []
+    if layout == 'e2e':
+        if p.shape[1] not in (6, 7) and p.shape[0] in (6, 7):
+            p = p.T
+        for r in p:
+            if r[4] < conf_thresh:
+                continue
+            x1, y1, x2, y2 = (r[0] - px) * sx, (r[1] - py) * sy, (r[2] - px) * sx, (r[3] - py) * sy
+            results.append({'bbox': [max(0, int(x1)), max(0, int(y1)), min(orig_w, int(x2)), min(orig_h, int(y2))],
+                            'conf': float(r[4]), 'cls': int(r[5])})
+        return results
+    if layout == 'v5':
+        scores = p[:, 5:] * p[:, 4:5]
+    else:
+        scores = p[:, 4:]
+    cls = np.argmax(scores, axis=1)
+    conf = scores[np.arange(len(scores)), cls]
+    keep = conf >= conf_thresh
+    if not keep.any():
+        return results
+    q, cls, conf = p[keep], cls[keep], conf[keep]
+    boxes = [[int((r[0] - 0.5 * r[2] - px) * sx), int((r[1] - 0.5 * r[3] - py) * sy), int(r[2] * sx), int(r[3] * sy)] for r in q]
+    idx = []
+    for c in np.unique(cls):                      # per class: a cone box must not suppress a light
+        sel = np.nonzero(cls == c)[0]
+        k = cv2.dnn.NMSBoxes([boxes[i] for i in sel], conf[sel].tolist(), conf_thresh, iou)
+        idx += [int(sel[j]) for j in np.array(k).flatten()]
+    for i in sorted(idx, key=lambda i: -conf[i]):
+        bx, by, bw, bh = boxes[i]
+        results.append({'bbox': [max(0, bx), max(0, by), min(orig_w, bx + bw), min(orig_h, by + bh)],
+                        'conf': float(conf[i]), 'cls': int(cls[i])})
+    return results
+
+
+class OnnxYoloEngine(BaseYoloEngine):
+    """.onnx through onnxruntime (CUDA/TensorRT providers when present, e.g. on the Jetson), else
+    OpenVINO, else OpenCV DNN. OpenCV < 4.7 cannot load YOLOv8 heads (its Add broadcast fails:
+    the 11-04 laptop with system OpenCV 4.6 could not load yolo_mission.onnx), so it is the last try."""
+    def __init__(self, onnx_path: str, in_w=640, in_h=640, device="cpu", num_classes=0, layout="auto", iou=0.45):
         if not os.path.exists(onnx_path):
             raise FileNotFoundError(f"ONNX model file not found: {onnx_path}")
-        self.net = cv2.dnn.readNetFromONNX(onnx_path)
-        if device == "cuda" and cv2.cuda.getCudaEnabledDeviceCount() > 0:
-            self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-            self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
-        else:
-            self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-            self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-        self.in_w = in_w
-        self.in_h = in_h
+        self.in_w, self.in_h, self.layout, self.iou = in_w, in_h, layout, iou
+        self.names = onnx_class_names(onnx_path)
+        self.num_classes = num_classes or len(self.names)
+        errors = []
+        self.backend = None
+        try:
+            import onnxruntime as ort
+            prov = [p for p in ('TensorrtExecutionProvider', 'CUDAExecutionProvider') if device == 'cuda'
+                    and p in ort.get_available_providers()] + ['CPUExecutionProvider']
+            self.sess = ort.InferenceSession(onnx_path, providers=prov)
+            self.inp = self.sess.get_inputs()[0].name
+            self.backend = f"onnxruntime({self.sess.get_providers()[0]})"
+        except Exception as e:
+            errors.append(f"onnxruntime: {e}")
+        if self.backend is None:
+            try:
+                import openvino as ov
+                core = ov.Core()
+                self.ov = core.compile_model(onnx_path, 'GPU' if device == 'gpu' else 'CPU')
+                self.backend = "openvino"
+            except Exception as e:
+                errors.append(f"openvino: {e}")
+        if self.backend is None:
+            try:
+                self.net = cv2.dnn.readNetFromONNX(onnx_path)
+                if device == "cuda" and cv2.cuda.getCudaEnabledDeviceCount() > 0:
+                    self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+                    self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+                self.backend = f"opencv_dnn({cv2.__version__})"
+            except Exception as e:
+                errors.append(f"opencv {cv2.__version__}: {str(e).splitlines()[0]}")
+        if self.backend is None:
+            raise RuntimeError("no backend could load the model -> " + " | ".join(errors) +
+                               " (install onnxruntime, or use the .pt / TensorRT .engine with ultralytics)")
+
+    def letterbox(self, bgr_image: np.ndarray):
+        """Resize keeping the aspect ratio, pad with 114 gray - the way Ultralytics trains and runs
+        its models. A plain stretch to 640x640 shifted boxes and confidences (11-04 check against
+        ultralytics: 43 % of its boxes matched with the stretch)."""
+        h, w = bgr_image.shape[:2]
+        r = min(self.in_w / w, self.in_h / h)
+        nw, nh = int(round(w * r)), int(round(h * r))
+        px, py = (self.in_w - nw) / 2.0, (self.in_h - nh) / 2.0
+        img = cv2.resize(bgr_image, (nw, nh), interpolation=cv2.INTER_LINEAR) if (nw, nh) != (w, h) else bgr_image
+        top, left = int(round(py - 0.1)), int(round(px - 0.1))
+        img = cv2.copyMakeBorder(img, top, self.in_h - nh - top, left, self.in_w - nw - left,
+                                 cv2.BORDER_CONSTANT, value=(114, 114, 114))
+        return img, r, left, top
+
+    def raw(self, bgr_image: np.ndarray):
+        img, self._r, self._px, self._py = self.letterbox(bgr_image)
+        blob = cv2.dnn.blobFromImage(img, 1.0 / 255.0, (self.in_w, self.in_h), swapRB=True, crop=False)
+        if self.backend.startswith('onnxruntime'):
+            return self.sess.run(None, {self.inp: blob})[0]
+        if self.backend == 'openvino':
+            return list(self.ov([blob]).values())[0]
+        self.net.setInput(blob)
+        return self.net.forward()
 
     def predict(self, bgr_image: np.ndarray, conf_thresh: float):
-        orig_h, orig_w = bgr_image.shape[:2]
-        blob = cv2.dnn.blobFromImage(
-            bgr_image, 1.0 / 255.0, (self.in_w, self.in_h), swapRB=True, crop=False
-        )
-        self.net.setInput(blob)
-        preds = self.net.forward()
-
-        # Handle standard YOLOv5 / v8 / v11 output shapes: (1, 84, 8400) or (1, 8400, 84)
-        if preds.ndim == 3:
-            if preds.shape[1] < preds.shape[2]:
-                preds = np.transpose(preds, (0, 2, 1))
-            preds = preds[0]
-
-        boxes = []
-        confidences = []
-        class_ids = []
-
-        x_factor = orig_w / float(self.in_w)
-        y_factor = orig_h / float(self.in_h)
-
-        for row in preds:
-            classes_scores = row[4:]
-            _, max_score, _, max_class_loc = cv2.minMaxLoc(classes_scores)
-            if max_score >= conf_thresh:
-                cx, cy, w, h = row[0], row[1], row[2], row[3]
-                x1 = int((cx - 0.5 * w) * x_factor)
-                y1 = int((cy - 0.5 * h) * y_factor)
-                x2 = int((cx + 0.5 * w) * x_factor)
-                y2 = int((cy + 0.5 * h) * y_factor)
-                boxes.append([x1, y1, x2 - x1, y2 - y1])
-                confidences.append(float(max_score))
-                class_ids.append(int(max_class_loc[0]))
-
-        indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_thresh, 0.45)
-        results = []
-        if len(indices) > 0:
-            for i in indices.flatten():
-                bx, by, bw, bh = boxes[i]
-                results.append({
-                    'bbox': [max(0, bx), max(0, by), min(orig_w, bx + bw), min(orig_h, by + bh)],
-                    'conf': confidences[i],
-                    'cls': class_ids[i]
-                })
-        return results
+        h, w = bgr_image.shape[:2]
+        out = self.raw(bgr_image)
+        return decode_yolo(out, self.num_classes, self.layout, conf_thresh, self.iou,
+                           1.0 / self._r, 1.0 / self._r, w, h, self._px, self._py)
 
 
-def create_engine(engine_type: str, model_path: str, in_w=640, in_h=640, device="cpu", tl_cls=0):
+OpenCvDnnEngine = OnnxYoloEngine   # old name
+
+
+def create_engine(engine_type: str, model_path: str, in_w=640, in_h=640, device="cpu", tl_cls=0,
+                  num_classes=0, layout="auto"):
     """Factory creating the backend engine. Fails loudly unless mock is requested."""
     if engine_type == "mock":
         return MockYoloEngine(tl_cls)
 
     if os.path.isfile(model_path):
         if model_path.endswith(".onnx"):
-            try:
-                return OpenCvDnnEngine(model_path, in_w, in_h, device)
-            except Exception as e:
-                raise RuntimeError(f"Failed to load ONNX model via OpenCV DNN: {e}") from e
-        elif model_path.endswith(".pt"):
+            return OnnxYoloEngine(model_path, in_w, in_h, device, num_classes, layout)
+        elif model_path.endswith(".pt") or model_path.endswith(".engine"):   # .engine = TensorRT (ultralytics)
             try:
                 from ultralytics import YOLO
                 class UltralyticsEngine(BaseYoloEngine):
@@ -282,6 +371,13 @@ class YoloDetectorNode(Node):
         # 추론 주기 상한 (Hz). 카메라 30Hz 를 전부 추론하면 CPU 를 다 먹는다. 0 이면 제한 없음.
         self.declare_parameter('max_infer_hz', 5.0)
         self.declare_parameter('publish_debug_image', False)
+        # Output tensor layout of the model: auto | v8 | v5 | e2e (see decode_yolo); 0 classes = from metadata
+        self.declare_parameter('output_layout', 'auto')
+        self.declare_parameter('num_classes', 0)
+        # Cone boxes for cone_tracker_node: "string" (std_msgs/String JSON - works between Foxy on the
+        # robot PC and Jazzy on the NUC; vision_msgs differs between them), "vision_msgs", or "both"
+        self.declare_parameter('detections_format', 'string')
+        self.declare_parameter('cone_detections_json_topic', '/mission/cone_detections_json')
 
         engine_type = self.get_parameter('engine_type').value
         model_path = self.get_parameter('model_path').value
@@ -304,7 +400,12 @@ class YoloDetectorNode(Node):
             from ament_index_python.packages import get_package_share_directory
             full_model_path = os.path.join(get_package_share_directory('mission_vision'), model_path)
 
-        self.engine = create_engine(engine_type, full_model_path, in_w, in_h, device, self.cls_tl)
+        self.engine = create_engine(engine_type, full_model_path, in_w, in_h, device, self.cls_tl,
+                                    int(self.get_parameter('num_classes').value),
+                                    self.get_parameter('output_layout').value)
+        names = getattr(self.engine, 'names', {})
+        if names:
+            self.get_logger().info(f"model classes {names} | traffic_light={self.cls_tl} cone={self.cls_cone} parking={self.cls_park}")
         self.tl_handler = TrafficLightHandler()
         self.cone_handler = ConeHandler()
         self.parking_handler = ParkingHandler()
@@ -316,10 +417,18 @@ class YoloDetectorNode(Node):
         self.cone_pub = self.create_publisher(PoseArray, self.get_parameter('cone_poses_topic').value, 10)
         self.park_pub = self.create_publisher(Bool, self.get_parameter('parking_ready_topic').value, 10)
         self.debug_pub = self.create_publisher(Image, self.get_parameter('debug_image_topic').value, 5)
+        fmt = self.get_parameter('detections_format').value
         self.det_pub = None
-        if HAS_VISION_MSGS:
-            self.det_pub = self.create_publisher(
-                Detection2DArray, self.get_parameter('cone_detections_topic').value, 10)
+        if fmt in ('vision_msgs', 'both'):
+            if HAS_VISION_MSGS:
+                self.det_pub = self.create_publisher(
+                    Detection2DArray, self.get_parameter('cone_detections_topic').value, 10)
+            else:
+                self.get_logger().warn("vision_msgs not installed: cone boxes only as JSON")
+        self.det_json_pub = None
+        if fmt in ('string', 'both') or self.det_pub is None:
+            self.det_json_pub = self.create_publisher(
+                String, self.get_parameter('cone_detections_json_topic').value, 10)
 
         # Subscribers
         qos = QoSProfile(depth=5, reliability=ReliabilityPolicy.BEST_EFFORT)
@@ -357,9 +466,10 @@ class YoloDetectorNode(Node):
         dets = Detection2DArray() if self.det_pub else None
         if dets is not None:
             dets.header = msg.header
+        json_boxes = []
         cone_poses = PoseArray()
-        cone_poses.header = msg.header
-        cone_poses.header.frame_id = "base_stab"
+        cone_poses.header = copy.deepcopy(msg.header)   # a plain assignment shares the image header:
+        cone_poses.header.frame_id = "base_stab"        # its frame_id then became base_stab for every user
 
         parking_ready = False
         tl_state = "UNKNOWN"
@@ -377,6 +487,7 @@ class YoloDetectorNode(Node):
                 cv2.putText(bgr, f"TL:{tl_state}", (x1, y1 - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
             elif cls_id == self.cls_cone:
+                json_boxes.append([x1, y1, x2, y2, round(float(conf), 3)])
                 if dets is not None:
                     d = Detection2D()
                     d.header = msg.header
@@ -413,6 +524,11 @@ class YoloDetectorNode(Node):
         self.cone_pub.publish(cone_poses)
         if dets is not None:
             self.det_pub.publish(dets)
+        if self.det_json_pub is not None:
+            # image stamp kept: cone_tracker maps it to its own clock and picks depth / LiDAR at it
+            self.det_json_pub.publish(String(data=json.dumps({
+                'stamp': [msg.header.stamp.sec, msg.header.stamp.nanosec], 'frame': msg.header.frame_id,
+                'width': msg.width, 'height': msg.height, 'cones': json_boxes}, separators=(',', ':'))))
         self.park_pub.publish(Bool(data=parking_ready))
 
         if not self.publish_debug:

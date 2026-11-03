@@ -27,6 +27,13 @@ yolo_detector_node:
     cone_poses_topic: "/mission/cone_poses"
     parking_ready_topic: "/mission/parking_ready"
     debug_image_topic: "/mission/yolo_debug_image"
+    # Cone boxes for cone_tracker_node: "string" (JSON on cone_detections_json_topic - works from Foxy on
+    # the robot PC to Jazzy on the NUC), "vision_msgs" (same distro only), or "both"
+    detections_format: "string"
+    cone_detections_json_topic: "/mission/cone_detections_json"
+    # Output tensor layout: auto | v8 (v8/v11/v12) | v5 (v5/v7, objectness) | e2e (NMS inside, v10 / nms=True)
+    output_layout: "auto"
+    num_classes: 0                 # 0 = from the ONNX metadata names
 
     # Camera intrinsics (RealSense D435 default)
     camera_fx: 605.0

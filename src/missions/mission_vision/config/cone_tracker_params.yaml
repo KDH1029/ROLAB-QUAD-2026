@@ -2,7 +2,12 @@
 # Camera/LiDAR extrinsics live in camera_extrinsics.yaml; pass both files: --params-file cone_tracker_params.yaml --params-file camera_extrinsics.yaml
 cone_tracker_node:
   ros__parameters:
-    detections_topic: "/mission/cone_detections"   # vision_msgs/Detection2DArray from yolo_detector_node
+    # Cone boxes from yolo_detector_node. "string": std_msgs/String JSON (default - YOLO runs on the
+    # robot PC under Foxy, whose vision_msgs differs from Jazzy's); "vision_msgs": Detection2DArray
+    # (only when YOLO runs on the same ROS distro). Must match yolo_detector_node detections_format.
+    detections_format: "string"
+    detections_json_topic: "/mission/cone_detections_json"
+    detections_topic: "/mission/cone_detections"   # vision_msgs/Detection2DArray (detections_format: vision_msgs)
     color_info_topic: "/camera/color/camera_info"
     depth_topic: "/camera/depth/image_rect_raw"      # raw depth; re-projected into colour, no alignment needed
     depth_info_topic: "/camera/depth/camera_info"

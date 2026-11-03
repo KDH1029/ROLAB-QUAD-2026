@@ -2,7 +2,8 @@
  * @file cone_tracker_node.cpp
  * @brief Cone localisation: YOLO boxes + LiDAR (preferred) / depth (fallback) -> world-frame tracks.
  *
- * Per detection (vision_msgs/Detection2DArray from yolo_detector_node):
+ * Per detection (from yolo_detector_node: std_msgs/String JSON by default - the robot PC runs Foxy,
+ * whose vision_msgs differs from Jazzy's - or vision_msgs/Detection2DArray, detections_format):
  *   1. Coarse: depth pixels re-projected into the colour image (no aligned depth needed), nearest
  *      fraction inside the box -> rough cone position in base_link. Without depth: the ray through
  *      the box bottom-centre pixel intersected with the floor plane.
@@ -56,6 +57,7 @@
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include <std_msgs/msg/string.hpp>
 #include <vision_msgs/msg/detection2_d_array.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 
@@ -69,6 +71,54 @@ struct Pinhole
   int w{0}, h{0};
   bool valid() const {return fx > 0 && fy > 0;}
 };
+
+/// One camera box (pixels) with its score.
+struct Box
+{
+  double cu, cv, sx, sy, score;
+};
+
+/// {"stamp":[sec,nsec],...,"cones":[[x1,y1,x2,y2,conf],...]} from yolo_detector_node. Only these two
+/// keys are read; false when the stamp is missing.
+bool parseConeJson(const std::string & s, int64_t & sec, int64_t & nsec, std::vector<Box> & boxes)
+{
+  auto numbers = [&](size_t from, size_t to) {
+      std::vector<double> v;
+      const char * p = s.c_str() + from;
+      const char * end = s.c_str() + to;
+      while (p < end) {
+        if ((*p >= '0' && *p <= '9') || *p == '-' || *p == '.') {
+          char * q;
+          v.push_back(std::strtod(p, &q));
+          p = q;
+        } else {
+          ++p;
+        }
+      }
+      return v;
+    };
+  const size_t ks = s.find("\"stamp\"");
+  if (ks == std::string::npos) return false;
+  const size_t a = s.find('[', ks), b = s.find(']', ks);
+  if (a == std::string::npos || b == std::string::npos) return false;
+  const auto st = numbers(a, b);
+  if (st.size() < 2) return false;
+  sec = static_cast<int64_t>(st[0]);
+  nsec = static_cast<int64_t>(st[1]);
+  boxes.clear();
+  const size_t kc = s.find("\"cones\"");
+  if (kc == std::string::npos) return true;
+  size_t p = s.find('[', kc) + 1;          // outer list
+  while (true) {
+    const size_t o = s.find('[', p), c = s.find(']', p);
+    if (o == std::string::npos || c == std::string::npos || c < o) break;   // the outer ']' comes first
+    const size_t ce = s.find(']', o);
+    const auto v = numbers(o + 1, ce);
+    if (v.size() >= 5) boxes.push_back({0.5 * (v[0] + v[2]), 0.5 * (v[1] + v[3]), v[2] - v[0], v[3] - v[1], v[4]});
+    p = ce + 1;
+  }
+  return true;
+}
 
 struct Track
 {
@@ -136,6 +186,8 @@ public:
   : rclcpp_lifecycle::LifecycleNode("cone_tracker_node")
   {
     det_topic_ = declare_parameter<std::string>("detections_topic", "/mission/cone_detections");
+    det_json_topic_ = declare_parameter<std::string>("detections_json_topic", "/mission/cone_detections_json");
+    det_format_ = declare_parameter<std::string>("detections_format", "string");   // string | vision_msgs
     color_info_topic_ = declare_parameter<std::string>("color_info_topic", "/camera/color/camera_info");
     depth_topic_ = declare_parameter<std::string>("depth_topic", "/camera/depth/image_rect_raw");
     depth_info_topic_ = declare_parameter<std::string>("depth_info_topic", "/camera/depth/camera_info");
@@ -221,8 +273,31 @@ public:
     obs_pub_->on_activate();
     marker_pub_->on_activate();
     auto qos = rclcpp::SensorDataQoS();
-    det_sub_ = create_subscription<vision_msgs::msg::Detection2DArray>(
-      det_topic_, 10, std::bind(&ConeTrackerNode::onDetections, this, std::placeholders::_1));
+    if (det_format_ == "vision_msgs") {
+      det_sub_ = create_subscription<vision_msgs::msg::Detection2DArray>(
+        det_topic_, 10, [this](const vision_msgs::msg::Detection2DArray::SharedPtr m) {
+          std::vector<Box> boxes;
+          for (const auto & d : m->detections) {
+            boxes.push_back({d.bbox.center.position.x, d.bbox.center.position.y, d.bbox.size_x, d.bbox.size_y,
+                             d.results.empty() ? 1.0 : d.results[0].hypothesis.score});
+          }
+          onDetections(m->header.stamp, boxes);
+        });
+    } else {
+      det_json_sub_ = create_subscription<std_msgs::msg::String>(
+        det_json_topic_, 10, [this](const std_msgs::msg::String::SharedPtr m) {
+          int64_t sec, nsec;
+          std::vector<Box> boxes;
+          if (!parseConeJson(m->data, sec, nsec, boxes)) {
+            RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "bad cone JSON on %s", det_json_topic_.c_str());
+            return;
+          }
+          builtin_interfaces::msg::Time st;
+          st.sec = static_cast<int32_t>(sec);
+          st.nanosec = static_cast<uint32_t>(nsec);
+          onDetections(st, boxes);
+        });
+    }
     color_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
       color_info_topic_, qos, [this](const sensor_msgs::msg::CameraInfo::SharedPtr m) {
         color_K_ = toPinhole(*m);
@@ -243,7 +318,8 @@ public:
       cloud_topic_, qos, std::bind(&ConeTrackerNode::onCloud, this, std::placeholders::_1));
     timer_ = create_wall_timer(std::chrono::milliseconds(200), std::bind(&ConeTrackerNode::publishTracks, this));
     RCLCPP_INFO(get_logger(), "cone_tracker active: %s + %s/%s -> %s frame",
-                det_topic_.c_str(), cloud_topic_.c_str(), depth_topic_.c_str(), world_frame_.c_str());
+                (det_format_ == "vision_msgs" ? det_topic_ : det_json_topic_).c_str(), cloud_topic_.c_str(),
+                depth_topic_.c_str(), world_frame_.c_str());
     const Eigen::Quaterniond qc(base_T_color_.linear());
     const Eigen::Vector3d tc = base_T_color_.translation();
     RCLCPP_INFO(get_logger(), "camera extrinsic base->colour optical: xyz (%.3f, %.3f, %.3f) q_xyzw (%.4f, %.4f, %.4f, %.4f)",
@@ -254,7 +330,7 @@ public:
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override
   {
     saveConfirmed();
-    det_sub_.reset(); color_info_sub_.reset(); depth_info_sub_.reset(); depth_sub_.reset(); cloud_sub_.reset();
+    det_sub_.reset(); det_json_sub_.reset(); color_info_sub_.reset(); depth_info_sub_.reset(); depth_sub_.reset(); cloud_sub_.reset();
     timer_.reset();
     std::lock_guard<std::mutex> lk(mtx_);
     depth_buf_.clear(); scan_buf_.clear();
@@ -419,7 +495,7 @@ private:
     return true;
   }
 
-  void onDetections(const vision_msgs::msg::Detection2DArray::SharedPtr msg)
+  void onDetections(const builtin_interfaces::msg::Time & img_stamp, const std::vector<Box> & boxes)
   {
     if (!color_K_.valid()) {
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "waiting for %s", color_info_topic_.c_str());
@@ -441,7 +517,7 @@ private:
       // steadier offset - the colour stream queues behind the saturated link
       const StampMap & cam = (depth_map_.ready() && !depth_map_.same_clock && !color_map_.same_clock &&
                               std::abs(depth_map_.offset - color_map_.offset) < 1.0) ? depth_map_ : color_map_;
-      t_img = cam.map(rclcpp::Time(msg->header.stamp).seconds());
+      t_img = cam.map(rclcpp::Time(img_stamp).seconds());
       if (!scan_buf_.empty()) t_latest_scan = scan_buf_.back().t;
       // 2. depth frame and LiDAR scan closest to the image time
       double best = sync_max_dt_;
@@ -484,10 +560,10 @@ private:
                                                                    : motionComp(t_latest_scan, t_img);
     noteSync(t_img, depth ? t_depth - t_img : NAN, scan ? t_scan - t_img : NAN, comp_scan, comp_latest);
 
-    for (const auto & det : msg->detections) {
-      if (!det.results.empty() && det.results[0].hypothesis.score < min_score_) continue;
-      const double cu = det.bbox.center.position.x, cv = det.bbox.center.position.y;
-      const double hw = 0.5 * det.bbox.size_x * (1.0 - box_shrink_), hh = 0.5 * det.bbox.size_y * (1.0 - box_shrink_);
+    for (const auto & det : boxes) {
+      if (det.score < min_score_) continue;
+      const double cu = det.cu, cv = det.cv;
+      const double hw = 0.5 * det.sx * (1.0 - box_shrink_), hh = 0.5 * det.sy * (1.0 - box_shrink_);
       // 1. Coarse: YOLO + depth (or the floor ray through the box bottom)
       Eigen::Vector3d coarse;
       const char * src = "depth";
@@ -498,7 +574,7 @@ private:
       } else {
         src = "floor-ray";
         by_bearing = true;
-        if (!fromGroundRay(cu, cv + 0.5 * det.bbox.size_y, coarse)) continue;
+        if (!fromGroundRay(cu, cv + 0.5 * det.sy, coarse)) continue;
       }
       if (coarse.head<2>().norm() > max_range_) continue;
       // 2. Precise: LiDAR around the coarse position
@@ -684,6 +760,7 @@ private:
   }
 
   // Parameters
+  std::string det_json_topic_, det_format_;
   std::string det_topic_, color_info_topic_, depth_topic_, depth_info_topic_, cloud_topic_, base_frame_, world_frame_;
   std::string odom_frame_;
   double sync_buffer_s_, sync_max_dt_, sync_max_tf_age_;
@@ -716,6 +793,7 @@ private:
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   rclcpp::Subscription<vision_msgs::msg::Detection2DArray>::SharedPtr det_sub_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr det_json_sub_;
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr color_info_sub_, depth_info_sub_;
   rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr depth_sub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_;

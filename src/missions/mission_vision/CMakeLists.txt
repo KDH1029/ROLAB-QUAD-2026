@@ -22,7 +22,7 @@ target_include_directories(cone_tracker_node PRIVATE ${EIGEN3_INCLUDE_DIRS} incl
 add_executable(test_cone_lidar src/test_cone_lidar.cpp)
 target_include_directories(test_cone_lidar PRIVATE ${EIGEN3_INCLUDE_DIRS} include)
 ament_target_dependencies(cone_tracker_node
-  rclcpp rclcpp_lifecycle sensor_msgs geometry_msgs vision_msgs visualization_msgs tf2_ros)
+  rclcpp rclcpp_lifecycle std_msgs sensor_msgs geometry_msgs vision_msgs visualization_msgs tf2_ros)
 install(TARGETS cone_tracker_node test_cone_lidar DESTINATION lib/${PROJECT_NAME})
 
 # 1. Modular Python YOLO Detector Node
@@ -30,6 +30,7 @@ install(PROGRAMS
   scripts/yolo_detector_node.py
   tools/depth_lidar_align.py
   tools/camera_floor_calib.py
+  tools/yolo_model_check.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
