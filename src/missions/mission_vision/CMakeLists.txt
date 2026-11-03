@@ -26,9 +26,6 @@ install(TARGETS cone_tracker_node DESTINATION lib/${PROJECT_NAME})
 # 1. Modular Python YOLO Detector Node
 install(PROGRAMS
   scripts/yolo_detector_node.py
-  tools/calib_target.py
-  tools/calib_capture.py
-  tools/calib_core.py
   tools/depth_lidar_align.py
   DESTINATION lib/${PROJECT_NAME}
 )

@@ -16,12 +16,25 @@
  * Outputs (world frame): /mission/cones (confirmed, PoseArray), /mission/cone_obstacles
  * (PointCloud2 ring per cone for the planner grid), /mission/cone_markers.
  *
- * Extrinsics come from config/camera_extrinsics.yaml (written by tools/calib_capture.py).
+ * Sensor sync (the camera runs on the robot PC whose clock is not synced - stamps in 1970 - while
+ * the LiDAR and TF are on the NUC clock):
+ *   - every stream's stamps are mapped to this node's clock by the smallest (receive - stamp) seen
+ *     (StampMap); a stream already on this clock (|offset| < 0.5 s) is left alone. Detections carry
+ *     the colour image stamp, so they use the colour stream's offset (camera_info), not their own
+ *     receive time (which includes the YOLO delay).
+ *   - depth frames and LiDAR scans are buffered (sync.buffer_s) and the ones closest to the image
+ *     time are used (at most sync.max_dt apart), then moved to the image time with the odometry TF
+ *     (odom_frame) - the robot keeps turning while YOLO runs.
+ *   - the world TF is looked up at the image time; a fallback to the latest TF is allowed only if it
+ *     is younger than sync.max_tf_age.
+ *
+ * Extrinsics come from config/camera_extrinsics.yaml (CAD mount + RealSense factory depth->colour).
  */
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <deque>
 #include <fstream>
 #include <mutex>
 #include <string>
@@ -61,6 +74,44 @@ struct Track
   int id{0};
 };
 
+/// Maps a sensor's header stamps to this node's clock: offset = 5th percentile of (receive - stamp)
+/// over the last 300 messages, i.e. the stamp plus a small transport delay. A percentile, not the
+/// minimum: one sample taken before the clock started (sim time 0) or across a clock step would
+/// otherwise poison the offset for the whole window.
+struct StampMap
+{
+  std::deque<double> d;
+  double offset{0.0};
+  bool same_clock{true};
+  int n{0};
+  void add(double stamp, double recv)
+  {
+    if (recv <= 0.0 || stamp <= 0.0) return;            // clock not running yet
+    d.push_back(recv - stamp);
+    if (d.size() > 300) d.pop_front();
+    std::vector<double> v(d.begin(), d.end());
+    const size_t k = v.size() / 20;
+    std::nth_element(v.begin(), v.begin() + k, v.end());
+    offset = v[k];
+    same_clock = std::abs(offset) < 0.5;
+    ++n;
+  }
+  bool ready() const {return n > 0;}
+  double map(double stamp) const {return same_clock ? stamp : stamp + offset;}
+};
+
+struct DepthFrame
+{
+  double t;
+  sensor_msgs::msg::Image::SharedPtr img;
+};
+
+struct Scan
+{
+  double t;
+  std::vector<Eigen::Vector3d> pts;  // base_link at scan time
+};
+
 Eigen::Isometry3d poseFromParams(const std::vector<double> & xyz, const std::vector<double> & q_xyzw)
 {
   Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
@@ -85,6 +136,11 @@ public:
     cloud_topic_ = declare_parameter<std::string>("cloud_topic", "/velodyne_points");
     base_frame_ = declare_parameter<std::string>("base_frame", "base_link");
     world_frame_ = declare_parameter<std::string>("world_frame", "map");
+    odom_frame_ = declare_parameter<std::string>("odom_frame", "odom");
+    sync_buffer_s_ = declare_parameter<double>("sync.buffer_s", 1.0);
+    sync_max_dt_ = declare_parameter<double>("sync.max_dt", 0.05);
+    sync_max_tf_age_ = declare_parameter<double>("sync.max_tf_age", 0.2);
+    sync_motion_comp_ = declare_parameter<bool>("sync.motion_comp", true);
 
     // Extrinsics (camera_extrinsics.yaml overrides these)
     base_T_color_ = poseFromParams(
@@ -147,13 +203,20 @@ public:
     det_sub_ = create_subscription<vision_msgs::msg::Detection2DArray>(
       det_topic_, 10, std::bind(&ConeTrackerNode::onDetections, this, std::placeholders::_1));
     color_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
-      color_info_topic_, qos, [this](const sensor_msgs::msg::CameraInfo::SharedPtr m) {color_K_ = toPinhole(*m);});
+      color_info_topic_, qos, [this](const sensor_msgs::msg::CameraInfo::SharedPtr m) {
+        color_K_ = toPinhole(*m);
+        std::lock_guard<std::mutex> lk(mtx_);
+        color_map_.add(rclcpp::Time(m->header.stamp).seconds(), now().seconds());
+      });
     depth_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
       depth_info_topic_, qos, [this](const sensor_msgs::msg::CameraInfo::SharedPtr m) {depth_K_ = toPinhole(*m);});
     depth_sub_ = create_subscription<sensor_msgs::msg::Image>(
       depth_topic_, qos, [this](const sensor_msgs::msg::Image::SharedPtr m) {
         std::lock_guard<std::mutex> lk(mtx_);
-        last_depth_ = m;
+        depth_map_.add(rclcpp::Time(m->header.stamp).seconds(), now().seconds());
+        const double t = depth_map_.map(rclcpp::Time(m->header.stamp).seconds());
+        depth_buf_.push_back({t, m});
+        while (!depth_buf_.empty() && depth_buf_.front().t < t - sync_buffer_s_) depth_buf_.pop_front();
       });
     cloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
       cloud_topic_, qos, std::bind(&ConeTrackerNode::onCloud, this, std::placeholders::_1));
@@ -172,6 +235,8 @@ public:
     saveConfirmed();
     det_sub_.reset(); color_info_sub_.reset(); depth_info_sub_.reset(); depth_sub_.reset(); cloud_sub_.reset();
     timer_.reset();
+    std::lock_guard<std::mutex> lk(mtx_);
+    depth_buf_.clear(); scan_buf_.clear();
     cones_pub_->on_deactivate(); obs_pub_->on_deactivate(); marker_pub_->on_deactivate();
     return CallbackReturn::SUCCESS;
   }
@@ -205,7 +270,34 @@ private:
       pts.push_back(p);
     }
     std::lock_guard<std::mutex> lk(mtx_);
-    lidar_base_ = std::move(pts);
+    cloud_map_.add(rclcpp::Time(msg->header.stamp).seconds(), now().seconds());
+    const double t = cloud_map_.map(rclcpp::Time(msg->header.stamp).seconds());
+    scan_buf_.push_back({t, std::move(pts)});
+    while (!scan_buf_.empty() && scan_buf_.front().t < t - sync_buffer_s_) scan_buf_.pop_front();
+  }
+
+  /// base_link(at t_img) <- base_link(at t): how the robot moved between t and the image time,
+  /// from the odometry TF. Identity when disabled or unavailable (counted in the sync log).
+  Eigen::Isometry3d motionComp(double t, double t_img)
+  {
+    if (!sync_motion_comp_ || std::abs(t - t_img) < 1e-4) return Eigen::Isometry3d::Identity();
+    try {
+      const auto a = tf_buffer_->lookupTransform(odom_frame_, base_frame_, rclcpp::Time(static_cast<int64_t>(t_img * 1e9), get_clock()->get_clock_type()));
+      const auto b = tf_buffer_->lookupTransform(odom_frame_, base_frame_, rclcpp::Time(static_cast<int64_t>(t * 1e9), get_clock()->get_clock_type()));
+      return toIso(a).inverse() * toIso(b);
+    } catch (const tf2::TransformException &) {
+      ++stat_comp_fail_;
+      return Eigen::Isometry3d::Identity();
+    }
+  }
+
+  static Eigen::Isometry3d toIso(const geometry_msgs::msg::TransformStamped & tf)
+  {
+    const auto & q = tf.transform.rotation;
+    Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
+    T.linear() = Eigen::Quaterniond(q.w, q.x, q.y, q.z).toRotationMatrix();
+    T.translation() = Eigen::Vector3d(tf.transform.translation.x, tf.transform.translation.y, tf.transform.translation.z);
+    return T;
   }
 
   bool inBox(double u, double v, double u0, double v0, double u1, double v1) const
@@ -214,13 +306,14 @@ private:
   }
 
   // Precise cone centre from LiDAR points around the coarse estimate (base_link)
-  bool refineWithLidar(const Eigen::Vector3d & coarse, Eigen::Vector3d & out)
+  bool refineWithLidar(const Eigen::Vector3d & coarse, const std::vector<Eigen::Vector3d> & scan,
+                       const Eigen::Isometry3d & comp, Eigen::Vector3d & out)
   {
     Eigen::Vector2d sum = Eigen::Vector2d::Zero();
     int n = 0;
     {
-      std::lock_guard<std::mutex> lk(mtx_);
-      for (const auto & p : lidar_base_) {
+      for (const auto & p0 : scan) {
+        const Eigen::Vector3d p = comp * p0;
         if (p.z() < refine_z_min_ || p.z() > refine_z_max_) continue;
         if ((p.head<2>() - coarse.head<2>()).norm() > refine_radius_) continue;
         sum += p.head<2>();
@@ -249,14 +342,13 @@ private:
   }
 
   // Cone centre from depth pixels re-projected into the colour image (no aligned depth needed)
-  bool fromDepth(double u0, double v0, double u1, double v1, Eigen::Vector3d & out)
+  /// comp: base(image time) <- base(depth time); depth points are moved to the image time before
+  /// they are projected into the colour image.
+  bool fromDepth(double u0, double v0, double u1, double v1, const sensor_msgs::msg::Image::SharedPtr & d,
+                 const Eigen::Isometry3d & comp, Eigen::Vector3d & out)
   {
-    sensor_msgs::msg::Image::SharedPtr d;
-    {
-      std::lock_guard<std::mutex> lk(mtx_);
-      d = last_depth_;
-    }
     if (!d || !depth_K_.valid()) return false;
+    const Eigen::Isometry3d color_T_depth_img = base_T_color_.inverse() * comp * base_T_color_ * color_T_depth_;
     const bool u16 = (d->encoding == "16UC1" || d->encoding == "mono16");
     const bool f32 = (d->encoding == "32FC1");
     if (!u16 && !f32) return false;
@@ -275,7 +367,7 @@ private:
         }
         if (!(z >= depth_min_ && z <= depth_max_)) continue;
         const Eigen::Vector3d pd((c - depth_K_.cx) * z / depth_K_.fx, (r - depth_K_.cy) * z / depth_K_.fy, z);
-        const Eigen::Vector3d pc = color_T_depth_ * pd;
+        const Eigen::Vector3d pc = color_T_depth_img * pd;
         if (pc.z() < 0.1) continue;
         const double u = color_K_.fx * pc.x() / pc.z() + color_K_.cx;
         const double v = color_K_.fy * pc.y() / pc.z() + color_K_.cy;
@@ -302,9 +394,40 @@ private:
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "waiting for %s", color_info_topic_.c_str());
       return;
     }
+    // 1. image time on this node's clock (detections carry the colour image stamp)
+    double t_img;
+    sensor_msgs::msg::Image::SharedPtr depth;
+    double t_depth = 0.0, t_scan = 0.0, t_latest_scan = NAN;
+    const std::vector<Eigen::Vector3d> * scan = nullptr;
+    std::vector<Eigen::Vector3d> scan_copy;
+    {
+      std::lock_guard<std::mutex> lk(mtx_);
+      if (!color_map_.ready()) {
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "no %s yet: cannot map image stamps", color_info_topic_.c_str());
+        return;
+      }
+      // colour and depth share the camera clock; the depth stream (30 Hz, small messages) gives the
+      // steadier offset - the colour stream queues behind the saturated link
+      const StampMap & cam = (depth_map_.ready() && !depth_map_.same_clock && !color_map_.same_clock &&
+                              std::abs(depth_map_.offset - color_map_.offset) < 1.0) ? depth_map_ : color_map_;
+      t_img = cam.map(rclcpp::Time(msg->header.stamp).seconds());
+      if (!scan_buf_.empty()) t_latest_scan = scan_buf_.back().t;
+      // 2. depth frame and LiDAR scan closest to the image time
+      double best = sync_max_dt_;
+      for (const auto & f : depth_buf_) {
+        if (std::abs(f.t - t_img) <= best) {best = std::abs(f.t - t_img); depth = f.img; t_depth = f.t;}
+      }
+      best = sync_max_dt_;
+      for (const auto & sc : scan_buf_) {
+        if (std::abs(sc.t - t_img) <= best) {best = std::abs(sc.t - t_img); scan = &sc.pts; t_scan = sc.t;}
+      }
+      if (scan) scan_copy = *scan;
+    }
+    // 3. world pose of the robot at the image time
     geometry_msgs::msg::TransformStamped tf;
+    const rclcpp::Time stamp(static_cast<int64_t>(t_img * 1e9), get_clock()->get_clock_type());
     try {
-      tf = tf_buffer_->lookupTransform(world_frame_, base_frame_, msg->header.stamp, rclcpp::Duration::from_seconds(0.05));
+      tf = tf_buffer_->lookupTransform(world_frame_, base_frame_, stamp, rclcpp::Duration::from_seconds(0.05));
     } catch (const tf2::TransformException &) {
       try {
         tf = tf_buffer_->lookupTransform(world_frame_, base_frame_, tf2::TimePointZero);
@@ -313,13 +436,23 @@ private:
                              world_frame_.c_str(), base_frame_.c_str(), e.what());
         return;
       }
+      const double age = t_img - rclcpp::Time(tf.header.stamp).seconds();
+      if (std::abs(age) > sync_max_tf_age_) {
+        ++stat_tf_old_;
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000,
+                             "TF %s->%s at the image time missing, latest is %.2f s off: detections skipped",
+                             world_frame_.c_str(), base_frame_.c_str(), age);
+        return;
+      }
     }
-    const auto & tq = tf.transform.rotation;
-    Eigen::Isometry3d world_T_base = Eigen::Isometry3d::Identity();
-    world_T_base.linear() = Eigen::Quaterniond(tq.w, tq.x, tq.y, tq.z).toRotationMatrix();
-    world_T_base.translation() = Eigen::Vector3d(tf.transform.translation.x, tf.transform.translation.y, tf.transform.translation.z);
+    const Eigen::Isometry3d world_T_base = toIso(tf);
+    const Eigen::Isometry3d comp_depth = depth ? motionComp(t_depth, t_img) : Eigen::Isometry3d::Identity();
+    const Eigen::Isometry3d comp_scan = scan ? motionComp(t_scan, t_img) : Eigen::Isometry3d::Identity();
+    // what "the latest scan" (the old behaviour) would have been off by, for the sync log
+    const Eigen::Isometry3d comp_latest = std::isnan(t_latest_scan) ? Eigen::Isometry3d::Identity()
+                                                                   : motionComp(t_latest_scan, t_img);
+    noteSync(t_img, depth ? t_depth - t_img : NAN, scan ? t_scan - t_img : NAN, comp_scan, comp_latest);
 
-    const rclcpp::Time stamp(msg->header.stamp);
     for (const auto & det : msg->detections) {
       if (!det.results.empty() && det.results[0].hypothesis.score < min_score_) continue;
       const double cu = det.bbox.center.position.x, cv = det.bbox.center.position.y;
@@ -327,7 +460,7 @@ private:
       // 1. Coarse: YOLO + depth (or the floor ray through the box bottom)
       Eigen::Vector3d coarse;
       const char * src = "depth";
-      if (fromDepth(cu - hw, cv - hh, cu + hw, cv + hh, coarse)) {
+      if (fromDepth(cu - hw, cv - hh, cu + hw, cv + hh, depth, comp_depth, coarse)) {
         const Eigen::Vector2d ray = coarse.head<2>() - base_T_color_.translation().head<2>();
         if (ray.norm() > 1e-3) coarse.head<2>() += surface_to_center_ * ray.normalized();
       } else {
@@ -337,12 +470,40 @@ private:
       if (coarse.head<2>().norm() > max_range_) continue;
       // 2. Precise: LiDAR around the coarse position
       Eigen::Vector3d pb = coarse;
-      const bool refined = refineWithLidar(coarse, pb);
+      const bool refined = scan && refineWithLidar(coarse, scan_copy, comp_scan, pb);
       const Eigen::Vector3d pw = world_T_base * pb;
       update(Eigen::Vector2d(pw.x(), pw.y()), stamp, refined);
       RCLCPP_DEBUG(get_logger(), "cone coarse(%s) (%.2f, %.2f) -> %s (%.2f, %.2f) base, world (%.2f, %.2f)",
                    src, coarse.x(), coarse.y(), refined ? "lidar" : "coarse", pb.x(), pb.y(), pw.x(), pw.y());
     }
+  }
+
+  /// Sync statistics, logged every 10 s: offsets, matched time differences, compensation sizes.
+  void noteSync(double t_img, double dt_depth, double dt_scan, const Eigen::Isometry3d & comp,
+                const Eigen::Isometry3d & comp_latest)
+  {
+    stat_latest_deg_ = std::max(stat_latest_deg_, Eigen::AngleAxisd(comp_latest.linear()).angle() * 180.0 / M_PI);
+    stat_latest_cm_ = std::max(stat_latest_cm_, comp_latest.translation().norm() * 100.0);
+    ++stat_n_;
+    if (std::isnan(dt_depth)) ++stat_no_depth_; else stat_dt_depth_ = std::max(stat_dt_depth_, std::abs(dt_depth));
+    if (std::isnan(dt_scan)) ++stat_no_scan_; else stat_dt_scan_ = std::max(stat_dt_scan_, std::abs(dt_scan));
+    stat_comp_deg_ = std::max(stat_comp_deg_, Eigen::AngleAxisd(comp.linear()).angle() * 180.0 / M_PI);
+    stat_comp_cm_ = std::max(stat_comp_cm_, comp.translation().norm() * 100.0);
+    stat_lag_ = std::max(stat_lag_, now().seconds() - t_img);
+    if (now().seconds() - stat_t0_ < 10.0) return;
+    RCLCPP_INFO(get_logger(),
+      "sync %d dets: clock offset colour %+.3f%s depth %+.3f%s lidar %+.3f%s s | max |dt| depth %.0f ms lidar %.0f ms, "
+      "none: depth %d lidar %d | YOLO lag max %.0f ms, motion comp max %.2f deg %.1f cm (fail %d), old TF %d | "
+      "latest scan instead would be off by max %.2f deg %.1f cm",
+      stat_n_, color_map_.offset, color_map_.same_clock ? "(same)" : "", depth_map_.offset,
+      depth_map_.same_clock ? "(same)" : "", cloud_map_.offset, cloud_map_.same_clock ? "(same)" : "",
+      stat_dt_depth_ * 1e3, stat_dt_scan_ * 1e3, stat_no_depth_, stat_no_scan_, stat_lag_ * 1e3,
+      stat_comp_deg_, stat_comp_cm_, stat_comp_fail_, stat_tf_old_, stat_latest_deg_, stat_latest_cm_);
+    stat_t0_ = now().seconds();
+    stat_n_ = stat_no_depth_ = stat_no_scan_ = stat_comp_fail_ = stat_tf_old_ = 0;
+    stat_dt_depth_ = stat_dt_scan_ = stat_comp_deg_ = stat_comp_cm_ = stat_lag_ = 0.0;
+    stat_latest_deg_ = stat_latest_cm_ = 0.0;
+    (void)t_img;
   }
 
   void update(const Eigen::Vector2d & p, const rclcpp::Time & t, bool refined)
@@ -450,6 +611,9 @@ private:
 
   // Parameters
   std::string det_topic_, color_info_topic_, depth_topic_, depth_info_topic_, cloud_topic_, base_frame_, world_frame_;
+  std::string odom_frame_;
+  double sync_buffer_s_, sync_max_dt_, sync_max_tf_age_;
+  bool sync_motion_comp_;
   Eigen::Isometry3d base_T_color_, base_T_lidar_, color_T_depth_;
   double box_shrink_, near_fraction_, depth_min_, depth_max_, max_range_, min_score_, surface_to_center_;
   double floor_z_, refine_radius_, refine_z_min_, refine_z_max_, alpha_lidar_, alpha_coarse_;
@@ -463,8 +627,11 @@ private:
   // State
   std::mutex mtx_;
   Pinhole color_K_, depth_K_;
-  sensor_msgs::msg::Image::SharedPtr last_depth_;
-  std::vector<Eigen::Vector3d> lidar_base_;
+  StampMap color_map_, depth_map_, cloud_map_;
+  std::deque<DepthFrame> depth_buf_;
+  std::deque<Scan> scan_buf_;
+  int stat_n_{0}, stat_no_depth_{0}, stat_no_scan_{0}, stat_comp_fail_{0}, stat_tf_old_{0};
+  double stat_latest_deg_{0}, stat_latest_cm_{0}, stat_dt_depth_{0}, stat_dt_scan_{0}, stat_comp_deg_{0}, stat_comp_cm_{0}, stat_lag_{0}, stat_t0_{0};
   std::vector<Track> tracks_;
   int next_id_{0};
 

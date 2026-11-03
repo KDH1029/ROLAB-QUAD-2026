@@ -1,6 +1,5 @@
 # cone_tracker_node: YOLO cone boxes + LiDAR (preferred) / depth (fallback) -> world-frame cone tracks.
-# Camera/LiDAR extrinsics live in camera_extrinsics.yaml (written by tools/calib_capture.py);
-# pass both files: --params-file cone_tracker_params.yaml --params-file camera_extrinsics.yaml
+# Camera/LiDAR extrinsics live in camera_extrinsics.yaml; pass both files: --params-file cone_tracker_params.yaml --params-file camera_extrinsics.yaml
 cone_tracker_node:
   ros__parameters:
     detections_topic: "/mission/cone_detections"   # vision_msgs/Detection2DArray from yolo_detector_node
@@ -10,6 +9,15 @@ cone_tracker_node:
     cloud_topic: "/velodyne_points"                   # XT16 via cloud_bridge (hesai_lidar frame)
     base_frame: "base_link"
     world_frame: "map"                                # AMCL map
+    odom_frame: "odom"                                # smooth odometry TF for motion compensation
+
+    # 0) sync: the camera stamps come from the robot PC clock (not synced, 1970); they are mapped to
+    #    this node's clock, and depth / LiDAR are taken at the image time, not "the latest"
+    sync:
+      buffer_s: 1.0            # s of depth frames and LiDAR scans kept (covers the YOLO delay)
+      max_dt: 0.05             # s, depth / scan farther than this from the image time is not used
+      max_tf_age: 0.2          # s, world TF fallback (latest) only if this close to the image time
+      motion_comp: true        # move depth / scan to the image time with the odom TF
 
     # 1) coarse: YOLO box + depth (fallback: floor ray through the box bottom)
     fusion:

@@ -1,6 +1,10 @@
-# Camera / LiDAR extrinsics. OVERWRITTEN by tools/calib_capture.py --save.
-# Defaults below are NOT calibrated: D435i mount measured by depth floor fit (height 0.417 m above
-# floor, pitched down 32.1 deg), x offset guessed; LiDAR from bridge_params.yaml.
+# Camera / LiDAR extrinsics for cone_tracker_node.
+# base_to_color_optical: CAD mount + depth floor fit (height 0.417 m above the floor, pitched down
+#   32.1 deg); tools/depth_lidar_align.py checks it against the LiDAR from a bag (10-30 bag: within
+#   its own uncertainty of ~3 deg, so kept). base_to_lidar: from bridge_params.yaml.
+# color_to_depth: maps depth-optical points into the colour-optical frame = RealSense factory
+#   depth->colour extrinsic (/camera/extrinsics/depth_to_color, 10-30 bag; librealsense rotation is
+#   column-major), 0.63 deg rotation included.
 cone_tracker_node:
   ros__parameters:
     base_to_color_optical:
@@ -10,7 +14,7 @@ cone_tracker_node:
       xyz: [0.25, 0.0, 0.1588]
       q_xyzw: [0.0024, 0.0063, 0.7071, 0.7070]
     color_to_depth:
-      xyz: [-0.0148, 0.0, 0.0]
-      q_xyzw: [0.0, 0.0, 0.0, 1.0]
+      xyz: [-0.014663, -0.000925, -0.000817]
+      q_xyzw: [-0.004989, -0.000973, 0.002041, 0.999985]
     calibration_info:
-      calibrated: false        # true after calib_capture.py --save
+      calibrated: false        # true after depth_lidar_align.py --write (consistent result only)

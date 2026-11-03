@@ -54,10 +54,8 @@ source install/setup.bash
 로봇에 영향을 주는 명령은 직접 터미널에서 실행한다. Ctrl+C 로 전체 정지(StopMove 전송).
 
 ```bash
-# 1. 카메라-LiDAR 캘리브레이션 (한 번)
-python3 src/missions/mission_vision/tools/calib_target.py           # 노트북, ROS 불필요
-python3 src/missions/mission_vision/tools/calib_capture.py --square-mm <칸 크기> \
-    --out src/missions/mission_vision/config/camera_extrinsics.yaml  # 로봇 쪽: c 캡처 → s 풀이 → w 저장
+# 1. (선택) 카메라-LiDAR 외부파라미터 점검: 녹화 bag 에서 depth 와 LiDAR 를 맞대어 확인
+python3 src/missions/mission_vision/tools/depth_lidar_align.py <bag>   # 일치할 때만 --write <yaml>
 
 # 2. 매핑 (조종기로 주행, 모터 명령 없음)
 ./scripts/go2_map_run.sh --lio --name arena --no-default

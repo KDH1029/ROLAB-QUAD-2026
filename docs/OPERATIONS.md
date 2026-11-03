@@ -185,17 +185,19 @@ ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 - 파라미터: `go2_bridge/config/bridge_params.yaml`, `go2_localization/config/amcl_params.yaml`,
   `ego_planner/config/ego_planner_params.yaml`, `go2_wall_patrol/config/patrol_params.yaml`
 
-### F. 라바콘 위치 인식 + 카메라 캘리브레이션
+### F. 라바콘 위치 인식 (카메라 + 라이다 퓨전)
 ```bash
-# 1) 노트북(ROS 불필요): 체커보드 전체화면. 화면 아래 막대(4칸) 길이를 자로 재서 /4 = 칸 크기(mm)
-python3 src/missions/mission_vision/tools/calib_target.py
-# 2) 로봇 쪽: 카메라·라이다가 노트북 화면을 보게 두고 기울기를 바꿔가며 c 로 5~8회 캡처 → s 풀이 → v 확인 → w 저장
-python3 src/missions/mission_vision/tools/calib_capture.py --square-mm 31.5 \
-    --out src/missions/mission_vision/config/camera_extrinsics.yaml
-colcon build --packages-select mission_vision      # 저장한 config 설치
-# 3) 주행 스택에 콘 추적 추가 (YOLO 는 로봇 PC 에서 /mission/cone_detections 발행)
+# (선택) 외부파라미터 점검: 로봇을 세워 둔 구간이 있는 bag 으로 depth 와 LiDAR 를 맞대어 본다.
+#   두 절반(장소별)의 결과가 0.5°/2 cm 안으로 일치할 때만 저장된다. 10-30 bag 은 불일치 → 기본값 유지.
+python3 src/missions/mission_vision/tools/depth_lidar_align.py ~/bags/<bag> \
+    [--write src/missions/mission_vision/config/camera_extrinsics.yaml]
+# 주행 스택에 콘 추적 추가 (YOLO 는 로봇 PC 에서 /mission/cone_detections 발행)
 ./scripts/go2_run.sh --map maps/arena.yaml --cones
 ```
+- 센서 싱크: 카메라 stamp 는 로봇 PC 시계(1970, 미동기). `cone_tracker_node` 가 스트림별로
+  (수신시각 − stamp) 하위 5 % 로 시계 차이를 추정해 NUC 시계로 바꾸고, YOLO 영상 시각에 가장 가까운
+  depth·라이다(±50 ms)를 골라 odom TF 로 영상 시각까지 이동 보정한다. 10초마다 `sync ...` 로그:
+  시계 차이, 맞춘 시간차, YOLO 지연, 보정량, "최신 스캔을 썼다면 어긋났을 양".
 - `cone_tracker_node`: YOLO 박스 + depth 로 대략 위치 → 그 주변 라이다 점으로 정밀 좌표 → `map` 좌표 → 추적
   (0.3 m 묶기, 3회·라이다 2회 확정) → `~/go2_cones.yaml` 저장.
   출력 `/mission/cones`(PoseArray), `/mission/cone_obstacles`(EGO 장애물), `/mission/cone_markers`.
