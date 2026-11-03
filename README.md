@@ -1,220 +1,132 @@
-# ROLAB-QUAD-2026: Unitree Go2 Autonomous Navigation Workspace
+<!-- 포트폴리오 초안 (2026-11-03). TODO 표시는 직접 채울 부분. 수치는 docs/PROGRESS_20261103.md 기준. -->
 
-2026학년도 4족보행로봇 경진대회(`ROLAB-QUAD-2026`) 공식 ROS 2 워크스페이스입니다.  
-Unitree Go2 Edu와 Hesai XT16 3D LiDAR 환경에서 보행 시 발생하는 착지 충격 지터(gait jitter)와 경사 지형(언덕형 교차로 등)에서의 바닥 오검출 문제를 기구학-관성 융합 필터와 반경 방향 경사면 분리 알고리즘으로 보완하도록 설계되었습니다.
+# ROLAB-QUAD-2026 — 경사·계단 코스를 달리는 사족보행 로봇 자율주행
 
-- **진행 상황 및 구현 방법 (2026-11-03)**: [`docs/PROGRESS_20261103.md`](docs/PROGRESS_20261103.md)
-- **협업 및 형상 관리 규칙**: [`docs/GITHUB_RULES.md`](docs/GITHUB_RULES.md)
-- **시스템 아키텍처 블루프린트**: [`docs/Blueprint_Complete.md`](docs/Blueprint_Complete.md) / [`docs/Blueprint_Complete.pdf`](docs/Blueprint_Complete.pdf)
-- **프로젝트 인수인계 요약서**: [`docs/HANDOVER_ROBOWORLD_2026.md`](docs/HANDOVER_ROBOWORLD_2026.md)
+> Unitree Go2 EDU + 3D LiDAR + 깊이 카메라로 **경사로·계단·좁은 통로가 섞인 대회 코스**를 완주하기 위한
+> ROS 2 자율주행 스택. 위치추정, 지도, 경로 생성, 라바콘 인식, 안전 정지까지 직접 설계·검증했다.
 
----
+<!-- TODO: 대표 이미지/GIF (로봇 주행, RViz 화면, 지도 비교) -->
 
-## 📌 현재 개발 진행상황 (Current Status)
-
-> **현재 단계**: 뼈대 로직 및 사전 모델 구축 완료, **실제 로봇 하드웨어 및 현장 트랙 검증 전 단계**
-
-### ✅ 구현 및 반영 완료 항목
-- [x] **1:1 CAD 트랙 맵 & 웨이포인트**: $6\text{m} \times 8\text{m}$ 도면 맵(`maps/roboworld_2026.pgm`) 및 12개 공식 웨이포인트([`waypoints_track.yaml`](src/missions/mission_runner/config/waypoints_track.yaml)) 정합
-- [x] **C++ Core 스택 (`go2_bridge`)**: 151Hz 오도메트리 TF, 12-DoF FK 접촉 평면 보정(`base_stab`), $18^\circ$ 경사로/$0.1\text{m}$ 장애물 분리 필터, Sport API 제어기 구축
-- [x] **7단계 미션 FSM (`mission_runner`)**: 출발선(IN) → 경사로 → 정지선1(신호등 2초 정지/초록불 출발) → 슬라럼 → 정지선2 → 주차(5초 착석) → 도착선(OUT) 상태 머신 작성
-- [x] **YOLOv8-Nano 비전 (`mission_vision`)**: 3개 클래스(0: 신호등, 1: 23cm 콘, 2: 10cm 주차 표지판) 사전 학습 및 `yolo_mission.onnx` 모델 배치 (OpenCV DNN 0-dependency 추론)
-- [x] **통합 런처 및 유틸리티**: 원터치 실행기([`go2_mission_run.sh`](scripts/go2_mission_run.sh)), 재학습 스크립트([`train_mission_yolo.py`](scripts/train_mission_yolo.py)), 추론 테스트기([`test_yolo_inference.py`](scripts/test_yolo_inference.py))
-
-### 🔄 다음 작업 및 디버깅 예정 항목
-- [ ] `./scripts/go2_mission_run.sh --sim` 기반 가상 시뮬레이션 스모크 테스트 (FSM 상태 천이 검증)
-- [ ] 실물 로봇 센서 토픽 수신 확인 (`/camera/color/image_raw`, `/odom`, `/scan`)
-- [ ] 실제 소품(신호등, 콘, 주차판) 비전 검출 실측 (필요 시 현장 사진 20~30장 촬영 후 5분 재학습)
-- [ ] 12개 웨이포인트 트랙 1바퀴 실주행 디버깅
+| | |
+|---|---|
+| 대회 | 2026 로보월드 4족보행로봇 경진대회 (11-04 연습 · 11-05 예선 · 11-06 본선) |
+| 과제 | 출발 → 경사로/계단 X 교차로 → 신호등 정지선 → 라바콘 슬라럼 → 주차(5초 착석) → 도착 |
+| 로봇 | Unitree Go2 EDU, Hesai XT16 (16채널 LiDAR), Intel RealSense D435i, Intel NUC 16 (연산) |
+| 스택 | ROS 2 Jazzy (NUC) / Humble (Jetson), C++17, Python, FAST-LIO, Nav2 AMCL, EGO-Planner |
+| 역할 | TODO: 팀 내 역할 (예: 위치추정·경로계획·인식 담당) |
 
 ---
 
-## 1. 시스템 아키텍처 및 핵심 기술
+## 시스템 구성
 
-### 좌표계(TF) 구조
-```text
-map  ──(AMCL / Map Server)──>  odom  ──(151Hz Leg Odometry)──>  base_link  ──(FK + Gyro Filter)──>  base_stab
+```
+ XT16 LiDAR ──► cloud_bridge ──► 수직성 스캔(/scan) ──┬──► AMCL (Omni) ──► map 좌표 ─┐
+     │                                                └──► EGO-Planner 장애물         │
+     └──────────► FAST-LIO (LiDAR-관성 오도메트리) ──────► EGO-Planner 국소 제어 ◄────┘ 목표 변환
+ Go2 /lowstate ──► imu_bridge (IMU + 다리 기구학 → 중력 기준 수평 프레임)
+ Go2 다리 odom ──► odom_tf ──► AMCL 이동 입력 (SLAM 과 독립)
+ D435i ─► YOLO ─► cone_tracker (depth 로 대략 → LiDAR 로 정밀 → map 좌표 저장) ─► EGO 장애물
+                                         EGO-Planner ─► cmd_vel_to_sport ─► Go2 Sport API
+ 모든 런타임 노드 = lifecycle 노드, 하나의 매니저가 순서대로 기동 (모터 브리지는 마지막)
 ```
 
-1. **다리 기구학 오도메트리 브릿지 (`odom_tf_node`)**
-   - 사족보행 착지 충격($>2.5\text{g}$)이나 특징점이 부족한 복도에서 발산하기 쉬운 LIO(LiDAR-Inertial Odometry) 대신, Go2 내부의 151Hz 다리 기구학 오도메트리(`/utlidar/robot_odom`)를 `odom -> base_link` 변환에 사용합니다.
-   - `ClockAligner`와 `MonotonicStamp`를 통해 로봇 내부 시계와 호스트 PC 간 타임스탬프 오프셋을 실시간 추정하고 역전 현상을 방지합니다.
-
-2. **12관절 순기구학(FK) + 자이로 상보 필터 기반 수평 안정화 (`imu_bridge_node`)**
-   - `/lowstate` 토픽의 12개 관절 각도($q_1, q_2, q_3$)와 4개 발바닥 접지 압력(`foot_force`)을 이용해 동체 기준 발끝 3차원 좌표를 계산합니다.
-   - 접지된 발이 3개 이상일 때는 최소자승 평면 피팅(Least-Squares Plane Fitting), 2개(대각선 트롯 보행)일 때는 접지선 투영과 직전 각도 감쇠를 결합해 기구학적 지면 경사($\phi_{\text{kin}}, \theta_{\text{kin}}$)와 차고($h_{\text{kin}}$)를 추정합니다.
-   - 자이로 각속도 적분치와 기구학/IMU 경사를 상보 필터($\alpha = 0.96$)로 결합하여 보행 진동이 제거된 수평 좌표계 `base_stab`을 생성합니다.
-   - 경사로(언덕) 진입 시 지면 경사와 중력 수평면 간 차이가 `max_kin_imu_diff_deg`를 초과하면 중력 기준으로 클램프하여 원거리 라이다 스캔의 수평을 유지합니다.
-
-3. **3D 경사 지형(언덕 교차로) 대응 라이다 슬라이서 (`cloud_bridge_node`)**
-   - Hesai XT16 포인트클라우드(`/lidar_points`)를 `/velodyne_points`로 변환함과 동시에 `base_stab` 기준으로 2D `/scan`을 생성합니다.
-   - 중앙 교차로 등이 완만한 언덕 형태로 솟아 있는 지형에서 단순 높이 임계값($z > z_{\min}$)으로 자를 경우 오르막 바닥이 장애물로 오인되는 문제를 해결하기 위해, 방위각 섹터별 반경 빈(`radial_bin_m`)의 최하단 점들로 국소 지면 프로파일을 추정합니다.
-   - 인접 빈 간 경사각이 `max_walkable_slope_deg`(기본 $18^\circ$) 이하인 완만한 경사면은 바닥으로 통과시키고, 국소 지면 대비 `obstacle_min_dz`(기본 $0.18\text{m}$) 이상 수직으로 솟은 벽/기둥만 `/scan`에 반영합니다.
-
-4. **로컬 지면 평탄화 기반 C++ 3D/2D 매퍼 (`mapper_node`)**
-   - 실시간(`live`) 주행 데이터 또는 오프라인 3D PCD 파일(`pcd2map`)로부터 2D 점유격자 지도(`.pgm`, `.yaml`)를 고속으로 생성합니다.
-   - C++ `std::nth_element`($O(N)$ 선형 시간 선택)를 사용해 $0.5\text{m} \times 0.5\text{m}$ 국소 셀 단위로 하위 5% 높이를 지면 기준선으로 삼고, 상대 높이(`wall_z_min` ~ `wall_z_max`)에 있는 점만 벽으로 추출하므로 언덕 경사면이 벽으로 막히지 않습니다.
-
-5. **C++ 20Hz 오도메트리 직결 주행기 (`odom_nav_node`) 및 모터 제어 브릿지 (`cmd_vel_to_sport_node`)**
-   - `odom_nav_node`: Nav2 없이도 20Hz C++ 제어 루프(`ALIGN` $\rightarrow$ `CRUISE` $\rightarrow$ `YAW_LOCK`)와 전방 `/scan` 장애물 비상 정지 로직으로 목표 3D 좌표를 추종합니다.
-   - `cmd_vel_to_sport_node`: `/cmd_vel` 명령을 Unitree Sport API(`/api/sport/request`, API ID `1008`)로 변환하며, 최소 유효 속도 데드밴드(`min_vx`, `min_vy`, `min_wz`), 가속도 제한, 데드맨 타임아웃(`0.5s`)을 적용합니다.
-   - `scripts/go2_mapper.py`와 `scripts/go2_odom_nav.py`는 YAML/JSON 설정 파싱 후 `os.execvp`를 통해 프로세스를 C++ 바이너리(`mapper_node`, `odom_nav_node`)로 즉시 교체하므로 주행 및 매핑 중 Python 런타임 메모리가 상주하지 않습니다.
+- **위치**: AMCL(2D 지도 기준)이 목표를 지도에 고정하고, FAST-LIO 가 매끄러운 국소 제어를 맡는다.
+  AMCL 은 다리 오도메트리를 입력으로 써서 SLAM 이 발산해도 독립적으로 남는다.
+- **보험 모드**: 지도·SLAM 없이 LiDAR 벽 직선(RANSAC)만으로 외곽을 도는 patrol 모드.
 
 ---
 
-## 2. 디렉토리 구조
+## 핵심 문제와 해결
 
-```text
-ROLAB-QUAD-2026/
-├── config/
-│   ├── system_params.yaml           # 매핑/오도메트리 주행/센서 외부 파라미터 통합 설정
-│   ├── waypoints_track.yaml         # 2026 로보월드 대회 트랙(8m x 6m) 웨이포인트 및 대기 시간 설정
-│   └── targets.json                 # 저장된 웨이포인트 좌표 데이터
-├── docs/
-│   ├── GITHUB_RULES.md              # 팀 GitHub 브랜치·커밋·디렉토리 분리 규칙
-│   ├── Blueprint_Complete.md        # 4족보행 자율주행 시스템 총괄 아키텍처 블루프린트
-│   └── Blueprint_Complete.pdf
-├── maps/
-│   ├── roboworld_2026.yaml          # 대회 규격 치수(8m x 6m) 기반 정밀 2D 도면 맵
-│   ├── roboworld_2026.pgm
-│   ├── map_default.yaml             # 기본 2D 점유격자 메타데이터
-│   ├── map_default.pgm              # 기본 2D 점유격자 이미지
-│   └── map_default_elevation.npz    # 2.5D 지면 고도 및 경사도 데이터
-├── scripts/
-│   ├── build_hybrid_map.py          # 규격 도면 맵 생성(cad) 및 실측 라이다 맵 합성(merge) 도구
-│   ├── go2_map_run.sh               # [1단계] 실시간 매핑 및 PCD -> 2D 변환 실행 스크립트
-│   ├── go2_odom_run.sh              # [2단계] 오도메트리 및 기구학 브릿지 단독 실행 스크립트
-│   ├── go2_nav_run.sh               # [통합] 브릿지 + AMCL + Nav2 자율주행 실행 스크립트
-│   ├── go2_mission_run.sh           # [대회 미션] 비전 인식 + 7단계 미션 FSM 통합 실행 스크립트
-│   ├── go2_mapper.py                # C++ mapper_node 실행용 경량 CLI 런처 (os.execvp)
-│   ├── go2_odom_nav.py              # C++ odom_nav_node 실행용 경량 CLI 런처 (os.execvp)
-│   ├── go2_goto.py                  # Nav2 목표 좌표 전송 및 웨이포인트 관리 CLI
-│   └── sim_nav_test.py              # 오프라인 검증용 사족보행 기구학/라이다 시뮬레이터
-└── src/
-    ├── core/                        # [기반 기술 도메인]
-    │   ├── go2_bridge/              # C++ 핵심 노드 패키지 (odom_tf, imu_bridge, cloud_bridge, cmd_vel_to_sport, mapper_node, odom_nav_node)
-    │   ├── go2_localization/        # Map Server, AMCL 로컬라이제이션 패키지
-    │   └── go2_navigation/          # Nav2 RPP 컨트롤러 및 플래너 설정 패키지
-    ├── missions/                    # [대회 미션 제어 도메인 (C++)]
-    │   ├── mission_vision/          # 신호등(traffic_light_node), 주차 표식(parking_marker_node), 23cm 라바콘(cone_detector_node)
-    │   └── mission_runner/          # 7단계 대회 시퀀스 상태 머신 (mission_fsm_node)
-    └── interfaces/                  # [공통 메시지 인터페이스]
-        ├── unitree_api/             # Unitree Sport API 메시지 패키지
-        └── unitree_go/              # Unitree LowState 메시지 패키지
-```
+### 1. 경사로를 벽으로 오인 → "수직성 검사" 스캔
+- **문제**: 3D LiDAR 를 2D 스캔으로 자를 때 높이 기준을 쓰면, 몸이 기울거나 앞쪽 지면이 올라가는
+  경사로에서 바닥이 벽으로 찍힌다. 10° 경사로가 2.8 m 앞 장애물로 판정됐다.
+- **시도와 기각**: 로봇 z 를 추정해 전역 높이로 자르는 방식을 실데이터로 검증 → z 추정(적분/바닥 측정)이
+  필요한 6 cm 여유를 23 % 시간 동안 넘겨 기각.
+- **해결**: 같은 방위에서 **인접한 링 3개 이상이 같은 수평 거리**에 맞으면 수직 벽. 경사·계단 디딤면은
+  링이 올라갈수록 멀어지므로 구조적으로 통과할 수 없다. 높이·바닥 추정이 필요 없다.
+- **결과 (합성 XT16 시험)**: 경사 10~25°·계단에서 가짜 벽 0, 2 m 벽 거리 정확 (기존 방식: 10°·15° 경사·계단에서 오판, 버그 수정 후에도 18°·25°·계단 오판).
 
----
+### 2. 2D 위치추정이 경사 구간에서 상실 → 원인 분리
+- **문제**: AMCL 이 경사·교차로 구간에서 9분 중 306초 동안 위치를 잃었다 (방위 최대 180° 뒤집힘).
+- **방법**: 같은 녹화본으로 요소를 하나씩 바꿔 재생 (스캔 정의 → 이동 모델 → odom 입력).
+- **발견**: 결정적 원인은 **차동구동 이동 모델이 사족보행의 옆걸음을 무시**한 것.
+- **결과**: Omni 모델 + 수직성 스캔 → **위치 상실 306 s → 0 s** (2회 재현, 오차 중앙 약 8 cm).
+  출발 위치가 0.49 m·20° 틀려도 정지 상태 10초 만에 6 cm 로 수렴 (공분산 초기 자세 + 정지 중 강제 갱신).
 
-## 3. 빌드 및 실행 방법
+### 3. 지도 품질 — 벽이 겹치고 걸은 길이 막힘
+- **원인**: 다리 오도메트리 위치로 점을 쌓아 바퀴마다 벽이 어긋남 + 누적 코드 버그
+  (키프레임 판정이 매 프레임 통과해 4.5분에 9,430개, 2D 스캔을 고정 높이로 섞음 등).
+- **해결**: FAST-LIO 위치 + 보정된 점구름, 궤적 기반 자동 수평, 파라미터 스윕(72조합).
+- **결과**: 벽 두께 **24.6 → 13.2 cm**, 로봇이 실제로 걸은 경로가 장애물로 찍힌 비율 **99 % → 0 %**.
 
-### 워크스페이스 빌드
-```bash
-git clone https://github.com/KDH1029/ROLAB-QUAD-2026.git
-cd ROLAB-QUAD-2026
-colcon build --symlink-install
-source install/setup.bash
-```
+### 4. 경로 생성 (EGO-Planner B-spline)
+- **문제**: 팽창 반경 0.45 m 가 1 m 통로를 막고(실제로 걸은 길의 43 % 가 통행 불가), 다듬은 곡선이 벽을 관통.
+- **해결**: 필수 팽창(0.28 m)과 반발 거리(0.45 m) 분리, 제어점 균등 재추출(코너 깎기 원인),
+  궤적 검증과 "벽에 붙은 상태에서 빠져나가기" 허용, 충돌 예상 + 재계획 실패 시 정지.
+- **결과**: 기록 지도 위 계획 성공률 **71~75 % → 88 %**, 벽 최소 이격 **0.00 → 0.23 m**.
 
-### A. 매핑 및 하이브리드 도면 지도 생성 (Mapping & CAD Merge)
-```bash
-# 0) 대회 규정집 치수(8m x 6m) 기반 정밀 도면 맵 생성 및 현장 라이다 맵 합성(라바콘 제거)
-python3 scripts/build_hybrid_map.py cad --name roboworld_2026 --set-default
-python3 scripts/build_hybrid_map.py merge --scan-pgm maps/live_scan.pgm --name roboworld_hybrid --set-default
+### 5. 라바콘 위치 — 카메라로 찾고 LiDAR 로 잰다
+- YOLO 박스 + depth 로 **대략적인 위치** → 그 주변 LiDAR 점으로 **정밀 좌표** → 지도 좌표로 추적·저장.
+- 정밀 단계가 LiDAR 외부파라미터에만 의존해 **카메라 캘리브레이션 오차(3°)에도 결과 불변** (합성 1.7 cm).
+- 캘리브레이션은 **노트북 화면에 체커보드**를 띄워, 카메라(PnP)와 LiDAR(화면 평면)가 본 같은 평면을
+  여러 기울기로 맞춰 푼다 (합성 검증: 회전 0.36°, 이동 1.2 cm).
 
-# 1) 실물 로봇 실시간 스캔 매핑 (종료 시 Ctrl+C를 누르면 maps/ 아래에 자동 저장)
-./scripts/go2_map_run.sh --name course_map
+### 6. 안전 설계
+- 모든 런타임 노드를 lifecycle 로: **비활성화 = 소프트웨어 정지**(StopMove), Ctrl+C 에도 정지 명령.
+- 모터 브리지는 다른 노드가 모두 활성화된 뒤 마지막에 켜진다. `--no-motor` 로 로봇을 움직일 수 없는 시험 모드.
+- 미션 로직 버그 수정: 이전 정지선의 초록불로 출발, 측위가 없을 때 엉뚱한 좌표계로 주행, 착석 후 관절 잠김.
 
-# 2) 기존 3D PCD 파일을 2D 점유격자(.pgm/.yaml)로 변환
-./scripts/go2_map_run.sh --pcd /path/to/scan.pcd --name course_map
-
-# 3) 시뮬레이션 모드 매핑 테스트
-./scripts/go2_map_run.sh --sim --name sim_map --duration 10
-```
-
-### B. 오도메트리 단독 주행 (Odometry-Direct Mode)
-Nav2 전체 스택을 띄우지 않고 151Hz 기구학 오도메트리와 전방 `/scan` 장애물 감지만으로 목표 좌표를 주행할 때 사용합니다.
-```bash
-# 터미널 1: 오도메트리 & 기구학 브릿지 기동 (시뮬레이션은 --sim 추가)
-./scripts/go2_odom_run.sh
-
-# 터미널 2: 오도메트리 상태 확인 및 목표 좌표 이동
-python3 scripts/go2_odom_nav.py status
-python3 scripts/go2_odom_nav.py --x 2.0 --y 0.5 --yaw 0.0
-python3 scripts/go2_odom_nav.py save wp_center
-python3 scripts/go2_odom_nav.py go wp_center
-```
-
-### C. 사전 지도 기반 전체 자율주행 (AMCL + Nav2 Stack) 및 대회 미션 주행
-```bash
-# 1) Nav2 기반 자유 목표 주행
-./scripts/go2_nav_run.sh --map ./maps/roboworld_2026.yaml
-python3 scripts/go2_goto.py --x 3.6 --y 3.0 --yaw -140
-
-# 2) 2026 로보월드 7단계 전체 미션(신호등 2초 정지, 슬라럼, 주차 5초 SIT, 완주) 자동 수행
-./scripts/go2_mission_run.sh          # 실물 로봇 모드
-./scripts/go2_mission_run.sh --sim    # 시뮬레이션 검증 모드
-```
-
-### D. SLAM (FAST-LIO) — 외부 빌드본 참조
-FAST-LIO 는 이 저장소에 포함하지 않고, 팀이 원래 쓰던 빌드본을 underlay 로 참조한다 (원본 수정 금지).
-- 실행 파일: `~/ws/lab/install/fast_lio` (소스 `~/ws/lab/go2_ws/src/fast_lio`), 경로는 `SLAM_UNDERLAY` 로 변경
-- 설정: [`config/fastlio/fastlio_xt16_odometry.yaml`](config/fastlio/fastlio_xt16_odometry.yaml) — 원본 `odometry.yaml` 포크, `FORK:` 3곳만 변경
-- 라이다 입력은 반드시 XT16 `/lidar_points`. `/utlidar/cloud`(L1) 를 넣으면 2분 안에 km 단위로 발산한다 (bag 재생 실측)
-```bash
-source scripts/go2_slam_env.sh
-ros2 launch go2_bridge bridge.launch.py &
-ros2 run fast_lio fastlio_mapping --ros-args --params-file "$GO2_FASTLIO_CONFIG"
-```
-
-### E. 한 줄 실행 (lifecycle 스택)
-```bash
-# 0) 지도 (조종기로 한 바퀴, 모터 명령 없음)
-./scripts/go2_map_run.sh --lio --name arena --no-default
-# 1) 주행 스택: 브리지 + FAST-LIO + AMCL(Omni, 수직성 스캔) + EGO-Planner + 모터 브리지
-./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"            # --no-motor 로 모터 없이
-python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0                    # 목표는 map 좌표
-# 2) 보험: RANSAC 벽 추종 (지도·SLAM 불필요)
-./scripts/go2_run.sh --mode patrol
-ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
-```
-- 모든 런타임 노드는 lifecycle 노드이고 `lifecycle_manager_go2` 가 순서대로 올린다(모터 브리지는 마지막).
-- 소프트웨어 정지: `ros2 lifecycle set /go2_cmd_vel_to_sport deactivate` (StopMove 전송). Ctrl+C 도 StopMove.
-- 파라미터: `go2_bridge/config/bridge_params.yaml`, `go2_localization/config/amcl_params.yaml`,
-  `ego_planner/config/ego_planner_params.yaml`, `go2_wall_patrol/config/patrol_params.yaml`
-
-### F. 라바콘 위치 인식 + 카메라 캘리브레이션
-```bash
-# 1) 노트북(ROS 불필요): 체커보드 전체화면. 화면 아래 막대(4칸) 길이를 자로 재서 /4 = 칸 크기(mm)
-python3 src/missions/mission_vision/tools/calib_target.py
-# 2) 로봇 쪽: 카메라·라이다가 노트북 화면을 보게 두고 기울기를 바꿔가며 c 로 5~8회 캡처 → s 풀이 → v 확인 → w 저장
-python3 src/missions/mission_vision/tools/calib_capture.py --square-mm 31.5 \
-    --out src/missions/mission_vision/config/camera_extrinsics.yaml
-colcon build --packages-select mission_vision      # 저장한 config 설치
-# 3) 주행 스택에 콘 추적 추가 (YOLO 는 로봇 PC 에서 /mission/cone_detections 발행)
-./scripts/go2_run.sh --map maps/arena.yaml --cones
-```
-- `cone_tracker_node`: YOLO 박스 + depth 로 대략 위치 → 그 주변 라이다 점으로 정밀 좌표 → `map` 좌표 → 추적
-  (0.3 m 묶기, 3회·라이다 2회 확정) → `~/go2_cones.yaml` 저장.
-  출력 `/mission/cones`(PoseArray), `/mission/cone_obstacles`(EGO 장애물), `/mission/cone_markers`.
-- 라이다 평면이 안 잡히면 `--board-pose "x y z roll pitch yaw"`(base_link 기준 실측) 로 1회 캡처 풀이.
-- 설정: `mission_vision/config/cone_tracker_params.yaml`, `camera_extrinsics.yaml`(캘리브레이션 결과).
+### 7. 디버깅 사례
+- **SLAM 실시간 발산**: 녹화본에서 입력 토픽만 바꿔 재현 → 내장 L1 LiDAR 토픽을 XT16 설정에 넣은 것이
+  원인 (2분 만에 7 km 발산). 같은 조건에서 XT16 입력은 안정.
+- **재생 결과가 실행마다 다름**: DDS 구현(FastDDS ↔ CycloneDDS) 차이로 대용량 점구름이 유실 → CycloneDDS 고정.
 
 ---
 
-## 4. 주요 튜닝 파라미터 요약
+## 검증 방법
 
-환경 및 지형 특성에 따라 [`config/system_params.yaml`](config/system_params.yaml) 과 [`src/core/go2_bridge/config/bridge_params.yaml`](src/core/go2_bridge/config/bridge_params.yaml) 에서 아래 파라미터를 조정합니다.
+로봇과 경기장을 매번 쓸 수 없어서, **녹화본 재생과 합성 데이터로 판단 로직을 먼저 검증**했다.
+- 실제 로봇과 섞이지 않도록 별도 DDS 도메인 + 루프백 전용으로 재생.
+- 정답 대용: FAST-LIO 궤적, 로봇이 실제로 걸은 경로(그곳은 반드시 비어 있어야 함), 합성 장면.
+- 지표 예: 위치 오차·상실 시간, 걸은 경로의 장애물 판정 비율, 계획 성공률·벽 최소 이격, 가짜 벽 수.
+- 변경마다 같은 데이터·같은 지표로 전후 비교, 결과와 재현 스크립트를 함께 기록.
 
-| 구분 | 파라미터 | 기본값 | 설명 |
-| :--- | :--- | :---: | :--- |
-| **경사 지형 스캔** | `max_walkable_slope_deg` | `18.0` | 오르막/내리막 바닥으로 허용할 최대 경사각 (도) |
-| **경사 지형 스캔** | `obstacle_min_dz` | `0.18` | 국소 지면 프로파일 위로 장애물로 판정할 최소 돌출 높이 (m) |
-| **경사 지형 스캔** | `radial_bin_m` | `0.35` | 반경 방향 지면 높이 추정 간격 (m) |
-| **자세 안정화** | `stab_mode` | `"gravity"` | `"gravity"`(중력 수평 유지) 또는 `"terrain"`(경사면 평행 정렬) |
-| **자세 안정화** | `filter_alpha` | `0.96` | 자이로 적분 가중치 ($0.94 \sim 0.98$) |
-| **자세 안정화** | `max_kin_imu_diff_deg` | `6.0` | 언덕 주행 시 기구학 경사와 IMU 중력 경사 간 최대 허용 편차 (도) |
-| **3D $\rightarrow$ 2D 매핑** | `local_floor_cell_m` | `0.50` | 국소 바닥 고도를 추정할 셀 크기 (m) |
-| **3D $\rightarrow$ 2D 매핑** | `wall_z_min` | `0.22` | 국소 바닥 대비 벽으로 기록할 최소 높이 (m) |
-| **주행 제어** | `max_vx`, `max_vy`, `max_wz` | `0.65`, `0.35`, `1.20` | 최대 전진/횡이동 속도(m/s) 및 회전 각속도(rad/s) |
-| **주행 제어** | `min_vx`, `min_vy`, `min_wz` | `0.08`, `0.08`, `0.15` | 사족보행 모터 불감대 극복을 위한 최소 속도 클램프 |
-| **주행 제어** | `obstacle_stop_dist_m` | `0.35` | 오도메트리 직결 주행 시 전방 비상 정지 거리 (m) |
+<!-- TODO: 지표 그래프 이미지 (벽 두께 비교, AMCL 오차 시계열, z 추정 비교) -->
+
+---
+
+## 실행
+
+```bash
+./scripts/go2_map_run.sh --lio --name arena --no-default          # 매핑 (조종기 주행)
+./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0" --cones   # 주행 스택 한 줄
+./scripts/go2_run.sh --mode patrol                                # 보험 모드
+```
+자세한 순서·캘리브레이션: [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md) ·
+운용·튜닝: [docs/OPERATIONS.md](docs/OPERATIONS.md)
+
+## 저장소 구조
+
+```
+src/core/go2_bridge        LiDAR·IMU·odom·모터 브리지, 수직성 스캔, 매퍼 (C++ lifecycle)
+src/core/go2_localization  AMCL 설정 (Omni)
+src/core/ego_planner       EGO-Planner (파라미터 파일, 오프라인 시험 도구 test_plan_on_map)
+src/core/go2_navigation    통합 런치 go2_stack.launch.py
+src/missions/mission_vision YOLO, cone_tracker, 캘리브레이션 도구(calib_target / calib_capture)
+src/missions/mission_runner 미션 상태기
+src/fallback/go2_wall_patrol RANSAC 벽 추종 보험
+scripts/                    go2_run.sh, go2_map_run.sh, go2_amcl_init.py
+config/                     시스템·FAST-LIO 설정
+```
+
+## 한계와 다음 단계
+
+- 위 수치는 녹화본(누리관)·합성 데이터 기준. **실기·대회장 검증 전**.  <!-- TODO: 대회 결과 -->
+- FAST-LIO 높이(z) 드리프트 (9분 +0.83 m) — 2D 주행에는 영향 없음.
+- 라바콘 YOLO 는 합성 데이터 학습본 → 실제 콘 사진으로 재학습 필요. 카메라 캘리브레이션 실측 필요.
+- patrol 보험은 직사각형 경기장에서 검증 필요.
+
+## 배운 점
+
+<!-- TODO: 직접 작성. 예) 측정 없이 고치지 않기, 원인을 하나씩 분리하기, 실패한 아이디어도 수치로 기각하기 -->
