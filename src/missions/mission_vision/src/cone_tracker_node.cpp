@@ -3,13 +3,16 @@
  * @brief Cone localisation: YOLO boxes + LiDAR (preferred) / depth (fallback) -> world-frame tracks.
  *
  * Per detection (vision_msgs/Detection2DArray from yolo_detector_node):
- *   1. LiDAR points projected into the colour image; points inside the (shrunk) box, nearest
- *      fraction by range -> cone centre in base_link.
- *   2. If too few LiDAR points: depth pixels re-projected into the colour image (no aligned depth
- *      needed), median of those inside the box.
+ *   1. Coarse: depth pixels re-projected into the colour image (no aligned depth needed), nearest
+ *      fraction inside the box -> rough cone position in base_link. Without depth: the ray through
+ *      the box bottom-centre pixel intersected with the floor plane.
+ *   2. Precise: LiDAR points within refine.search_radius of the coarse position and in the cone
+ *      height band -> centroid, shifted from the near surface to the cone axis.
+ *      No LiDAR support -> the coarse position is used, with a lower tracking weight.
  *   3. base_link -> world_frame (AMCL map) through TF at the image stamp.
- *   4. Tracking: nearest track within assoc_dist, EMA update; confirmed after confirm_hits;
- *      tentative tracks expire after tentative_timeout, confirmed ones after confirmed_timeout.
+ *   4. Tracking: nearest track within assoc_dist. LiDAR-refined measurements dominate the position;
+ *      a cone is confirmed after confirm_hits detections of which >= confirm_lidar_hits are refined.
+ *   5. Confirmed cones are saved to output.save_path and can be reloaded at configure.
  * Outputs (world frame): /mission/cones (confirmed, PoseArray), /mission/cone_obstacles
  * (PointCloud2 ring per cone for the planner grid), /mission/cone_markers.
  *
@@ -17,7 +20,9 @@
  */
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -50,6 +55,7 @@ struct Track
 {
   Eigen::Vector2d pos;
   int hits{0};
+  int lidar_hits{0};
   rclcpp::Time last_seen;
   bool confirmed{false};
   int id{0};
@@ -92,7 +98,6 @@ public:
       declare_parameter<std::vector<double>>("color_to_depth.q_xyzw", {0.0, 0.0, 0.0, 1.0}));
 
     box_shrink_ = declare_parameter<double>("fusion.box_shrink", 0.2);
-    min_lidar_pts_ = declare_parameter<int>("fusion.min_lidar_points", 3);
     near_fraction_ = declare_parameter<double>("fusion.near_fraction", 0.3);
     depth_stride_ = std::max<int>(1, declare_parameter<int>("fusion.depth_stride", 4));
     depth_min_ = declare_parameter<double>("fusion.depth_min", 0.25);
@@ -100,12 +105,25 @@ public:
     max_range_ = declare_parameter<double>("fusion.max_range", 4.0);
     min_score_ = declare_parameter<double>("fusion.min_score", 0.35);
     surface_to_center_ = declare_parameter<double>("fusion.surface_to_center", 0.05);
+    floor_z_ = declare_parameter<double>("fusion.floor_z", -0.30);
+    refine_radius_ = declare_parameter<double>("refine.search_radius", 0.30);
+    refine_z_min_ = declare_parameter<double>("refine.z_min", -0.27);
+    refine_z_max_ = declare_parameter<double>("refine.z_max", -0.05);
+    refine_min_pts_ = declare_parameter<int>("refine.min_points", 3);
+    confirm_lidar_hits_ = declare_parameter<int>("tracking.confirm_lidar_hits", 2);
+    alpha_lidar_ = declare_parameter<double>("tracking.alpha_lidar", 0.5);
+    alpha_coarse_ = declare_parameter<double>("tracking.alpha_coarse", 0.1);
+    save_path_ = declare_parameter<std::string>("output.save_path", "");
+    load_saved_ = declare_parameter<bool>("output.load_saved", false);
+    if (!save_path_.empty() && save_path_[0] == '~') {
+      const char * home = getenv("HOME");
+      if (home) save_path_ = std::string(home) + save_path_.substr(1);
+    }
 
     assoc_dist_ = declare_parameter<double>("tracking.assoc_dist", 0.30);
     confirm_hits_ = declare_parameter<int>("tracking.confirm_hits", 3);
     tentative_timeout_ = declare_parameter<double>("tracking.tentative_timeout", 2.0);
     confirmed_timeout_ = declare_parameter<double>("tracking.confirmed_timeout", 30.0);
-    ema_alpha_ = declare_parameter<double>("tracking.ema_alpha", 0.3);
     obstacle_radius_ = declare_parameter<double>("output.obstacle_radius", 0.08);
   }
 
@@ -116,6 +134,7 @@ public:
     cones_pub_ = create_publisher<geometry_msgs::msg::PoseArray>("/mission/cones", 10);
     obs_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("/mission/cone_obstacles", 10);
     marker_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("/mission/cone_markers", 10);
+    if (load_saved_) loadSaved();
     return CallbackReturn::SUCCESS;
   }
 
@@ -141,11 +160,16 @@ public:
     timer_ = create_wall_timer(std::chrono::milliseconds(200), std::bind(&ConeTrackerNode::publishTracks, this));
     RCLCPP_INFO(get_logger(), "cone_tracker active: %s + %s/%s -> %s frame",
                 det_topic_.c_str(), cloud_topic_.c_str(), depth_topic_.c_str(), world_frame_.c_str());
+    const Eigen::Quaterniond qc(base_T_color_.linear());
+    const Eigen::Vector3d tc = base_T_color_.translation();
+    RCLCPP_INFO(get_logger(), "camera extrinsic base->colour optical: xyz (%.3f, %.3f, %.3f) q_xyzw (%.4f, %.4f, %.4f, %.4f)",
+                tc.x(), tc.y(), tc.z(), qc.x(), qc.y(), qc.z(), qc.w());
     return CallbackReturn::SUCCESS;
   }
 
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override
   {
+    saveConfirmed();
     det_sub_.reset(); color_info_sub_.reset(); depth_info_sub_.reset(); depth_sub_.reset(); cloud_sub_.reset();
     timer_.reset();
     cones_pub_->on_deactivate(); obs_pub_->on_deactivate(); marker_pub_->on_deactivate();
@@ -189,26 +213,38 @@ private:
     return u >= u0 && u <= u1 && v >= v0 && v <= v1;
   }
 
-  // Cone centre in base_link from LiDAR points that project into the box
-  bool fromLidar(double u0, double v0, double u1, double v1, Eigen::Vector3d & out)
+  // Precise cone centre from LiDAR points around the coarse estimate (base_link)
+  bool refineWithLidar(const Eigen::Vector3d & coarse, Eigen::Vector3d & out)
   {
-    std::vector<std::pair<double, Eigen::Vector3d>> hits;
-    const Eigen::Isometry3d color_T_base = base_T_color_.inverse();
-    std::lock_guard<std::mutex> lk(mtx_);
-    for (const auto & pb : lidar_base_) {
-      const Eigen::Vector3d pc = color_T_base * pb;
-      if (pc.z() < 0.1) continue;
-      const double u = color_K_.fx * pc.x() / pc.z() + color_K_.cx;
-      const double v = color_K_.fy * pc.y() / pc.z() + color_K_.cy;
-      if (inBox(u, v, u0, v0, u1, v1)) hits.emplace_back(pc.norm(), pb);
+    Eigen::Vector2d sum = Eigen::Vector2d::Zero();
+    int n = 0;
+    {
+      std::lock_guard<std::mutex> lk(mtx_);
+      for (const auto & p : lidar_base_) {
+        if (p.z() < refine_z_min_ || p.z() > refine_z_max_) continue;
+        if ((p.head<2>() - coarse.head<2>()).norm() > refine_radius_) continue;
+        sum += p.head<2>();
+        ++n;
+      }
     }
-    if (static_cast<int>(hits.size()) < min_lidar_pts_) return false;
-    // The box also covers floor and wall behind the cone: keep the nearest fraction
-    std::sort(hits.begin(), hits.end(), [](const auto & a, const auto & b) {return a.first < b.first;});
-    const size_t n = std::max<size_t>(static_cast<size_t>(min_lidar_pts_), static_cast<size_t>(near_fraction_ * hits.size()));
-    Eigen::Vector3d c = Eigen::Vector3d::Zero();
-    for (size_t i = 0; i < n && i < hits.size(); ++i) c += hits[i].second;
-    out = c / static_cast<double>(std::min(n, hits.size()));
+    if (n < refine_min_pts_) return false;
+    Eigen::Vector2d c = sum / n;
+    // LiDAR only sees the near face: shift away from the LiDAR to the cone axis
+    const Eigen::Vector2d ray = c - base_T_lidar_.translation().head<2>();
+    if (ray.norm() > 1e-3) c += surface_to_center_ * ray.normalized();
+    out = Eigen::Vector3d(c.x(), c.y(), floor_z_ + 0.115);
+    return true;
+  }
+
+  // Coarse position without depth: ray through the box bottom-centre pixel meets the floor
+  bool fromGroundRay(double u, double v, Eigen::Vector3d & out) const
+  {
+    const Eigen::Vector3d dir_c((u - color_K_.cx) / color_K_.fx, (v - color_K_.cy) / color_K_.fy, 1.0);
+    const Eigen::Vector3d o = base_T_color_.translation();
+    const Eigen::Vector3d d = base_T_color_.linear() * dir_c;
+    if (d.z() > -1e-3) return false;  // ray does not go down to the floor
+    const double s = (floor_z_ - o.z()) / d.z();
+    out = o + s * d;
     return true;
   }
 
@@ -288,24 +324,28 @@ private:
       if (!det.results.empty() && det.results[0].hypothesis.score < min_score_) continue;
       const double cu = det.bbox.center.position.x, cv = det.bbox.center.position.y;
       const double hw = 0.5 * det.bbox.size_x * (1.0 - box_shrink_), hh = 0.5 * det.bbox.size_y * (1.0 - box_shrink_);
-      Eigen::Vector3d pb;
-      const char * src = "lidar";
-      if (!fromLidar(cu - hw, cv - hh, cu + hw, cv + hh, pb)) {
-        src = "depth";
-        if (!fromDepth(cu - hw, cv - hh, cu + hw, cv + hh, pb)) continue;
+      // 1. Coarse: YOLO + depth (or the floor ray through the box bottom)
+      Eigen::Vector3d coarse;
+      const char * src = "depth";
+      if (fromDepth(cu - hw, cv - hh, cu + hw, cv + hh, coarse)) {
+        const Eigen::Vector2d ray = coarse.head<2>() - base_T_color_.translation().head<2>();
+        if (ray.norm() > 1e-3) coarse.head<2>() += surface_to_center_ * ray.normalized();
+      } else {
+        src = "floor-ray";
+        if (!fromGroundRay(cu, cv + 0.5 * det.bbox.size_y, coarse)) continue;
       }
-      if (pb.head<2>().norm() > max_range_) continue;
-      // Both sources measure the cone's near surface: push the estimate back along the
-      // horizontal viewing ray towards the cone axis.
-      Eigen::Vector2d ray = pb.head<2>() - base_T_color_.translation().head<2>();
-      if (ray.norm() > 1e-3) pb.head<2>() += surface_to_center_ * ray.normalized();
+      if (coarse.head<2>().norm() > max_range_) continue;
+      // 2. Precise: LiDAR around the coarse position
+      Eigen::Vector3d pb = coarse;
+      const bool refined = refineWithLidar(coarse, pb);
       const Eigen::Vector3d pw = world_T_base * pb;
-      update(Eigen::Vector2d(pw.x(), pw.y()), stamp);
-      RCLCPP_DEBUG(get_logger(), "cone (%s) base (%.2f, %.2f) world (%.2f, %.2f)", src, pb.x(), pb.y(), pw.x(), pw.y());
+      update(Eigen::Vector2d(pw.x(), pw.y()), stamp, refined);
+      RCLCPP_DEBUG(get_logger(), "cone coarse(%s) (%.2f, %.2f) -> %s (%.2f, %.2f) base, world (%.2f, %.2f)",
+                   src, coarse.x(), coarse.y(), refined ? "lidar" : "coarse", pb.x(), pb.y(), pw.x(), pw.y());
     }
   }
 
-  void update(const Eigen::Vector2d & p, const rclcpp::Time & t)
+  void update(const Eigen::Vector2d & p, const rclcpp::Time & t, bool refined)
   {
     Track * best = nullptr;
     double best_d = assoc_dist_;
@@ -313,17 +353,58 @@ private:
       const double d = (tr.pos - p).norm();
       if (d < best_d) {best_d = d; best = &tr;}
     }
-    if (best) {
-      best->pos = (1.0 - ema_alpha_) * best->pos + ema_alpha_ * p;
+    if (!best) {
+      tracks_.push_back(Track{p, 1, refined ? 1 : 0, t, false, next_id_++});
+      best = &tracks_.back();
+    } else {
+      // LiDAR-refined measurements set the position; coarse ones only nudge it until a LiDAR
+      // measurement exists, then they no longer move it.
+      if (refined) {
+        best->pos = best->lidar_hits == 0 ? p : (1.0 - alpha_lidar_) * best->pos + alpha_lidar_ * p;
+        best->lidar_hits++;
+      } else if (best->lidar_hits == 0) {
+        best->pos = (1.0 - alpha_coarse_) * best->pos + alpha_coarse_ * p;
+      }
       best->hits++;
       best->last_seen = t;
-      if (!best->confirmed && best->hits >= confirm_hits_) {
-        best->confirmed = true;
-        RCLCPP_INFO(get_logger(), "cone #%d confirmed at (%.2f, %.2f) in %s", best->id, best->pos.x(), best->pos.y(), world_frame_.c_str());
-      }
-    } else {
-      tracks_.push_back(Track{p, 1, t, confirm_hits_ <= 1, next_id_++});
     }
+    if (!best->confirmed && best->hits >= confirm_hits_ && best->lidar_hits >= confirm_lidar_hits_) {
+      best->confirmed = true;
+      RCLCPP_INFO(get_logger(), "cone #%d confirmed at (%.3f, %.3f) in %s (%d detections, %d LiDAR)",
+                  best->id, best->pos.x(), best->pos.y(), world_frame_.c_str(), best->hits, best->lidar_hits);
+      saveConfirmed();
+    }
+  }
+
+  void saveConfirmed()
+  {
+    if (save_path_.empty()) return;
+    std::ofstream f(save_path_);
+    if (!f) return;
+    f << "# cone_tracker_node confirmed cones (" << world_frame_ << " frame)\nframe: " << world_frame_ << "\ncones:\n";
+    for (const auto & tr : tracks_) {
+      if (!tr.confirmed) continue;
+      f << "  - {id: " << tr.id << ", x: " << tr.pos.x() << ", y: " << tr.pos.y()
+        << ", detections: " << tr.hits << ", lidar: " << tr.lidar_hits << "}\n";
+    }
+  }
+
+  void loadSaved()
+  {
+    std::ifstream f(save_path_);
+    std::string line;
+    int n = 0;
+    while (std::getline(f, line)) {
+      int id, hits, lh;
+      double x, y;
+      if (std::sscanf(line.c_str(), "  - {id: %d, x: %lf, y: %lf, detections: %d, lidar: %d}", &id, &x, &y, &hits, &lh) == 5) {
+        Track tr{Eigen::Vector2d(x, y), hits, lh, now(), true, id};
+        tracks_.push_back(tr);
+        next_id_ = std::max(next_id_, id + 1);
+        ++n;
+      }
+    }
+    if (n) RCLCPP_INFO(get_logger(), "loaded %d saved cones from %s", n, save_path_.c_str());
   }
 
   void publishTracks()
@@ -331,7 +412,7 @@ private:
     const rclcpp::Time now_t = now();
     tracks_.erase(std::remove_if(tracks_.begin(), tracks_.end(), [&](const Track & tr) {
       const double age = (now_t - tr.last_seen).seconds();
-      return age > (tr.confirmed ? confirmed_timeout_ : tentative_timeout_);
+      return tr.confirmed ? (confirmed_timeout_ > 0.0 && age > confirmed_timeout_) : age > tentative_timeout_;
     }), tracks_.end());
 
     geometry_msgs::msg::PoseArray pa;
@@ -371,8 +452,12 @@ private:
   std::string det_topic_, color_info_topic_, depth_topic_, depth_info_topic_, cloud_topic_, base_frame_, world_frame_;
   Eigen::Isometry3d base_T_color_, base_T_lidar_, color_T_depth_;
   double box_shrink_, near_fraction_, depth_min_, depth_max_, max_range_, min_score_, surface_to_center_;
-  int min_lidar_pts_, depth_stride_;
-  double assoc_dist_, tentative_timeout_, confirmed_timeout_, ema_alpha_, obstacle_radius_;
+  double floor_z_, refine_radius_, refine_z_min_, refine_z_max_, alpha_lidar_, alpha_coarse_;
+  int refine_min_pts_, confirm_lidar_hits_;
+  std::string save_path_;
+  bool load_saved_;
+  int depth_stride_;
+  double assoc_dist_, tentative_timeout_, confirmed_timeout_, obstacle_radius_;
   int confirm_hits_;
 
   // State

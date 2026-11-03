@@ -3,6 +3,7 @@
 2026학년도 4족보행로봇 경진대회(`ROLAB-QUAD-2026`) 공식 ROS 2 워크스페이스입니다.  
 Unitree Go2 Edu와 Hesai XT16 3D LiDAR 환경에서 보행 시 발생하는 착지 충격 지터(gait jitter)와 경사 지형(언덕형 교차로 등)에서의 바닥 오검출 문제를 기구학-관성 융합 필터와 반경 방향 경사면 분리 알고리즘으로 보완하도록 설계되었습니다.
 
+- **진행 상황 및 구현 방법 (2026-11-03)**: [`docs/PROGRESS_20261103.md`](docs/PROGRESS_20261103.md)
 - **협업 및 형상 관리 규칙**: [`docs/GITHUB_RULES.md`](docs/GITHUB_RULES.md)
 - **시스템 아키텍처 블루프린트**: [`docs/Blueprint_Complete.md`](docs/Blueprint_Complete.md) / [`docs/Blueprint_Complete.pdf`](docs/Blueprint_Complete.pdf)
 - **프로젝트 인수인계 요약서**: [`docs/HANDOVER_ROBOWORLD_2026.md`](docs/HANDOVER_ROBOWORLD_2026.md)
@@ -192,7 +193,8 @@ colcon build --packages-select mission_vision      # 저장한 config 설치
 # 3) 주행 스택에 콘 추적 추가 (YOLO 는 로봇 PC 에서 /mission/cone_detections 발행)
 ./scripts/go2_run.sh --map maps/arena.yaml --cones
 ```
-- `cone_tracker_node`: YOLO 박스 → 라이다 점 투영(우선) / depth 역투영(대체) → `map` 좌표 → 추적(0.3 m 묶기, 3회 확정).
+- `cone_tracker_node`: YOLO 박스 + depth 로 대략 위치 → 그 주변 라이다 점으로 정밀 좌표 → `map` 좌표 → 추적
+  (0.3 m 묶기, 3회·라이다 2회 확정) → `~/go2_cones.yaml` 저장.
   출력 `/mission/cones`(PoseArray), `/mission/cone_obstacles`(EGO 장애물), `/mission/cone_markers`.
 - 라이다 평면이 안 잡히면 `--board-pose "x y z roll pitch yaw"`(base_link 기준 실측) 로 1회 캡처 풀이.
 - 설정: `mission_vision/config/cone_tracker_params.yaml`, `camera_extrinsics.yaml`(캘리브레이션 결과).

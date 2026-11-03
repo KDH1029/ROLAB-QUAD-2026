@@ -11,23 +11,35 @@ cone_tracker_node:
     base_frame: "base_link"
     world_frame: "map"                                # AMCL map
 
+    # 1) coarse: YOLO box + depth (fallback: floor ray through the box bottom)
     fusion:
       box_shrink: 0.2          # use the inner 80 % of the box
-      min_lidar_points: 3      # fewer -> fall back to depth
-      near_fraction: 0.3       # nearest 30 % of hits inside the box (box also covers floor/wall behind)
+      near_fraction: 0.3       # nearest 30 % of depth hits in the box (box also covers floor/wall behind)
       depth_stride: 4          # px
       depth_min: 0.25          # m
       depth_max: 4.0
       max_range: 4.0           # m from base_link; farther detections are ignored
       min_score: 0.35
       surface_to_center: 0.05  # m, near-surface estimate -> cone axis (base 14 cm, measured at ~7 cm height)
+      floor_z: -0.30           # m, floor height in base_link (standing Go2) for the floor ray
+
+    # 2) precise: LiDAR points around the coarse position
+    refine:
+      search_radius: 0.30      # m around the coarse position (covers depth/extrinsic error)
+      z_min: -0.27             # m in base_link: 3 cm above the floor ...
+      z_max: -0.05             # ... to the cone top (23 cm) plus margin
+      min_points: 3
 
     tracking:
       assoc_dist: 0.30         # m, same cone if closer than this
-      confirm_hits: 3          # detections before a cone is published
+      confirm_hits: 3          # detections before a cone is published ...
+      confirm_lidar_hits: 2    # ... of which at least this many LiDAR-refined (0: allow depth-only)
+      alpha_lidar: 0.5         # position update weight of a LiDAR measurement
+      alpha_coarse: 0.1        # of a coarse one (only until the first LiDAR measurement)
       tentative_timeout: 2.0   # s, unconfirmed tracks
-      confirmed_timeout: 30.0  # s, confirmed (cones are static)
-      ema_alpha: 0.3
+      confirmed_timeout: 0.0   # s, confirmed (0: keep; cones are static)
 
     output:
       obstacle_radius: 0.08    # m, ring of points per cone on /mission/cone_obstacles (14 cm base)
+      save_path: "~/go2_cones.yaml"  # confirmed cones written on every confirmation and on deactivate
+      load_saved: false        # true: start with the saved cones (e.g. re-run on the same course)
