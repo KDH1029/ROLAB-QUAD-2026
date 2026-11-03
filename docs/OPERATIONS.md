@@ -205,6 +205,11 @@ python3 src/missions/mission_vision/tools/depth_lidar_align.py ~/bags/<bag> \
 - 경로 계획: `ego_planner` 가 `/mission/cones`(콘 중심)를 받아 벽과 별개로 다룬다 —
   `ego_planner_params.yaml` 의 `cones:` inflate_radius(절대 접근 금지 반경), safe_dist(밀어내는 범위),
   weight(밀어내는 세기), max_range. 네 값 모두 `ros2 param set` 으로 실행 중 변경 가능.
+- 카메라 각도를 바꾼 뒤: 로봇을 평지에 세우고 (앞 2 m 바닥이 보이게)
+  `ros2 run mission_vision camera_floor_calib.py --write src/missions/mission_vision/config/camera_extrinsics.yaml`
+  — 10초 동안 뎁스 바닥 + 발 4개(다리 기구학)로 숙인 각도·옆 기울기·높이를 재서 저장(백업 남김). 좌우 방향과
+  x/y 는 유지. 움직였거나 바닥이 덜 보이면 저장 거부. 10-30 bag: 30.7°/31.0°(두 정지 구간), 일부러 20°로 바꾼
+  설정에서도 30.5° 복원.
 - 콘 탐지 합성 시험: `ros2 run mission_vision test_cone_lidar` (55 cm 간격 콘 2개·기둥·벽·바닥 잡음).
 - `cone_tracker_node`: YOLO 박스 + depth 로 대략 위치 → 그 주변 라이다 점으로 정밀 좌표 → `map` 좌표 → 추적
   (0.3 m 묶기, 3회·라이다 2회 확정) → `~/go2_cones.yaml` 저장.

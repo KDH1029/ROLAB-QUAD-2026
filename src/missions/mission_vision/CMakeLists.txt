@@ -29,6 +29,7 @@ install(TARGETS cone_tracker_node test_cone_lidar DESTINATION lib/${PROJECT_NAME
 install(PROGRAMS
   scripts/yolo_detector_node.py
   tools/depth_lidar_align.py
+  tools/camera_floor_calib.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
