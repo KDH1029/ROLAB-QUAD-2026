@@ -29,6 +29,7 @@ install(PROGRAMS
   tools/calib_target.py
   tools/calib_capture.py
   tools/calib_core.py
+  tools/depth_lidar_align.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
