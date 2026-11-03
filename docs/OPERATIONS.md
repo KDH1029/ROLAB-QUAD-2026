@@ -47,6 +47,8 @@ map  ──(AMCL / Map Server)──>  odom  ──(151Hz Leg Odometry)──>  
    - `/lowstate` 토픽의 12개 관절 각도($q_1, q_2, q_3$)와 4개 발바닥 접지 압력(`foot_force`)을 이용해 동체 기준 발끝 3차원 좌표를 계산합니다.
    - 접지된 발이 3개 이상일 때는 최소자승 평면 피팅(Least-Squares Plane Fitting), 2개(대각선 트롯 보행)일 때는 접지선 투영과 직전 각도 감쇠를 결합해 기구학적 지면 경사($\phi_{\text{kin}}, \theta_{\text{kin}}$)와 차고($h_{\text{kin}}$)를 추정합니다.
    - 자이로 각속도 적분치와 기구학/IMU 경사를 상보 필터($\alpha = 0.96$)로 결합하여 보행 진동이 제거된 수평 좌표계 `base_stab`을 생성합니다.
+   - **11-03 기본값 꺼짐** (`use_kinematics_filter: false`): 10-30 녹화에서 트로트 중 대각선 발 2개만 닿아 기구학 기울기가
+     출렁이고(base_stab 흔들림 IMU 대비 2.5배, 중력 대비 평균 2.6° 치우침), AMCL 재생 비교는 켜짐/꺼짐 동등. 코드는 유지.
    - 경사로(언덕) 진입 시 지면 경사와 중력 수평면 간 차이가 `max_kin_imu_diff_deg`를 초과하면 중력 기준으로 클램프하여 원거리 라이다 스캔의 수평을 유지합니다.
 
 3. **3D 경사 지형(언덕 교차로) 대응 라이다 슬라이서 (`cloud_bridge_node`)**
@@ -213,11 +215,10 @@ python3 src/missions/mission_vision/tools/depth_lidar_align.py ~/bags/<bag> \
   아니라 서는 높이에 따라 바뀌는 값(10-30 bag: −0.336 m, 이전 가정 −0.30). 10-30 bag: 30.7°/31.0°(두 정지 구간), 일부러 20°로 바꾼
   설정에서도 30.5° 복원.
 - 콘 탐지 합성 시험: `ros2 run mission_vision test_cone_lidar` (55 cm 간격 콘 2개·기둥·벽·바닥 잡음).
-- `cone_tracker_node`: YOLO 박스 + depth 로 대략 위치 → 그 주변 라이다 점으로 정밀 좌표 → `map` 좌표 → 추적
-  (0.3 m 묶기, 3회·라이다 2회 확정) → `~/go2_cones.yaml` 저장.
-  출력 `/mission/cones`(PoseArray), `/mission/cone_obstacles`(EGO 장애물), `/mission/cone_markers`.
-- 라이다 평면이 안 잡히면 `--board-pose "x y z roll pitch yaw"`(base_link 기준 실측) 로 1회 캡처 풀이.
-- 설정: `mission_vision/config/cone_tracker_params.yaml`, `camera_extrinsics.yaml`(캘리브레이션 결과).
+- `cone_tracker_node`: YOLO 박스 + depth 로 대략 위치 → 그 근처 LiDAR 콘 덩어리 선택 → `map` 좌표 → 추적
+  (0.3 m 묶기, 3회·LiDAR 2회 확정, 확정 후엔 LiDAR 만으로 갱신) → `~/go2_cones.yaml` 저장.
+  출력 `/mission/cones`(PoseArray, EGO-Planner 입력), `/mission/cone_obstacles`(점 고리, 시각화용), `/mission/cone_markers`.
+- 설정: `mission_vision/config/cone_tracker_params.yaml`, `camera_extrinsics.yaml`(`camera_floor_calib.py` 측정값).
 
 ---
 

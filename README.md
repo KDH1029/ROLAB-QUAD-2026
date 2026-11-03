@@ -2,6 +2,7 @@
 
 Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞인 코스를 자율주행하기 위한 ROS 2 워크스페이스.
 2026 로보월드 4족보행로봇 경진대회(출발 → 경사/계단 교차로 → 신호등 정지선 → 라바콘 슬라럼 → 주차 → 도착)용.
+대회 규정·QnA·경기장 배치도: [docs/rulebook/](docs/rulebook/)
 
 ## 주요 기능
 
@@ -9,8 +10,12 @@ Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞�
 - **위치추정**: FAST-LIO(LiDAR-관성 오도메트리) + AMCL(2D 지도, Omni 이동 모델, 다리 오도메트리 입력으로 SLAM 과 독립)
 - **매핑**: FAST-LIO 위치와 보정 점구름으로 2D 점유격자 생성, 궤적 기반 자동 수평
 - **경로 생성**: EGO-Planner (A* + B-spline 최적화), 모든 파라미터 YAML 분리, 충돌 시 정지
-- **라바콘 위치 인식**: YOLO + depth 로 대략 위치 → LiDAR 로 정밀 좌표 → 지도 좌표로 추적·저장
-- **카메라-LiDAR 캘리브레이션**: 노트북 화면에 체커보드를 띄워 수행
+- **라바콘 위치 인식**: LiDAR 가 스캔마다 콘 모양 덩어리를 찾고, YOLO + depth 는 그중 어느 것이 콘인지만 고른다
+  (카메라 각도 오차·흔들림이 좌표에 들어가지 않음). 여러 콘을 지도 좌표로 추적·저장, 카메라 시야 밖에서도 LiDAR 로 갱신
+- **카메라-LiDAR 시각 동기화**: 로봇 PC 시계(미동기)의 카메라 시각을 자동 변환, YOLO 영상 시각의 depth·LiDAR 를
+  골라 다리 오도메트리로 움직임 보정
+- **경로 계획의 콘 전용 여유**: 콘 중심 좌표를 벽과 별도로 — 절대 접근 금지 반경, 밀어내는 범위·세기를 YAML 로 관리
+- **카메라 장착각 측정**: 평지에 서서 10초 — depth 바닥 + 발 4개(다리 기구학)로 각도·높이를 재서 설정에 저장
 - **안전**: 모든 런타임 노드가 lifecycle 노드 (비활성화 = 정지), 모터 브리지는 마지막에 기동, 모터 없는 시험 모드
 - **보험 모드**: 지도·SLAM 없이 RANSAC 벽 직선 추종
 
@@ -20,9 +25,10 @@ Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞�
  XT16 LiDAR ──► cloud_bridge ──► 수직성 스캔 /scan ──┬──► AMCL ──► map 좌표 ──┐ 목표·장애물 변환
      │                                              └──► EGO-Planner ◄────────┘
      └────────► FAST-LIO ──► /Odometry ────────────────► EGO-Planner (국소 제어)
- Go2 /lowstate ──► imu_bridge (IMU + 다리 기구학 → 중력 기준 base_stab)
+ Go2 /lowstate ──► imu_bridge (IMU → 중력 기준 base_stab)
  Go2 다리 odom ──► odom_tf ──► AMCL 이동 입력
- D435i ──► YOLO ──► cone_tracker (depth → LiDAR) ──► /mission/cones, EGO 장애물
+ D435i ──► YOLO (내장 Jetson) ──► cone_tracker ◄── XT16 콘 덩어리 (시각 동기화 + 움직임 보정)
+                                        └──► /mission/cones ──► EGO-Planner (콘 전용 여유)
  EGO-Planner ──► cmd_vel_to_sport ──► Go2 Sport API
 ```
 
@@ -31,7 +37,7 @@ Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞�
 | 로봇 | Unitree Go2 EDU |
 | LiDAR | Hesai XT16 (16채널) |
 | 카메라 | Intel RealSense D435i (로봇 내부 PC) |
-| 연산 | Intel NUC 16 (Ubuntu 24.04, ROS 2 Jazzy) |
+| 연산 | Intel NUC 16 (Ubuntu 24.04, ROS 2 Jazzy), YOLO 는 Go2 내장 Jetson |
 
 ## 요구 사항
 
@@ -54,8 +60,10 @@ source install/setup.bash
 로봇에 영향을 주는 명령은 직접 터미널에서 실행한다. Ctrl+C 로 전체 정지(StopMove 전송).
 
 ```bash
-# 1. (선택) 카메라-LiDAR 외부파라미터 점검: 녹화 bag 에서 depth 와 LiDAR 를 맞대어 확인
-python3 src/missions/mission_vision/tools/depth_lidar_align.py <bag>   # 일치할 때만 --write <yaml>
+# 1. 카메라 장착각·바닥 높이 (카메라를 다시 달았을 때, 평지에 세운 상태로 10초)
+ros2 run mission_vision camera_floor_calib.py \
+    --write src/missions/mission_vision/config/camera_extrinsics.yaml \
+    --write-params src/missions/mission_vision/config/cone_tracker_params.yaml
 
 # 2. 매핑 (조종기로 주행, 모터 명령 없음)
 ./scripts/go2_map_run.sh --lio --name arena --no-default
@@ -78,9 +86,9 @@ ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 |---|---|
 | `src/core/go2_bridge/config/bridge_params.yaml` | 브리지, 스캔 방식(`scan_mode: vertical`), 모터 제한 |
 | `src/core/go2_localization/config/amcl_params.yaml` | AMCL (Omni 이동 모델) |
-| `src/core/ego_planner/config/ego_planner_params.yaml` | 경로 생성 (팽창·반발 거리, 최적화, 제어 이득) |
-| `src/missions/mission_vision/config/cone_tracker_params.yaml` | 라바콘 융합·추적·저장 |
-| `src/missions/mission_vision/config/camera_extrinsics.yaml` | 카메라·LiDAR 외부파라미터 (캘리브레이션 결과) |
+| `src/core/ego_planner/config/ego_planner_params.yaml` | 경로 생성 (팽창·반발 거리, 최적화, 제어 이득, `cones:` 콘 전용 여유) |
+| `src/missions/mission_vision/config/cone_tracker_params.yaml` | 라바콘: 시각 동기화, LiDAR 콘 판정, 추적·저장, 바닥 높이 |
+| `src/missions/mission_vision/config/camera_extrinsics.yaml` | 카메라·LiDAR 장착 위치·각도 (`camera_floor_calib.py` 측정값) |
 | `src/fallback/go2_wall_patrol/config/patrol_params.yaml` | 보험 모드 |
 | `config/system_params.yaml` | 매핑 (2D 변환, 자동 수평, 위치 소스) |
 | `config/fastlio/fastlio_xt16_odometry.yaml` | FAST-LIO (XT16) |
@@ -92,13 +100,13 @@ src/core/go2_bridge           LiDAR·IMU·odom·모터 브리지, 수직성 스�
 src/core/go2_localization     AMCL 설정
 src/core/go2_navigation       통합 런치 (go2_stack.launch.py)
 src/core/ego_planner          EGO-Planner, 오프라인 시험 도구 (test_plan_on_map)
-src/missions/mission_vision   YOLO, cone_tracker, 캘리브레이션 도구
+src/missions/mission_vision   YOLO, cone_tracker, 카메라 장착각 측정·점검 도구, 콘 판정 합성 시험
 src/missions/mission_runner   미션 상태기
 src/fallback/go2_wall_patrol  RANSAC 벽 추종 (보험)
 src/interfaces                Unitree 메시지
 src/external                  FAST-LIO, Livox 메시지, Hesai 드라이버 (포크, 출처: src/external/README.md)
 scripts/                      go2_run.sh, go2_map_run.sh, go2_amcl_init.py, go2_goto.py
-config/ · maps/ · docs/
+config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 ```
 
 ## 검증 결과
@@ -113,8 +121,12 @@ config/ · maps/ · docs/
 | 걸은 경로가 장애물로 찍힌 비율 | 99 % | 0 % |
 | 경로 계획 성공률 / 벽 최소 이격 | 71~75 % / 0.00 m | 88 % / 0.23 m |
 | 경사 10~25°·계단 가짜 벽 (합성) | 경사·계단에서 발생 | 0 |
-| 라바콘 위치 오차 (합성) | — | 1.7 cm (카메라 3° 오차에도 동일) |
-| 캘리브레이션 풀이 (합성, 잡음 포함) | — | 회전 0.36°, 이동 1.2 cm |
+| 라바콘 LiDAR 판정 (합성, 55 cm 간격 2개 포함 4개) | — | 4/4 검출, 오차 0.2~3 cm, 기둥·벽 오검출 0 |
+| 콘 없는 녹화의 콘 모양 오검출 | — | 스캔당 1.1개 (2.5 m 이내 0.3개), 카메라가 선택 |
+| 회전 중 카메라-LiDAR 시각 차이 (YOLO 지연 200 ms) | 최대 8.2° 어긋남 (3 m 에서 43 cm) | depth ≤4 ms·LiDAR ≤25 ms 선택, 보정 ≤1.2° |
+| 콘 2.5 m 간격 경로 계획 (누리관 지도) | 반발 없음 28 % | 70 %, 콘 절대 반경 침범 0 |
+| 카메라 장착각 측정 (녹화 정지 2곳) | 미측정 가정 32.1° | 30.7° / 31.0°, 틀린 설정(20°)에서도 30.5° 복원 |
+| base_stab 기구학 보정 켜짐 → 꺼짐 | 흔들림 2.5배, 중력 대비 2.6° | AMCL 동등 (중앙 8.3 → 7.0 cm) → 꺼짐 |
 
 자세한 측정 방법과 구현: [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md)
 
@@ -122,11 +134,15 @@ config/ · maps/ · docs/
 
 - FAST-LIO 는 XT16 `/lidar_points` 와 CycloneDDS 에서만 안정적으로 확인됨. 높이(z) 드리프트 있음(9분 +0.83 m, 2D 주행에는 영향 없음)
 - YOLO 모델은 합성 데이터 학습본 (실제 콘·신호등 데이터로 재학습 필요)
-- `camera_extrinsics.yaml` 기본값은 미보정
+- 실제 콘·실제 YOLO 로 콘 추적 전 구간을 돌려 본 적은 없음 (시각 동기화는 녹화 + 가짜 검출로 확인)
+- D435i 가 아래로 약 31° 숙여져 있어 카메라 높이(0.42 m) 위가 보이지 않음 → 신호등 인식에는 각도 조정 또는 다른 카메라 필요.
+  각도를 바꾸면 `camera_floor_calib.py` 로 다시 측정
+- 카메라 좌우 방향·앞뒤 위치는 도면값 (바닥으로는 측정 불가, LiDAR 로 정밀 좌표를 잡으므로 수 도 오차는 흡수)
 - 보험 모드는 직사각형 경기장에서 검증 필요
 
 ## 문서
 
+- [docs/rulebook/](docs/rulebook/) — 2026 로보월드 대회 규정, QnA(라바콘 23 cm·14×14 cm, 신호등 130 cm), 경기장 배치도
 - [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md) — 진행 상황, 구현 방법, 측정 결과
 - [docs/OPERATIONS.md](docs/OPERATIONS.md) — 운용·튜닝 (이전 README)
 - [docs/GITHUB_RULES.md](docs/GITHUB_RULES.md) — 협업 규칙
