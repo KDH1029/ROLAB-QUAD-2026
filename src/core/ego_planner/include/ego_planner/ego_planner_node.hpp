@@ -1,6 +1,7 @@
 #ifndef EGO_PLANNER__EGO_PLANNER_NODE_HPP_
 #define EGO_PLANNER__EGO_PLANNER_NODE_HPP_
 
+#include <geometry_msgs/msg/pose_array.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -166,6 +167,12 @@ private:
   std::string goal_frame_;
   std::string extra_obstacle_topic_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr extra_sub_;
+  // Cones (PoseArray of centres from cone_tracker_node) with their own clearance, see ConeField
+  std::string cones_topic_;
+  ConeField cone_cfg_;
+  double cones_max_range_{8.0};
+  rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr cones_sub_;
+  void onCones(const geometry_msgs::msg::PoseArray::SharedPtr msg);
   Eigen::Vector2d goal_in_frame_{0, 0};
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;

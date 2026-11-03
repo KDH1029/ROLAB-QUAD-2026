@@ -6,13 +6,18 @@
  *   1. Coarse: depth pixels re-projected into the colour image (no aligned depth needed), nearest
  *      fraction inside the box -> rough cone position in base_link. Without depth: the ray through
  *      the box bottom-centre pixel intersected with the floor plane.
- *   2. Precise: LiDAR points within refine.search_radius of the coarse position and in the cone
- *      height band -> centroid, shifted from the near surface to the cone axis.
- *      No LiDAR support -> the coarse position is used, with a lower tracking weight.
+ *   2. Precise: every LiDAR scan is searched for cone-shaped clusters on its own (cone_lidar.hpp:
+ *      small, in the cone height band, nothing above). The camera only says WHICH cluster is a
+ *      cone: the nearest one within search_radius (+ search_radius_per_m * range) of the depth
+ *      estimate, or - floor-ray estimate, its range depends on the camera pitch - the one closest
+ *      in bearing (bearing_tol_deg). Camera pitch changes / jitter therefore do not move the
+ *      result, and cones close to each other stay apart (clusters, not a centroid of a radius).
+ *      No cluster -> the coarse position is used, with a lower tracking weight.
  *   3. base_link -> world_frame (AMCL map) through TF at the image stamp.
  *   4. Tracking: nearest track within assoc_dist. LiDAR-refined measurements dominate the position;
  *      a cone is confirmed after confirm_hits detections of which >= confirm_lidar_hits are refined.
- *   5. Confirmed cones are saved to output.save_path and can be reloaded at configure.
+ *   5. Confirmed cones keep being updated by LiDAR clusters alone (the camera sees the floor only
+ *      to ~2.2 m, the XT16 sees cones to ~4 m), and are saved to output.save_path.
  * Outputs (world frame): /mission/cones (confirmed, PoseArray), /mission/cone_obstacles
  * (PointCloud2 ring per cone for the planner grid), /mission/cone_markers.
  *
@@ -41,6 +46,7 @@
 #include <vector>
 
 #include <Eigen/Geometry>
+#include "mission_vision/cone_lidar.hpp"
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
@@ -109,7 +115,7 @@ struct DepthFrame
 struct Scan
 {
   double t;
-  std::vector<Eigen::Vector3d> pts;  // base_link at scan time
+  std::vector<cone_lidar::Candidate> cones;  // base_link at scan time
 };
 
 Eigen::Isometry3d poseFromParams(const std::vector<double> & xyz, const std::vector<double> & q_xyzw)
@@ -161,11 +167,26 @@ public:
     max_range_ = declare_parameter<double>("fusion.max_range", 4.0);
     min_score_ = declare_parameter<double>("fusion.min_score", 0.35);
     surface_to_center_ = declare_parameter<double>("fusion.surface_to_center", 0.05);
+    lcfg_.surface_to_center = surface_to_center_;
     floor_z_ = declare_parameter<double>("fusion.floor_z", -0.30);
     refine_radius_ = declare_parameter<double>("refine.search_radius", 0.30);
     refine_z_min_ = declare_parameter<double>("refine.z_min", -0.27);
     refine_z_max_ = declare_parameter<double>("refine.z_max", -0.05);
     refine_min_pts_ = declare_parameter<int>("refine.min_points", 3);
+    refine_radius_per_m_ = declare_parameter<double>("refine.search_radius_per_m", 0.05);
+    bearing_tol_deg_ = declare_parameter<double>("refine.bearing_tol_deg", 6.0);
+    lcfg_.z_min = refine_z_min_;
+    lcfg_.z_max = refine_z_max_;
+    lcfg_.min_points = refine_min_pts_;
+    lcfg_.clear_gap = declare_parameter<double>("lidar_cone.clear_gap", 0.08);
+    lcfg_.clear_height = declare_parameter<double>("lidar_cone.clear_height", 0.60);
+    lcfg_.cluster_tol = declare_parameter<double>("lidar_cone.cluster_tol", 0.10);
+    lcfg_.max_width = declare_parameter<double>("lidar_cone.max_width", 0.30);
+    lcfg_.max_range = declare_parameter<double>("lidar_cone.max_range", 6.0);
+    lcfg_.floor_gap = declare_parameter<double>("lidar_cone.floor_gap", 0.03);
+    lcfg_.floor_radius = declare_parameter<double>("lidar_cone.floor_radius", 0.40);
+    lidar_only_assoc_ = declare_parameter<double>("tracking.lidar_only_assoc", 0.15);
+    alpha_lidar_only_ = declare_parameter<double>("tracking.alpha_lidar_only", 0.2);
     confirm_lidar_hits_ = declare_parameter<int>("tracking.confirm_lidar_hits", 2);
     alpha_lidar_ = declare_parameter<double>("tracking.alpha_lidar", 0.5);
     alpha_coarse_ = declare_parameter<double>("tracking.alpha_coarse", 0.1);
@@ -266,13 +287,17 @@ private:
     for (; ix != ix.end(); ++ix, ++iy, ++iz) {
       if (!std::isfinite(*ix) || !std::isfinite(*iy) || !std::isfinite(*iz)) continue;
       const Eigen::Vector3d p = base_T_lidar_ * Eigen::Vector3d(*ix, *iy, *iz);
-      if (p.x() < 0.1 || p.head<2>().norm() > max_range_ + 0.5) continue;
+      if (p.x() < 0.1 || p.head<2>().norm() > lcfg_.max_range + 0.5) continue;
       pts.push_back(p);
     }
+    auto cones = cone_lidar::findCones(pts, base_T_lidar_.translation().head<2>(), lcfg_);
     std::lock_guard<std::mutex> lk(mtx_);
+    ++stat_scans_;
+    stat_cands_ += static_cast<int>(cones.size());
+    stat_cands_max_ = std::max(stat_cands_max_, static_cast<int>(cones.size()));
     cloud_map_.add(rclcpp::Time(msg->header.stamp).seconds(), now().seconds());
     const double t = cloud_map_.map(rclcpp::Time(msg->header.stamp).seconds());
-    scan_buf_.push_back({t, std::move(pts)});
+    scan_buf_.push_back({t, std::move(cones)});
     while (!scan_buf_.empty() && scan_buf_.front().t < t - sync_buffer_s_) scan_buf_.pop_front();
   }
 
@@ -305,28 +330,34 @@ private:
     return u >= u0 && u <= u1 && v >= v0 && v <= v1;
   }
 
-  // Precise cone centre from LiDAR points around the coarse estimate (base_link)
-  bool refineWithLidar(const Eigen::Vector3d & coarse, const std::vector<Eigen::Vector3d> & scan,
-                       const Eigen::Isometry3d & comp, Eigen::Vector3d & out)
+  /// Precise cone centre: the LiDAR cone cluster the camera points at (base_link, image time).
+  /// by_bearing: the coarse range is unreliable (floor ray), match on direction from the camera.
+  bool selectCluster(const Eigen::Vector3d & coarse, bool by_bearing, const std::vector<cone_lidar::Candidate> & cands,
+                     const Eigen::Isometry3d & comp, Eigen::Vector3d & out) const
   {
-    Eigen::Vector2d sum = Eigen::Vector2d::Zero();
-    int n = 0;
-    {
-      for (const auto & p0 : scan) {
-        const Eigen::Vector3d p = comp * p0;
-        if (p.z() < refine_z_min_ || p.z() > refine_z_max_) continue;
-        if ((p.head<2>() - coarse.head<2>()).norm() > refine_radius_) continue;
-        sum += p.head<2>();
-        ++n;
+    const Eigen::Vector2d cam = base_T_color_.translation().head<2>();
+    const Eigen::Vector2d rc = coarse.head<2>() - cam;
+    const double radius = refine_radius_ + refine_radius_per_m_ * coarse.head<2>().norm();
+    double best = by_bearing ? bearing_tol_deg_ * M_PI / 180.0 : radius;
+    bool found = false;
+    for (const auto & cd : cands) {
+      const Eigen::Vector2d c = (comp * Eigen::Vector3d(cd.center.x(), cd.center.y(), 0.0)).head<2>();
+      double score;
+      if (by_bearing) {
+        const Eigen::Vector2d r = c - cam;
+        const double ratio = r.norm() / std::max(rc.norm(), 1e-3);
+        if (ratio < 0.5 || ratio > 2.0) continue;
+        score = std::abs(std::atan2(rc.x() * r.y() - rc.y() * r.x(), rc.dot(r)));
+      } else {
+        score = (c - coarse.head<2>()).norm();
+      }
+      if (score <= best) {
+        best = score;
+        out = Eigen::Vector3d(c.x(), c.y(), floor_z_ + 0.115);
+        found = true;
       }
     }
-    if (n < refine_min_pts_) return false;
-    Eigen::Vector2d c = sum / n;
-    // LiDAR only sees the near face: shift away from the LiDAR to the cone axis
-    const Eigen::Vector2d ray = c - base_T_lidar_.translation().head<2>();
-    if (ray.norm() > 1e-3) c += surface_to_center_ * ray.normalized();
-    out = Eigen::Vector3d(c.x(), c.y(), floor_z_ + 0.115);
-    return true;
+    return found;
   }
 
   // Coarse position without depth: ray through the box bottom-centre pixel meets the floor
@@ -398,8 +429,8 @@ private:
     double t_img;
     sensor_msgs::msg::Image::SharedPtr depth;
     double t_depth = 0.0, t_scan = 0.0, t_latest_scan = NAN;
-    const std::vector<Eigen::Vector3d> * scan = nullptr;
-    std::vector<Eigen::Vector3d> scan_copy;
+    const std::vector<cone_lidar::Candidate> * scan = nullptr;
+    std::vector<cone_lidar::Candidate> scan_copy;
     {
       std::lock_guard<std::mutex> lk(mtx_);
       if (!color_map_.ready()) {
@@ -419,7 +450,7 @@ private:
       }
       best = sync_max_dt_;
       for (const auto & sc : scan_buf_) {
-        if (std::abs(sc.t - t_img) <= best) {best = std::abs(sc.t - t_img); scan = &sc.pts; t_scan = sc.t;}
+        if (std::abs(sc.t - t_img) <= best) {best = std::abs(sc.t - t_img); scan = &sc.cones; t_scan = sc.t;}
       }
       if (scan) scan_copy = *scan;
     }
@@ -460,17 +491,19 @@ private:
       // 1. Coarse: YOLO + depth (or the floor ray through the box bottom)
       Eigen::Vector3d coarse;
       const char * src = "depth";
+      bool by_bearing = false;
       if (fromDepth(cu - hw, cv - hh, cu + hw, cv + hh, depth, comp_depth, coarse)) {
         const Eigen::Vector2d ray = coarse.head<2>() - base_T_color_.translation().head<2>();
         if (ray.norm() > 1e-3) coarse.head<2>() += surface_to_center_ * ray.normalized();
       } else {
         src = "floor-ray";
+        by_bearing = true;
         if (!fromGroundRay(cu, cv + 0.5 * det.bbox.size_y, coarse)) continue;
       }
       if (coarse.head<2>().norm() > max_range_) continue;
       // 2. Precise: LiDAR around the coarse position
       Eigen::Vector3d pb = coarse;
-      const bool refined = scan && refineWithLidar(coarse, scan_copy, comp_scan, pb);
+      const bool refined = scan && selectCluster(coarse, by_bearing, scan_copy, comp_scan, pb);
       const Eigen::Vector3d pw = world_T_base * pb;
       update(Eigen::Vector2d(pw.x(), pw.y()), stamp, refined);
       RCLCPP_DEBUG(get_logger(), "cone coarse(%s) (%.2f, %.2f) -> %s (%.2f, %.2f) base, world (%.2f, %.2f)",
@@ -494,11 +527,14 @@ private:
     RCLCPP_INFO(get_logger(),
       "sync %d dets: clock offset colour %+.3f%s depth %+.3f%s lidar %+.3f%s s | max |dt| depth %.0f ms lidar %.0f ms, "
       "none: depth %d lidar %d | YOLO lag max %.0f ms, motion comp max %.2f deg %.1f cm (fail %d), old TF %d | "
-      "latest scan instead would be off by max %.2f deg %.1f cm",
+      "latest scan instead would be off by max %.2f deg %.1f cm | LiDAR-only cone updates %d | "
+      "LiDAR cone clusters per scan mean %.2f max %d (%d scans)",
       stat_n_, color_map_.offset, color_map_.same_clock ? "(same)" : "", depth_map_.offset,
       depth_map_.same_clock ? "(same)" : "", cloud_map_.offset, cloud_map_.same_clock ? "(same)" : "",
       stat_dt_depth_ * 1e3, stat_dt_scan_ * 1e3, stat_no_depth_, stat_no_scan_, stat_lag_ * 1e3,
-      stat_comp_deg_, stat_comp_cm_, stat_comp_fail_, stat_tf_old_, stat_latest_deg_, stat_latest_cm_);
+      stat_comp_deg_, stat_comp_cm_, stat_comp_fail_, stat_tf_old_, stat_latest_deg_, stat_latest_cm_,
+      stat_lidar_only_, stat_scans_ ? static_cast<double>(stat_cands_) / stat_scans_ : 0.0, stat_cands_max_, stat_scans_);
+    stat_lidar_only_ = stat_scans_ = stat_cands_ = stat_cands_max_ = 0;
     stat_t0_ = now().seconds();
     stat_n_ = stat_no_depth_ = stat_no_scan_ = stat_comp_fail_ = stat_tf_old_ = 0;
     stat_dt_depth_ = stat_dt_scan_ = stat_comp_deg_ = stat_comp_cm_ = stat_lag_ = 0.0;
@@ -568,8 +604,46 @@ private:
     if (n) RCLCPP_INFO(get_logger(), "loaded %d saved cones from %s", n, save_path_.c_str());
   }
 
+  /// Confirmed cones are kept up to date by LiDAR clusters alone (the newest scan that is at least
+  /// 0.1 s old, so the TF for its time has arrived).
+  void lidarOnlyUpdate()
+  {
+    Scan sc;
+    {
+      std::lock_guard<std::mutex> lk(mtx_);
+      const double t_now = now().seconds();
+      for (auto it = scan_buf_.rbegin(); it != scan_buf_.rend(); ++it) {
+        if (t_now - it->t >= 0.1) {sc = *it; break;}
+      }
+    }
+    if (sc.cones.empty() || sc.t <= last_lidar_only_t_) return;
+    last_lidar_only_t_ = sc.t;
+    Eigen::Isometry3d world_T_base;
+    try {
+      world_T_base = toIso(tf_buffer_->lookupTransform(world_frame_, base_frame_,
+        rclcpp::Time(static_cast<int64_t>(sc.t * 1e9), get_clock()->get_clock_type())));
+    } catch (const tf2::TransformException &) {
+      return;
+    }
+    const rclcpp::Time stamp(static_cast<int64_t>(sc.t * 1e9), get_clock()->get_clock_type());
+    for (const auto & cd : sc.cones) {
+      const Eigen::Vector2d w = (world_T_base * Eigen::Vector3d(cd.center.x(), cd.center.y(), 0.0)).head<2>();
+      Track * best = nullptr;
+      double best_d = lidar_only_assoc_;   // tight: other clusters must not drag a cone around
+      for (auto & tr : tracks_) {
+        const double d = (tr.pos - w).norm();
+        if (tr.confirmed && d < best_d) {best_d = d; best = &tr;}
+      }
+      if (!best) continue;
+      best->pos = (1.0 - alpha_lidar_only_) * best->pos + alpha_lidar_only_ * w;
+      best->last_seen = stamp;
+      ++stat_lidar_only_;
+    }
+  }
+
   void publishTracks()
   {
+    lidarOnlyUpdate();
     const rclcpp::Time now_t = now();
     tracks_.erase(std::remove_if(tracks_.begin(), tracks_.end(), [&](const Track & tr) {
       const double age = (now_t - tr.last_seen).seconds();
@@ -618,6 +692,8 @@ private:
   double box_shrink_, near_fraction_, depth_min_, depth_max_, max_range_, min_score_, surface_to_center_;
   double floor_z_, refine_radius_, refine_z_min_, refine_z_max_, alpha_lidar_, alpha_coarse_;
   int refine_min_pts_, confirm_lidar_hits_;
+  double refine_radius_per_m_, bearing_tol_deg_, alpha_lidar_only_, lidar_only_assoc_;
+  cone_lidar::Config lcfg_;
   std::string save_path_;
   bool load_saved_;
   int depth_stride_;
@@ -634,6 +710,8 @@ private:
   double stat_latest_deg_{0}, stat_latest_cm_{0}, stat_dt_depth_{0}, stat_dt_scan_{0}, stat_comp_deg_{0}, stat_comp_cm_{0}, stat_lag_{0}, stat_t0_{0};
   std::vector<Track> tracks_;
   int next_id_{0};
+  double last_lidar_only_t_{0.0};
+  int stat_lidar_only_{0}, stat_scans_{0}, stat_cands_{0}, stat_cands_max_{0};
 
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;

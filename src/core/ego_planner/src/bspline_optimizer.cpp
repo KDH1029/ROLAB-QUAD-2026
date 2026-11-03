@@ -151,6 +151,9 @@ void BsplineOptimizer::computeCostAndGrad(const std::vector<Eigen::Vector2d> & q
       double c_obs = grid_map_->evaluateCostAndGrad(q[i], obs_grad, safe_dist_);
       cost += lambda_obs_ * c_obs;
       grad[i] += lambda_obs_ * obs_grad;
+      // cones: own range and gain (cones.safe_dist / cones.weight), not lambda_obs
+      cost += grid_map_->evaluateConeCostAndGrad(q[i], obs_grad);
+      grad[i] += obs_grad;
     }
   }
 

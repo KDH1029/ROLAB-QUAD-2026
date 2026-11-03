@@ -31,12 +31,23 @@ cone_tracker_node:
       surface_to_center: 0.05  # m, near-surface estimate -> cone axis (base 14 cm, measured at ~7 cm height)
       floor_z: -0.30           # m, floor height in base_link (standing Go2) for the floor ray
 
-    # 2) precise: LiDAR points around the coarse position
+    # 2) precise: LiDAR finds cone-shaped clusters by itself; the camera only picks which one
     refine:
-      search_radius: 0.30      # m around the coarse position (covers depth/extrinsic error)
+      search_radius: 0.30      # m around the depth estimate ...
+      search_radius_per_m: 0.05  # ... plus this per metre of range (camera pitch error / jitter grows with range)
+      bearing_tol_deg: 6.0     # no depth: match on direction only (floor-ray range depends on the pitch)
       z_min: -0.27             # m in base_link: 3 cm above the floor ...
       z_max: -0.05             # ... to the cone top (23 cm) plus margin
       min_points: 3
+    lidar_cone:                # what counts as a cone cluster (cone_lidar.hpp)
+      cluster_tol: 0.10        # m, points closer than this join one cluster
+      max_width: 0.30          # m, wider = wall / furniture
+      clear_gap: 0.08          # m above z_max where "something above" starts ...
+      clear_height: 0.60       # ... up to this: anything there = leg / person / box, not a cone
+      floor_gap: 0.03          # m, cluster must stand this far above the lowest point around it
+      floor_radius: 0.40       # m, "around" (10-30 bag without cones: 1.1 false clusters per scan,
+                               #    0.34 within 2.5 m; the camera decides which cluster is a cone)
+      max_range: 6.0           # m
 
     tracking:
       assoc_dist: 0.30         # m, same cone if closer than this
@@ -44,10 +55,13 @@ cone_tracker_node:
       confirm_lidar_hits: 2    # ... of which at least this many LiDAR-refined (0: allow depth-only)
       alpha_lidar: 0.5         # position update weight of a LiDAR measurement
       alpha_coarse: 0.1        # of a coarse one (only until the first LiDAR measurement)
+      alpha_lidar_only: 0.2    # confirmed cones: update from LiDAR clusters alone (beyond the camera's ~2.2 m)
+      lidar_only_assoc: 0.15   # m, tight - another cluster must not drag a confirmed cone
       tentative_timeout: 2.0   # s, unconfirmed tracks
       confirmed_timeout: 0.0   # s, confirmed (0: keep; cones are static)
 
     output:
-      obstacle_radius: 0.08    # m, ring of points per cone on /mission/cone_obstacles (14 cm base)
+      obstacle_radius: 0.08    # m, ring of points per cone on /mission/cone_obstacles (14 cm base);
+                               # ego_planner uses /mission/cones (centres) with its own cones.* clearance
       save_path: "~/go2_cones.yaml"  # confirmed cones written on every confirmation and on deactivate
       load_saved: false        # true: start with the saved cones (e.g. re-run on the same course)

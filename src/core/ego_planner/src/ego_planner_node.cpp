@@ -72,6 +72,11 @@ EgoPlannerNode::EgoPlannerNode()
 
   goal_base_frame_ = declare_parameter<std::string>("goal_base_frame", "base_link");
   extra_obstacle_topic_ = declare_parameter<std::string>("extra_obstacle_topic", "");
+  cones_topic_ = declare_parameter<std::string>("cones.topic", "");
+  cone_cfg_.inflate_radius = declare_parameter<double>("cones.inflate_radius", 0.30);
+  cone_cfg_.safe_dist = declare_parameter<double>("cones.safe_dist", 0.60);
+  cone_cfg_.weight = declare_parameter<double>("cones.weight", 150.0);
+  cones_max_range_ = declare_parameter<double>("cones.max_range", 8.0);
   static_map_path_ = declare_parameter<std::string>("static_map_path", "");
   use_prior_map_ = declare_parameter<bool>("use_prior_map", false);
 
@@ -139,6 +144,10 @@ CallbackReturn EgoPlannerNode::on_activate(const rclcpp_lifecycle::State &)
       std::bind(&EgoPlannerNode::onCloud, this, std::placeholders::_1));
   }
 
+  if (!cones_topic_.empty()) {
+    cones_sub_ = create_subscription<geometry_msgs::msg::PoseArray>(
+      cones_topic_, 10, std::bind(&EgoPlannerNode::onCones, this, std::placeholders::_1));
+  }
   if (!extra_obstacle_topic_.empty()) {
     extra_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
       extra_obstacle_topic_, 10, std::bind(&EgoPlannerNode::onExtraObstacles, this, std::placeholders::_1));
@@ -174,6 +183,7 @@ CallbackReturn EgoPlannerNode::on_deactivate(const rclcpp_lifecycle::State &)
   scan_sub_.reset();
   cloud_sub_.reset();
   extra_sub_.reset();
+  cones_sub_.reset();
   has_odom_ = has_cloud_ = have_last_odom_ = false;
   cmd_vel_pub_->on_deactivate();
   path_pub_->on_deactivate();
@@ -242,6 +252,15 @@ rcl_interfaces::msg::SetParametersResult EgoPlannerNode::onParamChange(
         continue;
       }
       (n == "max_vel" ? max_vel_ : n == "max_acc" ? max_acc_ : safe_dist_) = v;
+    } else if (n == "cones.safe_dist" || n == "cones.weight" || n == "cones.inflate_radius" || n == "cones.max_range") {
+      const double v = p.as_double();
+      if (v < 0.0) {
+        result.successful = false;
+        result.reason = n + " must not be negative";
+        continue;
+      }
+      (n == "cones.safe_dist" ? cone_cfg_.safe_dist : n == "cones.weight" ? cone_cfg_.weight :
+       n == "cones.inflate_radius" ? cone_cfg_.inflate_radius : cones_max_range_) = v;
     } else if (n == "max_wz") {
       max_wz_ = p.as_double();
     } else if (n == "max_vy") {
@@ -562,6 +581,18 @@ bool EgoPlannerNode::resolveGoal(Eigen::Vector2d & goal_odom)
   if (!toOdomFrame(goal_frame_, {goal_in_frame_}, out)) return false;
   goal_odom = out.front();
   return true;
+}
+
+void EgoPlannerNode::onCones(const geometry_msgs::msg::PoseArray::SharedPtr msg)
+{
+  std::vector<Eigen::Vector2d> pts, odom_pts;
+  for (const auto & p : msg->poses) pts.emplace_back(p.position.x, p.position.y);
+  if (!has_odom_ || !toOdomFrame(msg->header.frame_id, pts, odom_pts)) return;
+  ConeField f = cone_cfg_;
+  for (const auto & c : odom_pts) {
+    if ((c - robot_pos_.head<2>()).norm() <= cones_max_range_) f.centers.push_back(c);
+  }
+  grid_map_->setCones(f);
 }
 
 void EgoPlannerNode::onExtraObstacles(const sensor_msgs::msg::PointCloud2::ConstSharedPtr msg)

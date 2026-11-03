@@ -197,7 +197,15 @@ python3 src/missions/mission_vision/tools/depth_lidar_align.py ~/bags/<bag> \
 - 센서 싱크: 카메라 stamp 는 로봇 PC 시계(1970, 미동기). `cone_tracker_node` 가 스트림별로
   (수신시각 − stamp) 하위 5 % 로 시계 차이를 추정해 NUC 시계로 바꾸고, YOLO 영상 시각에 가장 가까운
   depth·라이다(±50 ms)를 골라 odom TF 로 영상 시각까지 이동 보정한다. 10초마다 `sync ...` 로그:
-  시계 차이, 맞춘 시간차, YOLO 지연, 보정량, "최신 스캔을 썼다면 어긋났을 양".
+  시계 차이, 맞춘 시간차, YOLO 지연, 보정량, "최신 스캔을 썼다면 어긋났을 양", 스캔당 라이다 콘 후보 수.
+- 좌표는 라이다가 정한다: 매 스캔에서 콘 모양 덩어리(폭 ≤0.30 m, 콘 높이 띠, 위는 비어 있고 주변 바닥보다
+  3 cm 이상 뜬 것)를 찾고, 카메라는 그중 어느 것이 콘인지만 고른다(깊이 추정 반경 0.30 m + 0.05 m/m,
+  깊이 없으면 방향 ±6°). 카메라 각도가 바뀌거나 흔들려도 결과 좌표는 라이다 값. 확정된 콘은 카메라가
+  못 보는 거리(약 2.2 m 너머)에서도 라이다만으로 계속 갱신. 설정: `cone_tracker_params.yaml` refine/lidar_cone.
+- 경로 계획: `ego_planner` 가 `/mission/cones`(콘 중심)를 받아 벽과 별개로 다룬다 —
+  `ego_planner_params.yaml` 의 `cones:` inflate_radius(절대 접근 금지 반경), safe_dist(밀어내는 범위),
+  weight(밀어내는 세기), max_range. 네 값 모두 `ros2 param set` 으로 실행 중 변경 가능.
+- 콘 탐지 합성 시험: `ros2 run mission_vision test_cone_lidar` (55 cm 간격 콘 2개·기둥·벽·바닥 잡음).
 - `cone_tracker_node`: YOLO 박스 + depth 로 대략 위치 → 그 주변 라이다 점으로 정밀 좌표 → `map` 좌표 → 추적
   (0.3 m 묶기, 3회·라이다 2회 확정) → `~/go2_cones.yaml` 저장.
   출력 `/mission/cones`(PoseArray), `/mission/cone_obstacles`(EGO 장애물), `/mission/cone_markers`.

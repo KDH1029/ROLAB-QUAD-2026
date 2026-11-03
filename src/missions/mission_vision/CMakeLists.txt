@@ -18,10 +18,12 @@ find_package(Eigen3 REQUIRED)
 
 # Cone localisation & tracking (YOLO boxes + LiDAR/depth -> world frame)
 add_executable(cone_tracker_node src/cone_tracker_node.cpp)
-target_include_directories(cone_tracker_node PRIVATE ${EIGEN3_INCLUDE_DIRS})
+target_include_directories(cone_tracker_node PRIVATE ${EIGEN3_INCLUDE_DIRS} include)
+add_executable(test_cone_lidar src/test_cone_lidar.cpp)
+target_include_directories(test_cone_lidar PRIVATE ${EIGEN3_INCLUDE_DIRS} include)
 ament_target_dependencies(cone_tracker_node
   rclcpp rclcpp_lifecycle sensor_msgs geometry_msgs vision_msgs visualization_msgs tf2_ros)
-install(TARGETS cone_tracker_node DESTINATION lib/${PROJECT_NAME})
+install(TARGETS cone_tracker_node test_cone_lidar DESTINATION lib/${PROJECT_NAME})
 
 # 1. Modular Python YOLO Detector Node
 install(PROGRAMS

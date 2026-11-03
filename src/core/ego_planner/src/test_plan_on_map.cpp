@@ -1,3 +1,4 @@
+#include <cstdlib>
 // Offline planner check on a recorded map: plan between pairs of poses the robot actually
 // walked, report success rate and minimum wall clearance of the result. No ROS needed.
 // Usage: test_plan_on_map <obstacles.bin> <trajectory.csv> <inflate> <safe_dist> <validate 0|1>
@@ -44,11 +45,39 @@ int main(int argc, char ** argv)
   if (!map->loadPriorMap(argv[1])) { std::cerr << "cannot load " << argv[1] << "\n"; return 1; }
   const auto & obs = map->getStaticObstacles();
 
+  // Optional cones on the walked path (env): CONES_EVERY=m between cones, CONES_OFFSET=m sideways
+  // (alternating), CONE_INFLATE / CONE_SAFE / CONE_WEIGHT = cones.* parameters (0 weight: off).
+  auto envd = [](const char * k, double d) { const char * v = std::getenv(k); return v ? std::atof(v) : d; };
+  ConeField cones;
+  cones.inflate_radius = envd("CONE_INFLATE", 0.30);
+  cones.safe_dist = envd("CONE_SAFE", 0.60);
+  cones.weight = envd("CONE_WEIGHT", 150.0);
+  const double every = envd("CONES_EVERY", 0.0), offset = envd("CONES_OFFSET", 0.0);
+  if (every > 0.0) {
+    double acc = 0.0;
+    int k = 0;
+    for (size_t i = 1; i < traj.size(); ++i) {
+      acc += (traj[i] - traj[i - 1]).norm();
+      if (acc < every) continue;
+      acc = 0.0;
+      const Eigen::Vector2d dir = (traj[i] - traj[i - 1]).normalized();
+      cones.centers.push_back(traj[i] + ((k++ % 2) ? offset : -offset) * Eigen::Vector2d(-dir.y(), dir.x()));
+    }
+    map->setCones(cones);
+  }
+
   int n = 0, ok = 0, too_close = 0, f_astar = 0, f_valid = 0, f_short = 0, used_fallback = 0;
-  std::vector<double> clear;
-  for (size_t i = 0; i + gap < traj.size(); i += 5) {
+  std::vector<double> clear, cone_clear;
+  int skipped_on_cone = 0;
+  const size_t step = static_cast<size_t>(envd("PAIR_STEP", 5));
+  for (size_t i = 0; i + gap < traj.size(); i += step) {
     const Eigen::Vector2d s = traj[i], g = traj[i + gap];
     if ((g - s).norm() < 1.0) continue;
+    bool on_cone = false;   // start / goal on top of a cone: not a request the mission makes
+    for (const auto & c : cones.centers) {
+      on_cone |= (c - s).norm() < cones.inflate_radius + 0.1 || (c - g).norm() < cones.inflate_radius + 0.1;
+    }
+    if (on_cone) {++skipped_on_cone; continue;}
     ++n;
     map->updateStaticOnly(s);
     AStar astar; astar.init(map);
@@ -77,6 +106,10 @@ int main(int argc, char ** argv)
         const double d = (o - p).squaredNorm();
         if (d < m) m = d;
       }
+      for (const auto & c : cones.centers) {
+        const double d = (c - p).norm();
+        if ((c - s).norm() > 0.4 && (c - g).norm() > 0.4) cone_clear.push_back(d);  // not start/goal
+      }
     }
     m = std::sqrt(m);
     clear.push_back(m);
@@ -86,5 +119,11 @@ int main(int argc, char ** argv)
   auto pct = [&](double q) { return clear.empty() ? 0.0 : clear[std::min(clear.size() - 1, size_t(q * clear.size()))]; };
   std::printf("inflate %.2f safe %.2f lam_obs %.0f iters %d validate %d vmax %.1f | success %d/%d (%.0f%%) | min clearance: min %.2f p10 %.2f median %.2f m | <0.20 m: %d | fail: A* %d, cuts inflation %d, partial %d | fallback used %d\n",
     inflate, safe, lambda_obs, iters, validate, max_vel, ok, n, 100.0 * ok / std::max(1, n), pct(0.0), pct(0.1), pct(0.5), too_close, f_astar, f_valid, f_short, used_fallback);
+  if (!cones.centers.empty()) {
+    std::sort(cone_clear.begin(), cone_clear.end());
+    std::printf("cones %zu (every %.1f m, offset %.2f) inflate %.2f safe %.2f weight %.0f | skipped (start/goal on a cone) %d | closest pass to a cone centre: min %.2f m\n",
+      cones.centers.size(), every, offset, cones.inflate_radius, cones.safe_dist, cones.weight, skipped_on_cone,
+      cone_clear.empty() ? 0.0 : cone_clear.front());
+  }
   return 0;
 }

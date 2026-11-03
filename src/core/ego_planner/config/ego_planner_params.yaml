@@ -1,6 +1,7 @@
 # EGO-Planner (Go2 ground) parameters. Every tunable of the node lives here.
 # Runtime-changeable with `ros2 param set /ego_planner_node <name> <value>`:
-#   min_obs_h, max_obs_h, max_vel, max_acc, max_wz, max_vy, safe_dist, goal_tol
+#   min_obs_h, max_obs_h, max_vel, max_acc, max_wz, max_vy, safe_dist, goal_tol,
+#   cones.inflate_radius, cones.safe_dist, cones.weight, cones.max_range
 # Everything else needs a node restart.
 
 ego_planner_node:
@@ -18,9 +19,23 @@ ego_planner_node:
     obstacle_source: "scan"
     scan_topic: "/scan"
     cloud_topic: "/cloud_registered"
-    # Confirmed cones from cone_tracker_node (map frame), mapped into the odometry frame like goals.
-    # "" disables. 23 cm cones are otherwise only seen by the vertical scan within ~1.2-1.5 m.
-    extra_obstacle_topic: "/mission/cone_obstacles"
+    # Extra point obstacles (PointCloud2, any frame), treated like scan points. "" disables.
+    # Cones no longer come this way (see cones: below) - they would get the wall clearance.
+    extra_obstacle_topic: ""
+
+    # ---- Cones (confirmed cones from cone_tracker_node, map frame -> odometry frame) -------------
+    # Handled apart from the grid, with their own clearance. 23 cm cones are otherwise only seen by
+    # the vertical scan within ~1.2-1.5 m. Runtime-changeable: all four numbers below.
+    cones:
+      topic: "/mission/cones"          # geometry_msgs/PoseArray of cone centres; "" disables
+      inflate_radius: 0.30             # m, hard: A* / validation never closer to a cone centre
+                                       #    (cone base radius 0.07 + Go2 half width 0.155 + 0.075)
+      safe_dist: 0.45                  # m, range: the optimizer starts pushing the curve away here
+      weight: 150.0                    # repulsion gain (magnitude); the walls use optimizer.lambda_obs
+      # test_plan_on_map, 누리관 map, cones on the walked path every 2.5 m (±0.25 m), 103 plans:
+      #   weight 0: 28 % valid | 150 / safe 0.45: 70 % | 150 / 0.60: 65 % (pushes into 1 m corridor
+      #   walls) | 400 / 0.45: 71 %. No cones: 89 %. Hard radius never violated (closest 0.29-0.32 m).
+      max_range: 8.0                   # m from the robot; farther cones are ignored
 
     # ---- Limits ---------------------------------------------------------------------------------
     max_vel: 0.6                       # m/s  (original 0.8; 1 m corridors, 90 deg corners)

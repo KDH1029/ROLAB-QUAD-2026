@@ -12,6 +12,18 @@ namespace ego_planner
 {
 
 // Point filter for building the local obstacle grid (all from ego_planner_params.yaml)
+/// Cones handled apart from the occupancy grid, each with its own clearance:
+///   inflate_radius  hard: A* and trajectory validation never come closer to a cone centre
+///   safe_dist       range of the optimizer's repulsion around a cone centre
+///   weight          gain of that repulsion (the cone counterpart of optimizer.lambda_obs)
+struct ConeField
+{
+  std::vector<Eigen::Vector2d> centers;   // grid (odometry) frame
+  double inflate_radius{0.30};
+  double safe_dist{0.60};
+  double weight{150.0};
+};
+
 struct CloudFilterConfig
 {
   double min_range{0.25};       // ignore returns closer than this (m, horizontal from robot)
@@ -44,6 +56,12 @@ public:
   void setFilterConfig(const CloudFilterConfig & cfg) { filter_ = cfg; }
   // Extra obstacles (already in the grid frame), inserted with the static layer on every update
   void setExtraObstacles(const std::vector<Eigen::Vector2d> & pts) { extra_obstacles_ = pts; }
+  // Cones: hard disc in the inflation layer (applied on the next update) + optimizer repulsion
+  void setCones(const ConeField & cones) { cones_ = cones; }
+  const ConeField & getCones() const { return cones_; }
+  /// Cone repulsion at pos: cost already multiplied by cones.weight; grad points INTO the cones
+  /// (the optimizer descends, so the curve moves away).
+  double evaluateConeCostAndGrad(const Eigen::Vector2d & pos, Eigen::Vector2d & grad) const;
 
   bool isOccupied(const Eigen::Vector2d & pos) const;
   bool isOccupied(int idx_x, int idx_y) const;
@@ -89,6 +107,8 @@ private:
   std::vector<Eigen::Vector2d> static_obstacles_;
   CloudFilterConfig filter_;
   std::vector<Eigen::Vector2d> extra_obstacles_;
+  ConeField cones_;
+  void inflateCones();
 
   void insertStatic(std::vector<std::pair<int, int>> & occupied_indices);
   void markOccupied(const Eigen::Vector2d & pt, std::vector<std::pair<int, int>> & occupied_indices);

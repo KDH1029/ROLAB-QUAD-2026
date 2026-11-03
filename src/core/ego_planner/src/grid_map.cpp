@@ -143,6 +143,43 @@ void GridMap::inflate(const std::vector<std::pair<int, int>> & occupied_indices)
   }
 }
 
+void GridMap::inflateCones()
+{
+  const double r = cones_.inflate_radius;
+  const int rc = static_cast<int>(std::ceil(r / resolution_));
+  for (const auto & c : cones_.centers) {
+    int cx, cy;
+    posToIndex(c, cx, cy);
+    for (int dx = -rc; dx <= rc; ++dx) {
+      for (int dy = -rc; dy <= rc; ++dy) {
+        const int nx = cx + dx, ny = cy + dy;
+        if (!isInMap(nx, ny)) continue;
+        Eigen::Vector2d p;
+        indexToPos(nx, ny, p);
+        if ((p - c).norm() <= r) inflated_[toIndex(nx, ny)] = 100;
+      }
+    }
+  }
+}
+
+double GridMap::evaluateConeCostAndGrad(const Eigen::Vector2d & pos, Eigen::Vector2d & grad) const
+{
+  grad.setZero();
+  double cost = 0.0;
+  const double safe = cones_.safe_dist;
+  for (const auto & c : cones_.centers) {
+    const Eigen::Vector2d d = pos - c;
+    const double dist = d.norm();
+    if (dist >= safe) continue;
+    // same barrier as the grid term: U = (safe - d)^2 + 0.5 (safe - d), summed over cones
+    const double diff = safe - dist;
+    cost += cones_.weight * (diff * diff + 0.5 * diff);
+    grad += (dist > 1e-4) ? Eigen::Vector2d(-cones_.weight * (0.5 + 2.0 * diff) * d / dist)
+                          : Eigen::Vector2d(cones_.weight, 0.0);
+  }
+  return cost;
+}
+
 void GridMap::updateStaticOnly(const Eigen::Vector2d & center)
 {
   resetLocal(center);
@@ -150,6 +187,7 @@ void GridMap::updateStaticOnly(const Eigen::Vector2d & center)
   occupied_indices.reserve(static_obstacles_.size());
   insertStatic(occupied_indices);
   inflate(occupied_indices);
+  inflateCones();
 }
 
 void GridMap::updateCloud(const sensor_msgs::msg::PointCloud2::ConstSharedPtr & cloud_msg,
@@ -216,6 +254,7 @@ void GridMap::updateCloud(const sensor_msgs::msg::PointCloud2::ConstSharedPtr & 
   }
 
   inflate(occupied_indices);
+  inflateCones();
 }
 
 void GridMap::updateScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scan_msg,
@@ -241,6 +280,7 @@ void GridMap::updateScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr & sca
       occupied_indices);
   }
   inflate(occupied_indices);
+  inflateCones();
 }
 
 double GridMap::evaluateCostAndGrad(const Eigen::Vector2d & pos, Eigen::Vector2d & grad, double safe_dist) const
