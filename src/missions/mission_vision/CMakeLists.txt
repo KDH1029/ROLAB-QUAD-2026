@@ -31,6 +31,7 @@ install(PROGRAMS
   tools/depth_lidar_align.py
   tools/camera_floor_calib.py
   tools/yolo_model_check.py
+  tools/bag_to_images.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
