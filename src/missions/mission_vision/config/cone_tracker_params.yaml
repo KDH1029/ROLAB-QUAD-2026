@@ -5,6 +5,21 @@ cone_tracker_node:
     # Cone boxes from yolo_detector_node. "string": std_msgs/String JSON (default - YOLO runs on the
     # robot PC under Foxy, whose vision_msgs differs from Jazzy's); "vision_msgs": Detection2DArray
     # (only when YOLO runs on the same ROS distro). Must match yolo_detector_node detections_format.
+    # fusion: the camera (YOLO) says which LiDAR cluster is a cone (default).
+    # lidar_only: no camera; a cluster seen at the same map spot in >= 70 % of >= 20 scans is a cone.
+    #   10-30 bag (building, no cones): 41 fakes confirmed even with map gating - stair/ramp edges and
+    #   low narrow objects (stools, boxes) look like cones to the LiDAR. Use it only with `regions`
+    #   restricted to the slalom straights, and check it on a venue recording first.
+    mode: "fusion"
+    lidar_only:
+      regions: []              # [x0, y0, x1, y1, ...] rectangles in the world frame; [] = everywhere
+      wall_clearance: 0.15     # m, cones closer to a map wall are ignored (wall foot / baseboard)
+      min_ratio: 0.7           # seen in >= 70 % of the scans since first seen ...
+      min_scans: 20            # ... judged over >= 20 scans (1 s at 20 Hz)
+      confirm_hits: 5
+      max_spread: 0.08         # m, sightings within this of the centre count
+      assoc: 0.15              # m
+      map_topic: "/map"
     detections_format: "string"
     detections_json_topic: "/mission/cone_detections_json"
     detections_topic: "/mission/cone_detections"   # vision_msgs/Detection2DArray (detections_format: vision_msgs)

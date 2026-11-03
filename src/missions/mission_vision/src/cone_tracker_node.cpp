@@ -34,6 +34,11 @@
  *   - the world TF is looked up at the image time; a fallback to the latest TF is allowed only if it
  *     is younger than sync.max_tf_age.
  *
+ * mode:=lidar_only (no camera): a LiDAR cone cluster becomes a cone when it is seen at the same map
+ * spot in >= 70 % of >= 20 scans (cone_lidar::PersistTracker), inside the map's free space and away
+ * from its walls (lidar_only.wall_clearance), optionally only inside lidar_only.regions (e.g. the
+ * slalom straights). Synthetic: 200 runs, 0 floor bits confirmed, 0 cones missed, ~1 s to confirm.
+ *
  * Extrinsics come from config/camera_extrinsics.yaml (CAD mount + RealSense factory depth->colour).
  */
 #include <algorithm>
@@ -49,6 +54,7 @@
 #include <Eigen/Geometry>
 #include "mission_vision/cone_lidar.hpp"
 #include <geometry_msgs/msg/pose_array.hpp>
+#include <nav_msgs/msg/occupancy_grid.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
@@ -239,6 +245,23 @@ public:
     lcfg_.floor_radius = declare_parameter<double>("lidar_cone.floor_radius", 0.40);
     lidar_only_assoc_ = declare_parameter<double>("tracking.lidar_only_assoc", 0.15);
     alpha_lidar_only_ = declare_parameter<double>("tracking.alpha_lidar_only", 0.2);
+    mode_ = declare_parameter<std::string>("mode", "fusion");          // fusion | lidar_only
+    pcfg_.assoc = declare_parameter<double>("lidar_only.assoc", pcfg_.assoc);
+    pcfg_.confirm_hits = declare_parameter<int>("lidar_only.confirm_hits", pcfg_.confirm_hits);
+    pcfg_.confirm_window_s = declare_parameter<double>("lidar_only.confirm_window_s", pcfg_.confirm_window_s);
+    pcfg_.max_spread = declare_parameter<double>("lidar_only.max_spread", pcfg_.max_spread);
+    pcfg_.min_ratio = declare_parameter<double>("lidar_only.min_ratio", pcfg_.min_ratio);
+    pcfg_.min_scans = declare_parameter<int>("lidar_only.min_scans", pcfg_.min_scans);
+    pcfg_.tentative_timeout_s = declare_parameter<double>("lidar_only.tentative_timeout_s", pcfg_.tentative_timeout_s);
+    pcfg_.alpha = alpha_lidar_only_;
+    wall_clear_ = declare_parameter<double>("lidar_only.wall_clearance", 0.15);
+    map_topic_ = declare_parameter<std::string>("lidar_only.map_topic", "/map");
+    regions_ = declare_parameter<std::vector<double>>("lidar_only.regions", std::vector<double>{});
+    if (regions_.size() % 4) {
+      RCLCPP_ERROR(get_logger(), "lidar_only.regions must be x0 y0 x1 y1 per rectangle - ignored");
+      regions_.clear();
+    }
+    ptracker_ = cone_lidar::PersistTracker(pcfg_);
     confirm_lidar_hits_ = declare_parameter<int>("tracking.confirm_lidar_hits", 2);
     alpha_lidar_ = declare_parameter<double>("tracking.alpha_lidar", 0.5);
     alpha_coarse_ = declare_parameter<double>("tracking.alpha_coarse", 0.1);
@@ -273,7 +296,11 @@ public:
     obs_pub_->on_activate();
     marker_pub_->on_activate();
     auto qos = rclcpp::SensorDataQoS();
-    if (det_format_ == "vision_msgs") {
+    if (mode_ == "lidar_only") {
+      map_sub_ = create_subscription<nav_msgs::msg::OccupancyGrid>(
+        map_topic_, rclcpp::QoS(1).transient_local().reliable(),
+        [this](const nav_msgs::msg::OccupancyGrid::SharedPtr m) {std::lock_guard<std::mutex> lk(mtx_); map_ = m;});
+    } else if (det_format_ == "vision_msgs") {
       det_sub_ = create_subscription<vision_msgs::msg::Detection2DArray>(
         det_topic_, 10, [this](const vision_msgs::msg::Detection2DArray::SharedPtr m) {
           std::vector<Box> boxes;
@@ -330,7 +357,7 @@ public:
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override
   {
     saveConfirmed();
-    det_sub_.reset(); det_json_sub_.reset(); color_info_sub_.reset(); depth_info_sub_.reset(); depth_sub_.reset(); cloud_sub_.reset();
+    det_sub_.reset(); det_json_sub_.reset(); map_sub_.reset(); color_info_sub_.reset(); depth_info_sub_.reset(); depth_sub_.reset(); cloud_sub_.reset();
     timer_.reset();
     std::lock_guard<std::mutex> lk(mtx_);
     depth_buf_.clear(); scan_buf_.clear();
@@ -673,6 +700,7 @@ private:
       if (std::sscanf(line.c_str(), "  - {id: %d, x: %lf, y: %lf, detections: %d, lidar: %d}", &id, &x, &y, &hits, &lh) == 5) {
         Track tr{Eigen::Vector2d(x, y), hits, lh, now(), true, id};
         tracks_.push_back(tr);
+        ptracker_.addConfirmed(id, Eigen::Vector2d(x, y));
         next_id_ = std::max(next_id_, id + 1);
         ++n;
       }
@@ -717,9 +745,102 @@ private:
     }
   }
 
+  /// mode lidar_only: every buffered scan at least 0.1 s old (its TF has arrived) -> world frame ->
+  /// gates (regions, map free space + wall clearance) -> persistence tracker -> tracks_.
+  bool gate(const Eigen::Vector2d & w, const nav_msgs::msg::OccupancyGrid::SharedPtr & m, int & why)
+  {
+    if (!regions_.empty()) {
+      bool in = false;
+      for (size_t i = 0; i + 3 < regions_.size(); i += 4) {
+        in |= w.x() >= std::min(regions_[i], regions_[i + 2]) && w.x() <= std::max(regions_[i], regions_[i + 2]) &&
+              w.y() >= std::min(regions_[i + 1], regions_[i + 3]) && w.y() <= std::max(regions_[i + 1], regions_[i + 3]);
+      }
+      if (!in) {why = 0; return false;}
+    }
+    if (!m) return true;
+    const double res = m->info.resolution;
+    const int W = static_cast<int>(m->info.width), H = static_cast<int>(m->info.height);
+    const int cx = static_cast<int>(std::floor((w.x() - m->info.origin.position.x) / res));
+    const int cy = static_cast<int>(std::floor((w.y() - m->info.origin.position.y) / res));
+    if (cx < 0 || cy < 0 || cx >= W || cy >= H) {why = 1; return false;}
+    const int8_t v = m->data[cy * W + cx];
+    if (v < 0 || v > 25) {why = 1; return false;}                 // unknown or a wall: not the track
+    const int r = static_cast<int>(std::ceil(wall_clear_ / res));
+    for (int dy = -r; dy <= r; ++dy) {
+      for (int dx = -r; dx <= r; ++dx) {
+        const int x = cx + dx, y = cy + dy;
+        if (x < 0 || y < 0 || x >= W || y >= H || (dx * dx + dy * dy) * res * res > wall_clear_ * wall_clear_) continue;
+        if (m->data[y * W + x] > 65) {why = 2; return false;}      // wall foot / baseboard edge
+      }
+    }
+    return true;
+  }
+
+  void lidarOnlyStep()
+  {
+    std::vector<Scan> todo;
+    nav_msgs::msg::OccupancyGrid::SharedPtr m;
+    {
+      std::lock_guard<std::mutex> lk(mtx_);
+      const double t_now = now().seconds();
+      for (const auto & sc : scan_buf_) {
+        if (sc.t > last_lidar_only_t_ && t_now - sc.t >= 0.1) todo.push_back(sc);
+      }
+      m = map_;
+    }
+    if (!m && !warned_no_map_) {
+      RCLCPP_WARN(get_logger(), "lidar_only: no %s yet - map gating off until it arrives", map_topic_.c_str());
+      warned_no_map_ = true;
+    }
+    for (const auto & sc : todo) {
+      last_lidar_only_t_ = sc.t;
+      Eigen::Isometry3d world_T_base;
+      try {
+        world_T_base = toIso(tf_buffer_->lookupTransform(world_frame_, base_frame_,
+          rclcpp::Time(static_cast<int64_t>(sc.t * 1e9), get_clock()->get_clock_type())));
+      } catch (const tf2::TransformException &) {
+        ++lo_no_tf_;
+        continue;
+      }
+      std::vector<Eigen::Vector2d> pts;
+      for (const auto & cd : sc.cones) {
+        const Eigen::Vector2d w = (world_T_base * Eigen::Vector3d(cd.center.x(), cd.center.y(), 0.0)).head<2>();
+        int why = -1;
+        if (gate(w, m, why)) pts.push_back(w); else ++lo_gated_[why];
+      }
+      lo_cands_ += sc.cones.size();
+      ++lo_scans_;
+      for (int id : ptracker_.update(sc.t, pts)) {
+        for (const auto & tr : ptracker_.tracks()) {
+          if (tr.id == id) {
+            RCLCPP_INFO(get_logger(), "cone #%d confirmed (LiDAR only) at (%.3f, %.3f) in %s", id, tr.pos.x(), tr.pos.y(),
+                        world_frame_.c_str());
+          }
+        }
+      }
+    }
+    // the tracker's confirmed cones are what gets published and saved
+    const size_t before = tracks_.size();
+    tracks_.clear();
+    for (const auto & tr : ptracker_.tracks()) {
+      if (tr.confirmed) tracks_.push_back(Track{tr.pos, tr.hits, tr.hits, now(), true, tr.id});
+    }
+    if (tracks_.size() != before) saveConfirmed();
+    if (now().seconds() - lo_t0_ >= 10.0) {
+      size_t tentative = ptracker_.tracks().size() - ptracker_.confirmedCount();
+      RCLCPP_INFO(get_logger(), "lidar_only %d scans: %.2f clusters/scan, gated out: region %d map %d wall %d, no TF %d | "
+                  "tentative %zu, confirmed %zu", lo_scans_, lo_scans_ ? double(lo_cands_) / lo_scans_ : 0.0,
+                  lo_gated_[0], lo_gated_[1], lo_gated_[2], lo_no_tf_, tentative, ptracker_.confirmedCount());
+      lo_t0_ = now().seconds();
+      lo_scans_ = lo_no_tf_ = 0;
+      lo_cands_ = 0;
+      lo_gated_[0] = lo_gated_[1] = lo_gated_[2] = 0;
+    }
+  }
+
   void publishTracks()
   {
-    lidarOnlyUpdate();
+    if (mode_ == "lidar_only") lidarOnlyStep(); else lidarOnlyUpdate();
     const rclcpp::Time now_t = now();
     tracks_.erase(std::remove_if(tracks_.begin(), tracks_.end(), [&](const Track & tr) {
       const double age = (now_t - tr.last_seen).seconds();
@@ -770,6 +891,17 @@ private:
   double floor_z_, refine_radius_, refine_z_min_, refine_z_max_, alpha_lidar_, alpha_coarse_;
   int refine_min_pts_, confirm_lidar_hits_;
   double refine_radius_per_m_, bearing_tol_deg_, alpha_lidar_only_, lidar_only_assoc_;
+  std::string mode_, map_topic_;
+  cone_lidar::PersistConfig pcfg_;
+  cone_lidar::PersistTracker ptracker_;
+  double wall_clear_{0.15};
+  std::vector<double> regions_;
+  nav_msgs::msg::OccupancyGrid::SharedPtr map_;
+  rclcpp::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr map_sub_;
+  bool warned_no_map_{false};
+  int lo_scans_{0}, lo_no_tf_{0}, lo_gated_[3]{0, 0, 0};
+  size_t lo_cands_{0};
+  double lo_t0_{0};
   cone_lidar::Config lcfg_;
   std::string save_path_;
   bool load_saved_;

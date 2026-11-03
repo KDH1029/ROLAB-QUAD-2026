@@ -93,6 +93,61 @@ int main(int argc, char ** argv)
       if (!hit[i]) {std::printf("  MISSED cone %zu at (%.2f, %.2f)\n", i, cones[i].x, cones[i].y); ++fails;}
     }
   }
+  // --- LiDAR-only persistence: true cones seen in 80 % of scans with 2 cm noise; random floor bits
+  // (1.1 per scan, the 10-30 bag rate) and one fixed "threshold" bit flickering in 30 % of scans
+  std::printf("persistence (LiDAR-only confirmation, 200 runs):\n");
+  double worst_all = 0;
+  for (int trial = 0; trial < 200; ++trial) {
+    cone_lidar::PersistTracker pt;
+    std::uniform_real_distribution<double> U(0.0, 1.0);
+    std::normal_distribution<double> n2(0.0, 0.02);
+    std::poisson_distribution<int> npois(1.1);
+    const std::vector<Eigen::Vector2d> truth = {{2.0, 0.3}, {3.0, -0.3}, {4.0, 0.3}};
+    const Eigen::Vector2d threshold_bit(2.5, 0.45);
+    std::vector<double> confirm_t(truth.size(), -1);
+    int false_confirmed = 0;
+    for (int k = 0; k < 120; ++k) {               // 6 s at 20 Hz
+      const double t = 0.05 * k;
+      std::vector<Eigen::Vector2d> c;
+      for (const auto & g : truth) if (U(rng) < 0.8) c.push_back(g + Eigen::Vector2d(n2(rng), n2(rng)));
+      const int nf = npois(rng);
+      for (int i = 0; i < nf; ++i) c.push_back(Eigen::Vector2d(1.0 + 4.0 * U(rng), -0.5 + 1.0 * U(rng)));
+      if (U(rng) < 0.3) c.push_back(threshold_bit + Eigen::Vector2d(0.03 * n2(rng) / 0.02, 0.03 * n2(rng) / 0.02));
+      for (int id : pt.update(t, c)) {
+        for (const auto & tr : pt.tracks()) {
+          if (tr.id != id) continue;
+          int hit = -1;
+          for (size_t g = 0; g < truth.size(); ++g) if ((tr.pos - truth[g]).norm() < 0.08) hit = static_cast<int>(g);
+          if (hit < 0) {
+            ++false_confirmed;
+            std::printf("    false cone at (%.2f, %.2f) t %.2f s, %d hits\n", tr.pos.x(), tr.pos.y(), t, tr.hits);
+          } else if (confirm_t[hit] < 0) {
+            confirm_t[hit] = t;
+          }
+        }
+      }
+    }
+    int missed = 0;
+    double worst = 0;
+    for (double ct : confirm_t) {if (ct < 0) ++missed; else worst = std::max(worst, ct);}
+    for (size_t g = 0; g < truth.size(); ++g) {
+      if (confirm_t[g] >= 0) continue;
+      for (const auto & tr : pt.tracks()) {
+        if ((tr.pos - truth[g]).norm() < 0.3) {
+          std::printf("    missed cone %zu: track #%d at (%.3f, %.3f) %.3f m off, hits %d, hist %zu, confirmed %d\n", g, tr.id,
+                      tr.pos.x(), tr.pos.y(), (tr.pos - truth[g]).norm(), tr.hits, tr.hist.size(), tr.confirmed);
+        }
+      }
+    }
+    worst_all = std::max(worst_all, worst);
+    if (trial < 3 || missed || false_confirmed) {
+      std::printf("  trial %2d: true cones confirmed %zu/3 (slowest after %.2f s), false confirmed %d\n",
+                  trial, truth.size() - missed, worst, false_confirmed);
+    }
+    if (missed) ++fails;
+    if (false_confirmed) ++fails;
+  }
+  std::printf("  slowest confirmation of a true cone over all runs: %.2f s\n", worst_all);
   std::printf(fails ? "FAIL (%d)\n" : "OK\n", fails);
   return fails ? 1 : 0;
 }
