@@ -231,6 +231,10 @@ def solve(caps, scale_prior_sigma=None):
     Returns lidar_T_camera (4x4), scale k (true size = k * assumed), residuals.
     Rotation: normals (Kabsch). Translation + scale: n_l . t + k d_c = d_l (least squares);
     an optional prior k ~ 1 +- sigma (e.g. from the screen EDID size) is added as one more row."""
+    if len(caps) < 3:
+        # Rotation needs >= 3 non-parallel normals. On this robot the camera and the LiDAR share
+        # only a 2-7 cm band, so a laptop screen is rarely captured by both (see test).
+        raise ValueError(f'need >= 3 captures with the screen seen by camera AND LiDAR, got {len(caps)}')
     Nc = np.array([c[0] for c in caps])
     Nl = np.array([c[2] for c in caps])
     U, _, Vt = np.linalg.svd(Nl.T @ Nc)

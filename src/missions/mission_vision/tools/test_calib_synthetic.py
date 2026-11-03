@@ -162,7 +162,10 @@ def run_baseline(ruler_err_mm=0.5):
                                       det[0], det[1], pat, sq_m)
         if pl is not None:
             caps.append((n_c, d_c, pl[0], pl[1]))
-    Tm, k, res = cc.solve(caps, scale_prior_sigma=1e-6)                 # scale fixed to the ruler value
+    try:
+        Tm, k, res = cc.solve(caps, scale_prior_sigma=1e-6)             # scale fixed to the ruler value
+    except ValueError as e:
+        return {'frames': 5, 'captures': len(caps), 'failed': True, 'done': [], 'reason': str(e)}
     E = np.linalg.inv(LIDAR_T_COLOR_TRUE) @ Tm
     return {'captures': len(caps), 'rot_err_deg': math.degrees(math.acos(np.clip((np.trace(E[:3, :3]) - 1) / 2, -1, 1))),
             'trans_err_cm': np.linalg.norm(E[:3, 3]) * 100, 'res': res}
@@ -179,7 +182,8 @@ def main():
         rows.append((name, run_session(mm, ov)))
     for name, r in rows:
         if r.get('failed'):
-            print(f"{name:55s} FAILED after {r['frames']} frames, captures {r['captures']}, done {r['done']}")
+            print(f"{name:55s} FAILED after {r['frames']} frames, captures {r['captures']}, done {r['done']}"
+                  + (f" ({r['reason']})" if r.get('reason') else ''))
             continue
         extra = (f" | {r['seconds']:.0f} s sim, {r['captures']} captures, {r['switches']} pattern switches, "
                  f"scale {r['k']:.3f} (true {r['k_true']:.3f})") if 'k' in r else f" | {r['captures']} captures"

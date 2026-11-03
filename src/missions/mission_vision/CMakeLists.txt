@@ -28,6 +28,7 @@ install(PROGRAMS
   scripts/yolo_detector_node.py
   tools/calib_target.py
   tools/calib_capture.py
+  tools/calib_core.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
