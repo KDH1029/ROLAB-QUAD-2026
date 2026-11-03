@@ -17,6 +17,8 @@ Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞�
 - **경로 계획의 콘 전용 여유**: 콘 중심 좌표를 벽과 별도로 — 절대 접근 금지 반경, 밀어내는 범위·세기를 YAML 로 관리
 - **경로 순차 주행**: 현장에서 저장한 지도 좌표(AMCL) 순서대로 EGO-Planner 에 목표 전달, 구간별 속도·도착 허용 오차,
   정지선(2.3초 정지 + 최신 녹색 신호에만 출발), 주차(Sit 5.5초 → RiseSit), FAST-LIO 튐 감지 시 정지
+- **YOLO 출력 형식 자동 판별**: v8/v11, v5, NMS 포함 출력을 모양으로 판별, Ultralytics 와 같은 letterbox 전처리,
+  onnxruntime → OpenVINO → OpenCV 순으로 로드. 콘 박스는 Foxy(로봇 PC)↔Jazzy(NUC) 사이에서도 되는 JSON 문자열로 전달
 - **카메라 장착각 측정**: 평지에 서서 10초 — depth 바닥 + 발 4개(다리 기구학)로 각도·높이를 재서 설정에 저장
 - **안전**: 모든 런타임 노드가 lifecycle 노드 (비활성화 = 정지), 모터 브리지는 마지막에 기동, 모터 없는 시험 모드
 - **보험 모드**: 지도·SLAM 없이 RANSAC 벽 직선 추종
@@ -67,7 +69,7 @@ ros2 run mission_vision camera_floor_calib.py \
     --write src/missions/mission_vision/config/camera_extrinsics.yaml \
     --write-params src/missions/mission_vision/config/cone_tracker_params.yaml
 
-# 2. 매핑 (조종기로 주행, 모터 명령 없음)
+# 2. 매핑 (조종기로 주행, 모터 명령 없음) + 전부 녹화 (다른 터미널: ./scripts/go2_record.sh <이름> "<메모>")
 ./scripts/go2_map_run.sh --lio --name arena --no-default
 
 # 3. 주행 스택
@@ -97,6 +99,7 @@ ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 | `src/core/ego_planner/config/ego_planner_params.yaml` | 경로 생성 (팽창·반발 거리, 최적화, 제어 이득, `cones:` 콘 전용 여유) |
 | `src/missions/mission_vision/config/cone_tracker_params.yaml` | 라바콘: 시각 동기화, LiDAR 콘 판정, 추적·저장, 바닥 높이 |
 | `src/missions/mission_vision/config/camera_extrinsics.yaml` | 카메라·LiDAR 장착 위치·각도 (`camera_floor_calib.py` 측정값) |
+| `src/missions/mission_vision/config/yolo_params.yaml` | YOLO: 모델, 클래스 번호, 출력 형식(`output_layout`), 콘 박스 형식(`detections_format`) |
 | `maps/route_<이름>.yaml` (`maps/route_example.yaml`) | 경로: 지점 좌표 + 순서·동작·구간 속도 |
 | `src/fallback/go2_wall_patrol/config/patrol_params.yaml` | 보험 모드 |
 | `config/system_params.yaml` | 매핑 (2D 변환, 자동 수평, 위치 소스) |
@@ -135,6 +138,8 @@ config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 | 회전 중 카메라-LiDAR 시각 차이 (YOLO 지연 200 ms) | 최대 8.2° 어긋남 (3 m 에서 43 cm) | depth ≤4 ms·LiDAR ≤25 ms 선택, 보정 ≤1.2° |
 | 콘 2.5 m 간격 경로 계획 (누리관 지도) | 반발 없음 28 % | 70 %, 콘 절대 반경 침범 0 |
 | 카메라 장착각 측정 (녹화 정지 2곳) | 미측정 가정 32.1° | 30.7° / 31.0°, 틀린 설정(20°)에서도 30.5° 복원 |
+| YOLO 디코딩 (실제 신호등 사진 40장, Ultralytics 기준) | 늘이기 전처리 43 % 일치 | letterbox 23/23 (100 %), v5·NMS 포함 형식 재포장 동일 |
+| 슬라럼 1.0 m 통로 경로 계획 (규정 치수 지도) | — | 콘 지그재그(±0.25 m) 100 %, 콘이 가운데면 기본값 0 % (아래 제한) |
 | 경로 순차 실행 (판단 로직, 모의 로봇·신호등 3가지 위상) | — | 정지선 ≥2.3초·녹색에만 출발, 주차 Sit 5.5초, 재방문·재개 통과 |
 | 경로 순차 실행 (ROS 통합: 실제 EGO 파라미터·모터 브리지 + 가짜 로봇) | — | 전 구간 완료, STOP/RESUME, FAST-LIO 1.5 m 튐 즉시 정지 |
 | base_stab 기구학 보정 켜짐 → 꺼짐 | 흔들림 2.5배, 중력 대비 2.6° | AMCL 동등 (중앙 8.3 → 7.0 cm) → 꺼짐 |
@@ -145,6 +150,9 @@ config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 
 - FAST-LIO 는 XT16 `/lidar_points` 와 CycloneDDS 에서만 안정적으로 확인됨. 높이(z) 드리프트 있음(9분 +0.83 m, 2D 주행에는 영향 없음)
 - YOLO 모델은 합성 데이터 학습본 (실제 콘·신호등 데이터로 재학습 필요)
+- **슬라럼 통로 폭은 약 1.0 m** (지도 0.99 m). 콘이 통로 가운데에 있으면 양쪽 틈 0.425 m 에 로봇 0.31 m — 각 5.75 cm 여유.
+  기본 설정으로는 경로가 안 나오고, `grid.resolution 0.05`·`inflate_radius 0.19`·`cones.inflate_radius 0.25` 로도 25~40 %
+- 현재 YOLO 모델은 합성 데이터 학습본: 실제 신호등 사진 40장에서 콘 2·주차 5 오검출 → 실제 데이터로 재학습
 - 경로 실행기는 가짜 로봇으로만 시험함 (실기 미검증). FAST-LIO 튐 기준(0.5 m)은 계단 충격 오탐 여부를 실기에서 정할 것.
   `mission_fsm_node`(직접 `/cmd_vel` 제어)와 동시에 띄우지 말 것
 - 실제 콘·실제 YOLO 로 콘 추적 전 구간을 돌려 본 적은 없음 (시각 동기화는 녹화 + 가짜 검출로 확인)
