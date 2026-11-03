@@ -36,9 +36,8 @@ Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞�
 ## 요구 사항
 
 - ROS 2 Jazzy (Humble 에서도 빌드되도록 작성), CycloneDDS (`rmw_cyclonedds_cpp`)
-- Nav2 (`nav2_amcl`, `nav2_map_server`, `nav2_lifecycle_manager`), `vision_msgs`, Eigen3, OpenCV (Python)
-- FAST-LIO 빌드본 (이 저장소에 포함하지 않음, `SLAM_UNDERLAY` 로 지정, 기본 `~/ws/lab/install`)
-- Hesai ROS 2 드라이버 (`/lidar_points`), Unitree 메시지(`src/interfaces` 포함)
+- Nav2 (`nav2_amcl`, `nav2_map_server`, `nav2_lifecycle_manager`), `vision_msgs`, PCL (`pcl_ros`), Eigen3, Boost, yaml-cpp, OpenCV (Python)
+- FAST-LIO, Livox 메시지, Hesai XT16 드라이버, Unitree 메시지는 저장소에 포함 (`src/external`, `src/interfaces`)
 
 ## 빌드
 
@@ -46,7 +45,6 @@ Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞�
 git clone https://github.com/kdh1029/rolab-quad-2026.git
 cd rolab-quad-2026
 source /opt/ros/jazzy/setup.bash
-source ~/ws/lab/install/setup.bash        # FAST-LIO underlay
 colcon build --symlink-install
 source install/setup.bash
 ```
@@ -100,6 +98,7 @@ src/missions/mission_vision   YOLO, cone_tracker, 캘리브레이션 도구
 src/missions/mission_runner   미션 상태기
 src/fallback/go2_wall_patrol  RANSAC 벽 추종 (보험)
 src/interfaces                Unitree 메시지
+src/external                  FAST-LIO, Livox 메시지, Hesai 드라이버 (포크, 출처: src/external/README.md)
 scripts/                      go2_run.sh, go2_map_run.sh, go2_amcl_init.py, go2_goto.py
 config/ · maps/ · docs/
 ```
@@ -138,4 +137,5 @@ config/ · maps/ · docs/
 
 ## 라이선스
 
-Apache-2.0. 단, `src/interfaces` 의 Unitree 메시지 패키지는 BSD 3-Clause (각 `package.xml` 참고).
+Apache-2.0. 단, `src/interfaces`(Unitree, BSD 3-Clause)와 `src/external`(FAST-LIO GPL-2.0, Hesai BSD 등)은
+각 패키지의 라이선스를 따른다 ([src/external/README.md](src/external/README.md)).

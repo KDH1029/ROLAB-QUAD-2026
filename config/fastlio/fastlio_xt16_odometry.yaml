@@ -1,6 +1,6 @@
 # FORK of ~/ws/lab/go2_ws/config/odometry.yaml (원본 수정 금지, 09-09 판)
 # 바꾼 것은 "FORK:" 표시 3곳뿐 — 값은 팀이 검증한 ~/ws/gosu_slam/config/go2_slam_odometry.yaml 과 같다.
-# 실행 파일은 원본 그대로: ~/ws/lab/install 의 fast_lio (fastlio_mapping) 를 underlay 로 참조한다.
+# 실행 파일: src/external/fast_lio (팀 포크를 저장소 안으로 포함, 소스 무수정).
 # ==============================================================================
 # Go2 FAST-LIO 실시간 오도메트리(Odometry) 설정 (빌드 불필요 - 즉시 반영)
 # 위치: ~/go2_ws/config/odometry.yaml

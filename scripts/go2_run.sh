@@ -9,7 +9,7 @@
 #
 # Then send goals in the map frame:  python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0
 # Patrol starts idle: ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
-# Needs the team's FAST-LIO build as underlay for --mode nav (SLAM_UNDERLAY, default ~/ws/lab/install).
+# FAST-LIO, livox msgs and the Hesai driver are built from src/external (colcon build).
 set -e
 
 WS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -37,13 +37,12 @@ if [ "$MODE" = nav ] && [ ! -f "$MAP" ]; then
 fi
 
 source /opt/ros/jazzy/setup.bash
-if [ "$MODE" = nav ]; then
-    SLAM_UNDERLAY="${SLAM_UNDERLAY:-$HOME/ws/lab/install}"
-    if [ ! -d "$SLAM_UNDERLAY/fast_lio" ]; then
-        echo "[ERROR] FAST-LIO underlay not found: $SLAM_UNDERLAY"
-        exit 1
-    fi
-    source "$SLAM_UNDERLAY/setup.bash"
+# CycloneDDS RMW: from apt (ros-jazzy-rmw-cyclonedds-cpp) or a source build (CYCLONEDDS_WS)
+CYCLONEDDS_WS="${CYCLONEDDS_WS:-$HOME/unitree_ros2/cyclonedds_ws/install}"
+[ -f "$CYCLONEDDS_WS/setup.bash" ] && source "$CYCLONEDDS_WS/setup.bash"
+if ! ros2 pkg prefix rmw_cyclonedds_cpp >/dev/null 2>&1; then
+    echo "[ERROR] rmw_cyclonedds_cpp not found (apt install ros-jazzy-rmw-cyclonedds-cpp, or set CYCLONEDDS_WS)"
+    exit 1
 fi
 source "$WS_DIR/install/setup.bash"
 

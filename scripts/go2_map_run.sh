@@ -7,7 +7,7 @@
 #   ./scripts/go2_map_run.sh --lio --name my_map    # Live mapping on FAST-LIO poses (recommended)
 #
 # Mapping never starts the motor bridge (cmd_vel_to_sport): drive the robot with the remote.
-# --lio needs the team's FAST-LIO build as underlay (SLAM_UNDERLAY, default ~/ws/lab/install).
+# FAST-LIO is built from src/external/fast_lio (colcon build).
 set -e
 
 WS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -72,14 +72,12 @@ if [[ -n "$PCD_FILE" ]]; then
     exit 0
 fi
 
-if [ "$LIO_MODE" = true ]; then
-    SLAM_UNDERLAY="${SLAM_UNDERLAY:-$HOME/ws/lab/install}"
-    if [ ! -d "$SLAM_UNDERLAY/fast_lio" ]; then
-        echo "[ERROR] FAST-LIO underlay not found: $SLAM_UNDERLAY"
-        exit 1
-    fi
-    source "$SLAM_UNDERLAY/setup.bash"
-    source "$WS_DIR/install/setup.bash"
+# CycloneDDS RMW: from apt (ros-jazzy-rmw-cyclonedds-cpp) or a source build (CYCLONEDDS_WS)
+CYCLONEDDS_WS="${CYCLONEDDS_WS:-$HOME/unitree_ros2/cyclonedds_ws/install}"
+[ -f "$CYCLONEDDS_WS/setup.bash" ] && source "$CYCLONEDDS_WS/setup.bash"
+if ! ros2 pkg prefix rmw_cyclonedds_cpp >/dev/null 2>&1; then
+    echo "[ERROR] rmw_cyclonedds_cpp not found (apt install ros-jazzy-rmw-cyclonedds-cpp, or set CYCLONEDDS_WS)"
+    exit 1
 fi
 
 if [ -n "${GO2_MAP_TEST_LO:-}" ]; then
@@ -131,7 +129,7 @@ if [ "$LIO_MODE" = true ]; then
     "$BR/cloud_bridge_node" --ros-args -p publish_terrain_scan:=false >"$LOG_DIR/cloud.log" 2>&1 &
     sleep 2
     echo "[INFO] Starting FAST-LIO — keep the robot still for 2 s"
-    "$SLAM_UNDERLAY/fast_lio/lib/fast_lio/fastlio_mapping" --ros-args -r __node:=fastlio_odometry \
+    "$(ros2 pkg prefix fast_lio)/lib/fast_lio/fastlio_mapping" --ros-args -r __node:=fastlio_odometry \
         --params-file "$WS_DIR/config/fastlio/fastlio_xt16_odometry.yaml" >"$LOG_DIR/fastlio.log" 2>&1 &
     POSE_SOURCE=lio
 else
