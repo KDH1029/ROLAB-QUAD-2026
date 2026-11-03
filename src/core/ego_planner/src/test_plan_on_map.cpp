@@ -41,7 +41,8 @@ int main(int argc, char ** argv)
   }
 
   auto map = std::make_shared<GridMap>();
-  map->init(0.1, 20.0, 20.0, inflate);
+  const char * gr = std::getenv("GRID_RES");          // grid.resolution (default 0.1 m)
+  map->init(gr ? std::atof(gr) : 0.1, 20.0, 20.0, inflate);
   if (!map->loadPriorMap(argv[1])) { std::cerr << "cannot load " << argv[1] << "\n"; return 1; }
   const auto & obs = map->getStaticObstacles();
 
