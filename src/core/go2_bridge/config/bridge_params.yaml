@@ -30,7 +30,11 @@ go2_imu_bridge:
 
     # Attitude stabilization & slope adaptation
     stab_mode: "gravity"
-    use_kinematics_filter: true
+    # Kinematic (foot-plane) attitude filter for base_stab: OFF. On the 10-30 bag it made base_stab
+    # 2.5x jumpier than the IMU (trot: only 2 diagonal feet down) and 2.6 deg off gravity (median,
+    # 6 deg = the clamp at p90); AMCL replay on/off equal within run-to-run spread (median 8.3/7.0 cm,
+    # p90 16.1/14.9 cm, 0 s > 0.5 m both). Kept switchable for terrain work after the competition.
+    use_kinematics_filter: false
     filter_alpha: 0.96
     contact_force_thresh: 15
     max_kin_imu_diff_deg: 6.0

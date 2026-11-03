@@ -25,7 +25,7 @@ def generate_launch_description():
             description='Odometry topic to bridge to TF'),
         DeclareLaunchArgument(
             'use_kinematics_filter',
-            default_value='true',
+            default_value='false',
             description='Enable forward-kinematics + gyro complementary filter for base_stab'),
 
         # 1. Odometry TF Bridge Node (odom -> base_link)

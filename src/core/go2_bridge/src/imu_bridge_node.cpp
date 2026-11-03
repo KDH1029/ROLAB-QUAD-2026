@@ -47,7 +47,7 @@ public:
 
     // Kinematic attitude filter & slope adaptation
     stab_mode_ = declare_parameter<std::string>("stab_mode", "gravity");
-    use_kinematics_filter_ = declare_parameter<bool>("use_kinematics_filter", true);
+    use_kinematics_filter_ = declare_parameter<bool>("use_kinematics_filter", false);  // see bridge_params.yaml
     filter_alpha_ = declare_parameter<double>("filter_alpha", 0.96);
     contact_force_thresh_ = declare_parameter<int>("contact_force_thresh", 15);
     max_kin_imu_diff_deg_ = declare_parameter<double>("max_kin_imu_diff_deg", 6.0);
