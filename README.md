@@ -149,6 +149,26 @@ config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 - [docs/Blueprint_Complete.md](docs/Blueprint_Complete.md) — 설계 블루프린트
 - [docs/HANDOVER_ROBOWORLD_2026.md](docs/HANDOVER_ROBOWORLD_2026.md) — 인수인계
 
+## 참고 논문 (References)
+
+본 프로젝트의 궤적 계획, 3D 매핑, 객체 인식 파이프라인은 다음 연구들을 바탕으로 사족보행 환경에 맞춰 구현·적용되었습니다:
+
+1. **ABPolicy (Asynchronous B-Spline Flow Policy & $C^2$ Handover)**
+   - Tian, Y., et al. (2026). *ABPolicy: Asynchronous B-Spline Flow Policy for Real-Time and Smooth Robotic Manipulation*. arXiv preprint [arXiv:2602.23901](https://arxiv.org/abs/2602.23901).
+   - *적용*: `src/core/ego_planner`의 비동기 재계획 시 저크(Jerk) 없는 $C^2$ 연속 궤적 스티칭(`optimizeWithContinuity`) 구현
+
+2. **EGO-Planner (ESDF-free Gradient-based Local Trajectory Optimizer)**
+   - Zhou, X., Wang, Z., Ye, H., Xu, C., & Gao, F. (2020). *EGO-Planner: An ESDF-free Gradient-based Local Trajectory Optimizer for Quadrotors*. IEEE Robotics and Automation Letters (RA-L), 6(2), 609-616. [DOI: 10.1109/LRA.2020.3047728](https://doi.org/10.1109/LRA.2020.3047728).
+   - *적용*: B-스플라인 제어점 수치 최적화 및 2D 라이다 점군 장애물 반발력 모델
+
+3. **FAST-LIO2 (Fast Direct LiDAR-Inertial Odometry)**
+   - Xu, W., Cai, Y., He, D., Lin, J., & Zhang, F. (2022). *FAST-LIO2: Fast Direct LiDAR-Inertial Odometry*. IEEE Transactions on Robotics (T-RO), 38(4), 2053-2073. [DOI: 10.1109/TRO.2022.3141876](https://doi.org/10.1109/TRO.2022.3141876).
+   - *적용*: `src/external/fast_lio` 기반 Hesai XT16 + Go2 IMU(500Hz) 고주파 주행 오도메트리 및 3D 점군 지도(`.pcd`) 구축
+
+4. **YOLOv8 (Real-Time Object Detection)**
+   - Jocher, G., Chaurasia, A., & Qiu, J. (2023). *Ultralytics YOLOv8* (Version 8.0.0). [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics).
+   - *적용*: `src/missions/mission_vision`의 신호등, 라바콘, 주차 표지판 경량 추론 (OpenCV DNN ONNX)
+
 ## 라이선스
 
 Apache-2.0. 단, `src/interfaces`(Unitree, BSD 3-Clause)와 `src/external`(FAST-LIO GPL-2.0, Hesai BSD 등)은
