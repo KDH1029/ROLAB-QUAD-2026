@@ -3,6 +3,8 @@
 mode:=nav     bridges + FAST-LIO + map_server/AMCL + EGO-Planner (+ motor bridge)
 mode:=patrol  bridges + RANSAC wall runner (+ motor bridge)   -- fallback when SLAM/AMCL fail
 motor:=false  never starts cmd_vel_to_sport: nothing can move the robot
+route:=<file> + route_runner_node (saved points -> EGO goals, stop line / parking); idle until
+              START on /route/cmd (scripts/go2_route.py start)
 
 Frames (nav): map -AMCL-> odom -leg odom-> base_link -imu_bridge-> base_stab
 FAST-LIO keeps its own camera_init tree on /tf_lio; EGO-Planner reads its /Odometry and maps
@@ -63,6 +65,12 @@ def stack(context):
                             [share('mission_vision', 'config', 'cone_tracker_params.yaml'),
                              share('mission_vision', 'config', 'camera_extrinsics.yaml')]))
             managed.append('cone_tracker_node')
+        route = LaunchConfiguration('route').perform(context)
+        if route:
+            if not os.path.isfile(route):
+                raise RuntimeError(f'route file not found: {route}')
+            nodes.append(lc('mission_runner', 'route_runner_node', 'route_runner_node', [route]))
+            managed.append('route_runner_node')
     elif mode == 'patrol':
         nodes.append(lc('go2_wall_patrol', 'wall_runner_node', 'wall_runner_node',
                         [share('go2_wall_patrol', 'config', 'patrol_params.yaml')]))
@@ -92,6 +100,7 @@ def generate_launch_description():
         DeclareLaunchArgument('motor', default_value='true', description='false: no cmd_vel_to_sport'),
         DeclareLaunchArgument('map', default_value='', description='map yaml (mode:=nav)'),
         DeclareLaunchArgument('cones', default_value='false', description='true: cone_tracker_node'),
+        DeclareLaunchArgument('route', default_value='', description='route file: route_runner_node (mode:=nav)'),
         DeclareLaunchArgument('fastlio_config', default_value='',
                               description='FAST-LIO parameter file (mode:=nav)'),
         OpaqueFunction(function=stack),

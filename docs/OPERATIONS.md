@@ -239,3 +239,21 @@ python3 src/missions/mission_vision/tools/depth_lidar_align.py ~/bags/<bag> \
 | **주행 제어** | `max_vx`, `max_vy`, `max_wz` | `0.65`, `0.35`, `1.20` | 최대 전진/횡이동 속도(m/s) 및 회전 각속도(rad/s) |
 | **주행 제어** | `min_vx`, `min_vy`, `min_wz` | `0.08`, `0.08`, `0.15` | 사족보행 모터 불감대 극복을 위한 최소 속도 클램프 |
 | **주행 제어** | `obstacle_stop_dist_m` | `0.35` | 오도메트리 직결 주행 시 전방 비상 정지 거리 (m) |
+
+
+### G. 경로 순차 주행 (`route_runner_node`)
+- 지점은 현장에서 조종기로 세운 뒤 저장한다. 좌표는 AMCL map (FAST-LIO 아님 — 발산 시 수 km 로 튐).
+  `python3 scripts/go2_route.py save <이름> --route maps/route_arena.yaml` 은 1.5초 정지(3 cm·2°), AMCL 표준편차
+  (x·y 0.15 m, 방향 8°), 지도의 빈 칸·벽 0.10 m 이격을 모두 통과해야 저장하고, 아니면 이유를 출력한다.
+- 순서는 파일의 `sequence` 를 직접 편집: `"<지점> [stopline|parking|finish] [tol=m] [vmax=m/s]"`. 같은 지점을 여러 번 써도 됨.
+  예: `maps/route_example.yaml`. `go2_route.py list` 로 빠진 지점 확인.
+- 실행: `go2_run.sh --map ... --route maps/route_arena.yaml` → 노드는 대기, `go2_route.py start [단계]` 로 출발.
+  `stop` = 모터 브리지 비활성(StopMove), `resume` = 현재 단계를 처음부터 다시(정지선은 다시 정지, 주차는 다시 앉음).
+  정비 시간 후에는 `start <단계>` 로 그 단계부터 (규정 2.5: 요청한 위치에서 재개).
+- 단계마다 EGO 의 `goal_tol`·`max_vel` 을 먼저 바꾸고 목표를 보낸다. 통과 지점은 0.5 m 안에 들면 다음 목표(멈추지 않음).
+- 정지선: 도착 → 정지 2.3초 → 1초 이내의 GREEN 에만 출발, 15초 동안 GREEN 이 없으면 진행(50점 포기, 완주 200점 유지).
+- 주차: 도착·정지 → Sit(1009) 5.5초 → RiseSit(1010) 3초 → 다음 단계.
+- FAST-LIO 감시: `/Odometry` 가 한 번에 0.5 m 넘게 튀거나 3 m/s 를 0.3초 넘게 보이면 정지(`lio.mode: stop|log|off`).
+  계단 충격에도 튈 수 있으니 실기에서 기준을 정할 것.
+- 상태: `/route/status` (2 Hz) 또는 `go2_route.py status`.
+- 시험: `ros2 run mission_runner test_route_logic` (판단 로직, 모의 로봇). ROS 통합 시험(가짜 로봇)은 저장소 밖 시험 도구.

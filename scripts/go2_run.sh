@@ -5,8 +5,11 @@
 #   ./scripts/go2_run.sh --map maps/arena.yaml --no-motor         # same, cannot move the robot
 #   ./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"    # + AMCL start pose (x y yaw_deg)
 #   ./scripts/go2_run.sh --map maps/arena.yaml --cones            # + cone tracker (needs YOLO on the robot PC)
+#   ./scripts/go2_run.sh --map maps/arena.yaml --route maps/route_arena.yaml   # + route runner
 #   ./scripts/go2_run.sh --mode patrol                            # RANSAC wall-runner fallback
 #
+# Route: save points on site with  python3 scripts/go2_route.py save <name>  (AMCL pose), then
+#        python3 scripts/go2_route.py start [step] | stop | resume | status
 # Then send goals in the map frame:  python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0
 # Patrol starts idle: ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 # FAST-LIO, livox msgs and the Hesai driver are built from src/external (colcon build).
@@ -18,6 +21,7 @@ MAP=""
 MOTOR=true
 START=""
 CONES=false
+ROUTE=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -26,7 +30,8 @@ while [[ $# -gt 0 ]]; do
         --no-motor) MOTOR=false; shift ;;
         --start) START="$2"; shift 2 ;;
         --cones) CONES=true; shift ;;
-        -h|--help) sed -n 2,11p "$0"; exit 0 ;;
+        --route) ROUTE="$(realpath "$2")"; shift 2 ;;
+        -h|--help) sed -n 2,15p "$0"; exit 0 ;;
         *) echo "[ERROR] unknown argument: $1"; exit 1 ;;
     esac
 done
@@ -86,7 +91,7 @@ echo " Stop: Ctrl+C   |   software stop: ros2 lifecycle set /go2_cmd_vel_to_spor
 echo "----------------------------------------------------------------------"
 
 # Launch is a direct child (not inside a pipeline) so Ctrl+C / cleanup reaches it
-ros2 launch go2_navigation go2_stack.launch.py mode:="$MODE" motor:="$MOTOR" map:="$MAP" cones:="$CONES" \
+ros2 launch go2_navigation go2_stack.launch.py mode:="$MODE" motor:="$MOTOR" map:="$MAP" cones:="$CONES" route:="$ROUTE" \
     fastlio_config:="$WS_DIR/config/fastlio/fastlio_xt16_odometry.yaml" > >(tee "$LOG_DIR/stack.log") 2>&1 &
 
 if [ "$MODE" = nav ] && [ -n "$START" ]; then

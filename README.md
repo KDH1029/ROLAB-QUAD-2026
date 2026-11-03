@@ -15,6 +15,8 @@ Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞�
 - **카메라-LiDAR 시각 동기화**: 로봇 PC 시계(미동기)의 카메라 시각을 자동 변환, YOLO 영상 시각의 depth·LiDAR 를
   골라 다리 오도메트리로 움직임 보정
 - **경로 계획의 콘 전용 여유**: 콘 중심 좌표를 벽과 별도로 — 절대 접근 금지 반경, 밀어내는 범위·세기를 YAML 로 관리
+- **경로 순차 주행**: 현장에서 저장한 지도 좌표(AMCL) 순서대로 EGO-Planner 에 목표 전달, 구간별 속도·도착 허용 오차,
+  정지선(2.3초 정지 + 최신 녹색 신호에만 출발), 주차(Sit 5.5초 → RiseSit), FAST-LIO 튐 감지 시 정지
 - **카메라 장착각 측정**: 평지에 서서 10초 — depth 바닥 + 발 4개(다리 기구학)로 각도·높이를 재서 설정에 저장
 - **안전**: 모든 런타임 노드가 lifecycle 노드 (비활성화 = 정지), 모터 브리지는 마지막에 기동, 모터 없는 시험 모드
 - **보험 모드**: 지도·SLAM 없이 RANSAC 벽 직선 추종
@@ -72,7 +74,13 @@ ros2 run mission_vision camera_floor_calib.py \
 ./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"         # --cones: 라바콘 추적, --no-motor: 모터 없음
 python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0                 # 목표 (map 좌표)
 
-# 4. 보험 모드
+# 4. 경로 순차 주행: 현장에서 지점 저장 (조종기로 세우고 1.5초 정지) → 순서 편집 → 실행
+python3 scripts/go2_route.py save stop1 --route maps/route_arena.yaml   # 정지·AMCL 불확실도·지도 검사 통과 시만 저장
+python3 scripts/go2_route.py list --route maps/route_arena.yaml          # 순서와 빠진 지점 확인
+./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0" --route maps/route_arena.yaml --cones
+python3 scripts/go2_route.py start [단계]   # stop / resume / status
+
+# 5. 보험 모드
 ./scripts/go2_run.sh --mode patrol
 ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 ```
@@ -89,6 +97,7 @@ ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 | `src/core/ego_planner/config/ego_planner_params.yaml` | 경로 생성 (팽창·반발 거리, 최적화, 제어 이득, `cones:` 콘 전용 여유) |
 | `src/missions/mission_vision/config/cone_tracker_params.yaml` | 라바콘: 시각 동기화, LiDAR 콘 판정, 추적·저장, 바닥 높이 |
 | `src/missions/mission_vision/config/camera_extrinsics.yaml` | 카메라·LiDAR 장착 위치·각도 (`camera_floor_calib.py` 측정값) |
+| `maps/route_<이름>.yaml` (`maps/route_example.yaml`) | 경로: 지점 좌표 + 순서·동작·구간 속도 |
 | `src/fallback/go2_wall_patrol/config/patrol_params.yaml` | 보험 모드 |
 | `config/system_params.yaml` | 매핑 (2D 변환, 자동 수평, 위치 소스) |
 | `config/fastlio/fastlio_xt16_odometry.yaml` | FAST-LIO (XT16) |
@@ -101,11 +110,11 @@ src/core/go2_localization     AMCL 설정
 src/core/go2_navigation       통합 런치 (go2_stack.launch.py)
 src/core/ego_planner          EGO-Planner, 오프라인 시험 도구 (test_plan_on_map)
 src/missions/mission_vision   YOLO, cone_tracker, 카메라 장착각 측정·점검 도구, 콘 판정 합성 시험
-src/missions/mission_runner   미션 상태기
+src/missions/mission_runner   경로 순차 실행기 (route_runner_node, 판단 로직 route_logic.hpp), 미션 상태기
 src/fallback/go2_wall_patrol  RANSAC 벽 추종 (보험)
 src/interfaces                Unitree 메시지
 src/external                  FAST-LIO, Livox 메시지, Hesai 드라이버 (포크, 출처: src/external/README.md)
-scripts/                      go2_run.sh, go2_map_run.sh, go2_amcl_init.py, go2_goto.py
+scripts/                      go2_run.sh, go2_map_run.sh, go2_amcl_init.py, go2_goto.py, go2_route.py
 config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 ```
 
@@ -126,6 +135,8 @@ config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 | 회전 중 카메라-LiDAR 시각 차이 (YOLO 지연 200 ms) | 최대 8.2° 어긋남 (3 m 에서 43 cm) | depth ≤4 ms·LiDAR ≤25 ms 선택, 보정 ≤1.2° |
 | 콘 2.5 m 간격 경로 계획 (누리관 지도) | 반발 없음 28 % | 70 %, 콘 절대 반경 침범 0 |
 | 카메라 장착각 측정 (녹화 정지 2곳) | 미측정 가정 32.1° | 30.7° / 31.0°, 틀린 설정(20°)에서도 30.5° 복원 |
+| 경로 순차 실행 (판단 로직, 모의 로봇·신호등 3가지 위상) | — | 정지선 ≥2.3초·녹색에만 출발, 주차 Sit 5.5초, 재방문·재개 통과 |
+| 경로 순차 실행 (ROS 통합: 실제 EGO 파라미터·모터 브리지 + 가짜 로봇) | — | 전 구간 완료, STOP/RESUME, FAST-LIO 1.5 m 튐 즉시 정지 |
 | base_stab 기구학 보정 켜짐 → 꺼짐 | 흔들림 2.5배, 중력 대비 2.6° | AMCL 동등 (중앙 8.3 → 7.0 cm) → 꺼짐 |
 
 자세한 측정 방법과 구현: [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md)
@@ -134,6 +145,8 @@ config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 
 - FAST-LIO 는 XT16 `/lidar_points` 와 CycloneDDS 에서만 안정적으로 확인됨. 높이(z) 드리프트 있음(9분 +0.83 m, 2D 주행에는 영향 없음)
 - YOLO 모델은 합성 데이터 학습본 (실제 콘·신호등 데이터로 재학습 필요)
+- 경로 실행기는 가짜 로봇으로만 시험함 (실기 미검증). FAST-LIO 튐 기준(0.5 m)은 계단 충격 오탐 여부를 실기에서 정할 것.
+  `mission_fsm_node`(직접 `/cmd_vel` 제어)와 동시에 띄우지 말 것
 - 실제 콘·실제 YOLO 로 콘 추적 전 구간을 돌려 본 적은 없음 (시각 동기화는 녹화 + 가짜 검출로 확인)
 - D435i 가 아래로 약 31° 숙여져 있어 카메라 높이(0.42 m) 위가 보이지 않음 → 신호등 인식에는 각도 조정 또는 다른 카메라 필요.
   각도를 바꾸면 `camera_floor_calib.py` 로 다시 측정
