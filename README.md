@@ -1,132 +1,141 @@
-<!-- 포트폴리오 초안 (2026-11-03). TODO 표시는 직접 채울 부분. 수치는 docs/PROGRESS_20261103.md 기준. -->
+# ROLAB-QUAD-2026
 
-# ROLAB-QUAD-2026 — 경사·계단 코스를 달리는 사족보행 로봇 자율주행
+Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞인 코스를 자율주행하기 위한 ROS 2 워크스페이스.
+2026 로보월드 4족보행로봇 경진대회(출발 → 경사/계단 교차로 → 신호등 정지선 → 라바콘 슬라럼 → 주차 → 도착)용.
 
-> Unitree Go2 EDU + 3D LiDAR + 깊이 카메라로 **경사로·계단·좁은 통로가 섞인 대회 코스**를 완주하기 위한
-> ROS 2 자율주행 스택. 위치추정, 지도, 경로 생성, 라바콘 인식, 안전 정지까지 직접 설계·검증했다.
+## 주요 기능
 
-<!-- TODO: 대표 이미지/GIF (로봇 주행, RViz 화면, 지도 비교) -->
-
-| | |
-|---|---|
-| 대회 | 2026 로보월드 4족보행로봇 경진대회 (11-04 연습 · 11-05 예선 · 11-06 본선) |
-| 과제 | 출발 → 경사로/계단 X 교차로 → 신호등 정지선 → 라바콘 슬라럼 → 주차(5초 착석) → 도착 |
-| 로봇 | Unitree Go2 EDU, Hesai XT16 (16채널 LiDAR), Intel RealSense D435i, Intel NUC 16 (연산) |
-| 스택 | ROS 2 Jazzy (NUC) / Humble (Jetson), C++17, Python, FAST-LIO, Nav2 AMCL, EGO-Planner |
-| 역할 | TODO: 팀 내 역할 (예: 위치추정·경로계획·인식 담당) |
-
----
+- **경사에 강한 2D 스캔**: 인접 LiDAR 링이 같은 수평 거리에 맞는 수직면만 장애물로 사용 (경사로·계단을 벽으로 오인하지 않음)
+- **위치추정**: FAST-LIO(LiDAR-관성 오도메트리) + AMCL(2D 지도, Omni 이동 모델, 다리 오도메트리 입력으로 SLAM 과 독립)
+- **매핑**: FAST-LIO 위치와 보정 점구름으로 2D 점유격자 생성, 궤적 기반 자동 수평
+- **경로 생성**: EGO-Planner (A* + B-spline 최적화), 모든 파라미터 YAML 분리, 충돌 시 정지
+- **라바콘 위치 인식**: YOLO + depth 로 대략 위치 → LiDAR 로 정밀 좌표 → 지도 좌표로 추적·저장
+- **카메라-LiDAR 캘리브레이션**: 노트북 화면에 체커보드를 띄워 수행
+- **안전**: 모든 런타임 노드가 lifecycle 노드 (비활성화 = 정지), 모터 브리지는 마지막에 기동, 모터 없는 시험 모드
+- **보험 모드**: 지도·SLAM 없이 RANSAC 벽 직선 추종
 
 ## 시스템 구성
 
 ```
- XT16 LiDAR ──► cloud_bridge ──► 수직성 스캔(/scan) ──┬──► AMCL (Omni) ──► map 좌표 ─┐
-     │                                                └──► EGO-Planner 장애물         │
-     └──────────► FAST-LIO (LiDAR-관성 오도메트리) ──────► EGO-Planner 국소 제어 ◄────┘ 목표 변환
- Go2 /lowstate ──► imu_bridge (IMU + 다리 기구학 → 중력 기준 수평 프레임)
- Go2 다리 odom ──► odom_tf ──► AMCL 이동 입력 (SLAM 과 독립)
- D435i ─► YOLO ─► cone_tracker (depth 로 대략 → LiDAR 로 정밀 → map 좌표 저장) ─► EGO 장애물
-                                         EGO-Planner ─► cmd_vel_to_sport ─► Go2 Sport API
- 모든 런타임 노드 = lifecycle 노드, 하나의 매니저가 순서대로 기동 (모터 브리지는 마지막)
+ XT16 LiDAR ──► cloud_bridge ──► 수직성 스캔 /scan ──┬──► AMCL ──► map 좌표 ──┐ 목표·장애물 변환
+     │                                              └──► EGO-Planner ◄────────┘
+     └────────► FAST-LIO ──► /Odometry ────────────────► EGO-Planner (국소 제어)
+ Go2 /lowstate ──► imu_bridge (IMU + 다리 기구학 → 중력 기준 base_stab)
+ Go2 다리 odom ──► odom_tf ──► AMCL 이동 입력
+ D435i ──► YOLO ──► cone_tracker (depth → LiDAR) ──► /mission/cones, EGO 장애물
+ EGO-Planner ──► cmd_vel_to_sport ──► Go2 Sport API
 ```
 
-- **위치**: AMCL(2D 지도 기준)이 목표를 지도에 고정하고, FAST-LIO 가 매끄러운 국소 제어를 맡는다.
-  AMCL 은 다리 오도메트리를 입력으로 써서 SLAM 이 발산해도 독립적으로 남는다.
-- **보험 모드**: 지도·SLAM 없이 LiDAR 벽 직선(RANSAC)만으로 외곽을 도는 patrol 모드.
+| 하드웨어 | |
+|---|---|
+| 로봇 | Unitree Go2 EDU |
+| LiDAR | Hesai XT16 (16채널) |
+| 카메라 | Intel RealSense D435i (로봇 내부 PC) |
+| 연산 | Intel NUC 16 (Ubuntu 24.04, ROS 2 Jazzy) |
 
----
+## 요구 사항
 
-## 핵심 문제와 해결
+- ROS 2 Jazzy (Humble 에서도 빌드되도록 작성), CycloneDDS (`rmw_cyclonedds_cpp`)
+- Nav2 (`nav2_amcl`, `nav2_map_server`, `nav2_lifecycle_manager`), `vision_msgs`, Eigen3, OpenCV (Python)
+- FAST-LIO 빌드본 (이 저장소에 포함하지 않음, `SLAM_UNDERLAY` 로 지정, 기본 `~/ws/lab/install`)
+- Hesai ROS 2 드라이버 (`/lidar_points`), Unitree 메시지(`src/interfaces` 포함)
 
-### 1. 경사로를 벽으로 오인 → "수직성 검사" 스캔
-- **문제**: 3D LiDAR 를 2D 스캔으로 자를 때 높이 기준을 쓰면, 몸이 기울거나 앞쪽 지면이 올라가는
-  경사로에서 바닥이 벽으로 찍힌다. 10° 경사로가 2.8 m 앞 장애물로 판정됐다.
-- **시도와 기각**: 로봇 z 를 추정해 전역 높이로 자르는 방식을 실데이터로 검증 → z 추정(적분/바닥 측정)이
-  필요한 6 cm 여유를 23 % 시간 동안 넘겨 기각.
-- **해결**: 같은 방위에서 **인접한 링 3개 이상이 같은 수평 거리**에 맞으면 수직 벽. 경사·계단 디딤면은
-  링이 올라갈수록 멀어지므로 구조적으로 통과할 수 없다. 높이·바닥 추정이 필요 없다.
-- **결과 (합성 XT16 시험)**: 경사 10~25°·계단에서 가짜 벽 0, 2 m 벽 거리 정확 (기존 방식: 10°·15° 경사·계단에서 오판, 버그 수정 후에도 18°·25°·계단 오판).
-
-### 2. 2D 위치추정이 경사 구간에서 상실 → 원인 분리
-- **문제**: AMCL 이 경사·교차로 구간에서 9분 중 306초 동안 위치를 잃었다 (방위 최대 180° 뒤집힘).
-- **방법**: 같은 녹화본으로 요소를 하나씩 바꿔 재생 (스캔 정의 → 이동 모델 → odom 입력).
-- **발견**: 결정적 원인은 **차동구동 이동 모델이 사족보행의 옆걸음을 무시**한 것.
-- **결과**: Omni 모델 + 수직성 스캔 → **위치 상실 306 s → 0 s** (2회 재현, 오차 중앙 약 8 cm).
-  출발 위치가 0.49 m·20° 틀려도 정지 상태 10초 만에 6 cm 로 수렴 (공분산 초기 자세 + 정지 중 강제 갱신).
-
-### 3. 지도 품질 — 벽이 겹치고 걸은 길이 막힘
-- **원인**: 다리 오도메트리 위치로 점을 쌓아 바퀴마다 벽이 어긋남 + 누적 코드 버그
-  (키프레임 판정이 매 프레임 통과해 4.5분에 9,430개, 2D 스캔을 고정 높이로 섞음 등).
-- **해결**: FAST-LIO 위치 + 보정된 점구름, 궤적 기반 자동 수평, 파라미터 스윕(72조합).
-- **결과**: 벽 두께 **24.6 → 13.2 cm**, 로봇이 실제로 걸은 경로가 장애물로 찍힌 비율 **99 % → 0 %**.
-
-### 4. 경로 생성 (EGO-Planner B-spline)
-- **문제**: 팽창 반경 0.45 m 가 1 m 통로를 막고(실제로 걸은 길의 43 % 가 통행 불가), 다듬은 곡선이 벽을 관통.
-- **해결**: 필수 팽창(0.28 m)과 반발 거리(0.45 m) 분리, 제어점 균등 재추출(코너 깎기 원인),
-  궤적 검증과 "벽에 붙은 상태에서 빠져나가기" 허용, 충돌 예상 + 재계획 실패 시 정지.
-- **결과**: 기록 지도 위 계획 성공률 **71~75 % → 88 %**, 벽 최소 이격 **0.00 → 0.23 m**.
-
-### 5. 라바콘 위치 — 카메라로 찾고 LiDAR 로 잰다
-- YOLO 박스 + depth 로 **대략적인 위치** → 그 주변 LiDAR 점으로 **정밀 좌표** → 지도 좌표로 추적·저장.
-- 정밀 단계가 LiDAR 외부파라미터에만 의존해 **카메라 캘리브레이션 오차(3°)에도 결과 불변** (합성 1.7 cm).
-- 캘리브레이션은 **노트북 화면에 체커보드**를 띄워, 카메라(PnP)와 LiDAR(화면 평면)가 본 같은 평면을
-  여러 기울기로 맞춰 푼다 (합성 검증: 회전 0.36°, 이동 1.2 cm).
-
-### 6. 안전 설계
-- 모든 런타임 노드를 lifecycle 로: **비활성화 = 소프트웨어 정지**(StopMove), Ctrl+C 에도 정지 명령.
-- 모터 브리지는 다른 노드가 모두 활성화된 뒤 마지막에 켜진다. `--no-motor` 로 로봇을 움직일 수 없는 시험 모드.
-- 미션 로직 버그 수정: 이전 정지선의 초록불로 출발, 측위가 없을 때 엉뚱한 좌표계로 주행, 착석 후 관절 잠김.
-
-### 7. 디버깅 사례
-- **SLAM 실시간 발산**: 녹화본에서 입력 토픽만 바꿔 재현 → 내장 L1 LiDAR 토픽을 XT16 설정에 넣은 것이
-  원인 (2분 만에 7 km 발산). 같은 조건에서 XT16 입력은 안정.
-- **재생 결과가 실행마다 다름**: DDS 구현(FastDDS ↔ CycloneDDS) 차이로 대용량 점구름이 유실 → CycloneDDS 고정.
-
----
-
-## 검증 방법
-
-로봇과 경기장을 매번 쓸 수 없어서, **녹화본 재생과 합성 데이터로 판단 로직을 먼저 검증**했다.
-- 실제 로봇과 섞이지 않도록 별도 DDS 도메인 + 루프백 전용으로 재생.
-- 정답 대용: FAST-LIO 궤적, 로봇이 실제로 걸은 경로(그곳은 반드시 비어 있어야 함), 합성 장면.
-- 지표 예: 위치 오차·상실 시간, 걸은 경로의 장애물 판정 비율, 계획 성공률·벽 최소 이격, 가짜 벽 수.
-- 변경마다 같은 데이터·같은 지표로 전후 비교, 결과와 재현 스크립트를 함께 기록.
-
-<!-- TODO: 지표 그래프 이미지 (벽 두께 비교, AMCL 오차 시계열, z 추정 비교) -->
-
----
-
-## 실행
+## 빌드
 
 ```bash
-./scripts/go2_map_run.sh --lio --name arena --no-default          # 매핑 (조종기 주행)
-./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0" --cones   # 주행 스택 한 줄
-./scripts/go2_run.sh --mode patrol                                # 보험 모드
+git clone https://github.com/kdh1029/rolab-quad-2026.git
+cd rolab-quad-2026
+source /opt/ros/jazzy/setup.bash
+source ~/ws/lab/install/setup.bash        # FAST-LIO underlay
+colcon build --symlink-install
+source install/setup.bash
 ```
-자세한 순서·캘리브레이션: [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md) ·
-운용·튜닝: [docs/OPERATIONS.md](docs/OPERATIONS.md)
+
+## 사용법
+
+로봇에 영향을 주는 명령은 직접 터미널에서 실행한다. Ctrl+C 로 전체 정지(StopMove 전송).
+
+```bash
+# 1. 카메라-LiDAR 캘리브레이션 (한 번)
+python3 src/missions/mission_vision/tools/calib_target.py           # 노트북, ROS 불필요
+python3 src/missions/mission_vision/tools/calib_capture.py --square-mm <칸 크기> \
+    --out src/missions/mission_vision/config/camera_extrinsics.yaml  # 로봇 쪽: c 캡처 → s 풀이 → w 저장
+
+# 2. 매핑 (조종기로 주행, 모터 명령 없음)
+./scripts/go2_map_run.sh --lio --name arena --no-default
+
+# 3. 주행 스택
+./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"         # --cones: 라바콘 추적, --no-motor: 모터 없음
+python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0                 # 목표 (map 좌표)
+
+# 4. 보험 모드
+./scripts/go2_run.sh --mode patrol
+ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
+```
+
+- 소프트웨어 정지: `ros2 lifecycle set /go2_cmd_vel_to_sport deactivate`
+- 녹화본 시험: `GO2_RUN_TEST_LO=<도메인>` / `GO2_MAP_TEST_LO=<도메인>` → 루프백 전용, 로봇과 섞이지 않음
+
+## 설정 파일
+
+| 파일 | 내용 |
+|---|---|
+| `src/core/go2_bridge/config/bridge_params.yaml` | 브리지, 스캔 방식(`scan_mode: vertical`), 모터 제한 |
+| `src/core/go2_localization/config/amcl_params.yaml` | AMCL (Omni 이동 모델) |
+| `src/core/ego_planner/config/ego_planner_params.yaml` | 경로 생성 (팽창·반발 거리, 최적화, 제어 이득) |
+| `src/missions/mission_vision/config/cone_tracker_params.yaml` | 라바콘 융합·추적·저장 |
+| `src/missions/mission_vision/config/camera_extrinsics.yaml` | 카메라·LiDAR 외부파라미터 (캘리브레이션 결과) |
+| `src/fallback/go2_wall_patrol/config/patrol_params.yaml` | 보험 모드 |
+| `config/system_params.yaml` | 매핑 (2D 변환, 자동 수평, 위치 소스) |
+| `config/fastlio/fastlio_xt16_odometry.yaml` | FAST-LIO (XT16) |
 
 ## 저장소 구조
 
 ```
-src/core/go2_bridge        LiDAR·IMU·odom·모터 브리지, 수직성 스캔, 매퍼 (C++ lifecycle)
-src/core/go2_localization  AMCL 설정 (Omni)
-src/core/ego_planner       EGO-Planner (파라미터 파일, 오프라인 시험 도구 test_plan_on_map)
-src/core/go2_navigation    통합 런치 go2_stack.launch.py
-src/missions/mission_vision YOLO, cone_tracker, 캘리브레이션 도구(calib_target / calib_capture)
-src/missions/mission_runner 미션 상태기
-src/fallback/go2_wall_patrol RANSAC 벽 추종 보험
-scripts/                    go2_run.sh, go2_map_run.sh, go2_amcl_init.py
-config/                     시스템·FAST-LIO 설정
+src/core/go2_bridge           LiDAR·IMU·odom·모터 브리지, 수직성 스캔, 매퍼
+src/core/go2_localization     AMCL 설정
+src/core/go2_navigation       통합 런치 (go2_stack.launch.py)
+src/core/ego_planner          EGO-Planner, 오프라인 시험 도구 (test_plan_on_map)
+src/missions/mission_vision   YOLO, cone_tracker, 캘리브레이션 도구
+src/missions/mission_runner   미션 상태기
+src/fallback/go2_wall_patrol  RANSAC 벽 추종 (보험)
+src/interfaces                Unitree 메시지
+scripts/                      go2_run.sh, go2_map_run.sh, go2_amcl_init.py, go2_goto.py
+config/ · maps/ · docs/
 ```
 
-## 한계와 다음 단계
+## 검증 결과
 
-- 위 수치는 녹화본(누리관)·합성 데이터 기준. **실기·대회장 검증 전**.  <!-- TODO: 대회 결과 -->
-- FAST-LIO 높이(z) 드리프트 (9분 +0.83 m) — 2D 주행에는 영향 없음.
-- 라바콘 YOLO 는 합성 데이터 학습본 → 실제 콘 사진으로 재학습 필요. 카메라 캘리브레이션 실측 필요.
-- patrol 보험은 직사각형 경기장에서 검증 필요.
+녹화본(누리관 경사·계단 구간, 542초) 재생과 합성 데이터 기준. 실기·대회장 검증 전.
 
-## 배운 점
+| 항목 | 이전 | 현재 |
+|---|---|---|
+| AMCL 위치 상실 (오차 > 0.5 m) | 306 s / 528 s | 0 s (2회 재현, 오차 중앙 약 8 cm) |
+| AMCL 출발 위치 0.49 m·20° 오차 | 출발 후 30초 동안 틀림 | 정지 상태 10초 만에 6 cm |
+| 지도 벽 두께 | 24.6 cm | 13.2 cm |
+| 걸은 경로가 장애물로 찍힌 비율 | 99 % | 0 % |
+| 경로 계획 성공률 / 벽 최소 이격 | 71~75 % / 0.00 m | 88 % / 0.23 m |
+| 경사 10~25°·계단 가짜 벽 (합성) | 경사·계단에서 발생 | 0 |
+| 라바콘 위치 오차 (합성) | — | 1.7 cm (카메라 3° 오차에도 동일) |
+| 캘리브레이션 풀이 (합성, 잡음 포함) | — | 회전 0.36°, 이동 1.2 cm |
 
-<!-- TODO: 직접 작성. 예) 측정 없이 고치지 않기, 원인을 하나씩 분리하기, 실패한 아이디어도 수치로 기각하기 -->
+자세한 측정 방법과 구현: [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md)
+
+## 알려진 제한
+
+- FAST-LIO 는 XT16 `/lidar_points` 와 CycloneDDS 에서만 안정적으로 확인됨. 높이(z) 드리프트 있음(9분 +0.83 m, 2D 주행에는 영향 없음)
+- YOLO 모델은 합성 데이터 학습본 (실제 콘·신호등 데이터로 재학습 필요)
+- `camera_extrinsics.yaml` 기본값은 미보정
+- 보험 모드는 직사각형 경기장에서 검증 필요
+
+## 문서
+
+- [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md) — 진행 상황, 구현 방법, 측정 결과
+- [docs/OPERATIONS.md](docs/OPERATIONS.md) — 운용·튜닝 (이전 README)
+- [docs/GITHUB_RULES.md](docs/GITHUB_RULES.md) — 협업 규칙
+- [docs/Blueprint_Complete.md](docs/Blueprint_Complete.md) — 설계 블루프린트
+- [docs/HANDOVER_ROBOWORLD_2026.md](docs/HANDOVER_ROBOWORLD_2026.md) — 인수인계
+
+## 라이선스
+
+Apache-2.0. 단, `src/interfaces` 의 Unitree 메시지 패키지는 BSD 3-Clause (각 `package.xml` 참고).
