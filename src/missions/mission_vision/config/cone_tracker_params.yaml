@@ -12,7 +12,9 @@ cone_tracker_node:
     #   restricted to the slalom straights, and check it on a venue recording first.
     mode: "fusion"
     lidar_only:
-      regions: []              # [x0, y0, x1, y1, ...] rectangles in the world frame; [] = everywhere
+      # regions: [0.5, 5.45, 5.45, 6.35, 0.5, 0.15, 5.45, 1.05]   # [x0, y0, x1, y1, ...] world-frame rectangles
+      #   (example: the two slalom straights of maps/roboworld_2026); left out = everywhere. Never write
+      #   an empty list here - ROS cannot type an empty array and the node aborts at start.
       wall_clearance: 0.15     # m, cones closer to a map wall are ignored (wall foot / baseboard)
       min_ratio: 0.7           # seen in >= 70 % of the scans since first seen ...
       min_scans: 20            # ... judged over >= 20 scans (1 s at 20 Hz)
