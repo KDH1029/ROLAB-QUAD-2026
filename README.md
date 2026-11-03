@@ -154,11 +154,11 @@ config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 본 프로젝트의 궤적 계획, 3D 매핑, 객체 인식 파이프라인은 다음 연구들을 바탕으로 사족보행 환경에 맞춰 구현·적용되었습니다:
 
 1. **ABPolicy (Asynchronous B-Spline Flow Policy & $C^2$ Handover)**
-   - Tian, Y., et al. (2026). *ABPolicy: Asynchronous B-Spline Flow Policy for Real-Time and Smooth Robotic Manipulation*. arXiv preprint [arXiv:2602.23901](https://arxiv.org/abs/2602.23901).
+   - Yang, F., Jing, P., Qu, K., Zhao, N., & Su, Y. (2026). *ABPolicy: Asynchronous B-Spline Flow Policy for Real-Time and Smooth Robotic Manipulation*. arXiv preprint [arXiv:2602.23901](https://arxiv.org/abs/2602.23901).
    - *적용*: `src/core/ego_planner`의 비동기 재계획 시 저크(Jerk) 없는 $C^2$ 연속 궤적 스티칭(`optimizeWithContinuity`) 구현
 
-2. **EGO-Planner (ESDF-free Gradient-based Local Trajectory Optimizer)**
-   - Zhou, X., Wang, Z., Ye, H., Xu, C., & Gao, F. (2020). *EGO-Planner: An ESDF-free Gradient-based Local Trajectory Optimizer for Quadrotors*. IEEE Robotics and Automation Letters (RA-L), 6(2), 609-616. [DOI: 10.1109/LRA.2020.3047728](https://doi.org/10.1109/LRA.2020.3047728).
+2. **EGO-Planner (ESDF-free Gradient-based Local Planner)**
+   - Zhou, X., Wang, Z., Ye, H., Xu, C., & Gao, F. (2020). *EGO-Planner: An ESDF-free Gradient-based Local Planner for Quadrotors*. IEEE Robotics and Automation Letters (RA-L), 6(2), 478-485. [DOI: 10.1109/LRA.2020.3047728](https://doi.org/10.1109/LRA.2020.3047728).
    - *적용*: B-스플라인 제어점 수치 최적화 및 2D 라이다 점군 장애물 반발력 모델
 
 3. **FAST-LIO2 (Fast Direct LiDAR-Inertial Odometry)**
