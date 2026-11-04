@@ -12,7 +12,7 @@
  * A point may appear in several steps (revisits reuse the same coordinates).
  *
  * Decisions live in route_logic.hpp (tested by test_route_logic); this node feeds it the pose
- * (TF map -> base_link), the traffic light (/mission/traffic_light) and operator commands
+ * (TF map -> base_link) and operator commands
  * (/route/cmd: "START [step]", "STOP", "RESUME"), and carries out its outputs:
  *   goal      -> set EGO goal_tol / max_vel first (parameter service), then /goal_pose
  *   sport     -> /api/sport/request (1009 Sit, 1010 RiseSit)
@@ -65,7 +65,6 @@ public:
     goal_topic_ = p("goal_topic", std::string("/goal_pose"));
     ego_node_ = p("ego_node", std::string("/ego_planner_node"));
     bridge_node_ = p("motor_bridge_node", std::string("/go2_cmd_vel_to_sport"));
-    traffic_topic_ = p("traffic_topic", std::string("/mission/traffic_light"));
     sport_topic_ = p("sport_topic", std::string("/api/sport/request"));
     default_tol_ = p("default_goal_tol", 0.25);
     default_vmax_ = p("default_max_vel", 0.6);
@@ -79,10 +78,6 @@ public:
     cfg_.still_speed = p("still_speed", cfg_.still_speed);
     cfg_.still_time_s = p("still_time_s", cfg_.still_time_s);
     cfg_.stop_hold_s = p("stop_hold_s", cfg_.stop_hold_s);
-    cfg_.signal_max_age_s = p("signal_max_age_s", cfg_.signal_max_age_s);
-    cfg_.traffic_timeout_s = p("traffic_timeout_s", cfg_.traffic_timeout_s);
-    cfg_.no_signal_age_s = p("no_signal_age_s", cfg_.no_signal_age_s);
-    cfg_.no_signal_wait_s = p("no_signal_wait_s", cfg_.no_signal_wait_s);
     cfg_.sit_hold_s = p("sit_hold_s", cfg_.sit_hold_s);
     cfg_.rise_s = p("rise_s", cfg_.rise_s);
   }
@@ -121,11 +116,6 @@ public:
     status_pub_->on_activate();
     cmd_sub_ = create_subscription<std_msgs::msg::String>(
       "/route/cmd", 10, std::bind(&RouteRunnerNode::onCmd, this, std::placeholders::_1));
-    traffic_sub_ = create_subscription<std_msgs::msg::String>(
-      traffic_topic_, 10, [this](const std_msgs::msg::String::SharedPtr m) {
-        green_ = (m->data == "GREEN");
-        last_signal_ = nowS();
-      });
     lio_sub_ = create_subscription<nav_msgs::msg::Odometry>(
       lio_topic_, rclcpp::SensorDataQoS(), std::bind(&RouteRunnerNode::onLio, this, std::placeholders::_1));
     timer_ = create_wall_timer(50ms, std::bind(&RouteRunnerNode::onTimer, this));
@@ -138,7 +128,7 @@ public:
     if (logic_ && logic_->state() != route::State::IDLE && logic_->state() != route::State::DONE) {
       carryOut(logic_->stop("route_runner deactivated"));
     }
-    timer_.reset(); cmd_sub_.reset(); traffic_sub_.reset(); lio_sub_.reset();
+    timer_.reset(); cmd_sub_.reset(); lio_sub_.reset();
     goal_pub_->on_deactivate(); sport_pub_->on_deactivate(); status_pub_->on_deactivate();
     return CallbackReturn::SUCCESS;
   }
@@ -268,15 +258,12 @@ private:
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "no TF %s -> %s: %s", map_frame_.c_str(),
                            base_frame_.c_str(), e.what());
     }
-    in.green = green_;
-    in.signal_age_s = last_signal_ > 0 ? in.t - last_signal_ : 1e9;
     carryOut(logic_->tick(in));
     if (++ticks_ % 10 == 0) {
       std_msgs::msg::String s;
       s.data = std::string(route::stateName(logic_->state())) + " step " + std::to_string(logic_->index()) + "/" +
         std::to_string(logic_->steps().size()) + " " + logic_->stepName() + " | speed " +
-        std::to_string(in.speed).substr(0, 4) + " | light " + (green_ ? "GREEN" : "not green") +
-        (last_signal_ > 0 ? "" : " (no signal yet)");
+        std::to_string(in.speed).substr(0, 4);
       status_pub_->publish(s);
     }
   }
@@ -340,14 +327,12 @@ private:
   }
 
   // parameters
-  std::string map_frame_, base_frame_, goal_topic_, ego_node_, bridge_node_, traffic_topic_, sport_topic_;
+  std::string map_frame_, base_frame_, goal_topic_, ego_node_, bridge_node_, sport_topic_;
   std::string lio_topic_, lio_mode_;
   double default_tol_, default_vmax_, lio_max_jump_, lio_max_speed_, lio_speed_hold_;
   route::Config cfg_;
   // state
   std::unique_ptr<route::Logic> logic_;
-  bool green_{false};
-  double last_signal_{-1};
   bool have_pose_{false};
   double pose_x_{0}, pose_y_{0}, pose_t_{0}, speed_{0};
   bool have_lio_{false};
@@ -361,7 +346,7 @@ private:
   rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::String>::SharedPtr status_pub_;
   rclcpp::AsyncParametersClient::SharedPtr ego_params_;
   rclcpp::Client<lifecycle_msgs::srv::ChangeState>::SharedPtr bridge_client_;
-  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr cmd_sub_, traffic_sub_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr cmd_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr lio_sub_;
   rclcpp::TimerBase::SharedPtr timer_;
 };

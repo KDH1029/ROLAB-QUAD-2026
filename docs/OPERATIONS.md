@@ -21,13 +21,12 @@ Unitree Go2 Edu와 Hesai XT16 3D LiDAR 환경에서 보행 시 발생하는 착�
 - [x] **1:1 CAD 트랙 맵 & 웨이포인트**: $6\text{m} \times 8\text{m}$ 도면 맵(`maps/roboworld_2026.pgm`) 및 12개 공식 웨이포인트([`waypoints_track.yaml`](../src/missions/mission_runner/config/waypoints_track.yaml)) 정합
 - [x] **C++ Core 스택 (`go2_bridge`)**: 151Hz 오도메트리 TF, 12-DoF FK 접촉 평면 보정(`base_stab`), $18^\circ$ 경사로/$0.1\text{m}$ 장애물 분리 필터, Sport API 제어기 구축
 - [x] **7단계 미션 FSM (`mission_runner`)**: 출발선(IN) → 경사로 → 정지선1(신호등 2초 정지/초록불 출발) → 슬라럼 → 정지선2 → 주차(5초 착석) → 도착선(OUT) 상태 머신 작성
-- [x] **비전 입력 (`mission_vision`)**: YOLO 학습·추론은 팀원 노드(11-05 저장소에서 삭제). 입력 형식은 README "비전 입력"
+- [x] **라바콘 (`mission_vision`)**: LiDAR 단독 `cone_tracker_node`. 카메라·YOLO·신호등 처리는 팀원 담당(11-05 저장소에서 삭제)
 - [x] **통합 런처 및 유틸리티**: 원터치 실행기([`go2_mission_run.sh`](../scripts/go2_mission_run.sh))
 
 ### 🔄 다음 작업 및 디버깅 예정 항목
 - [ ] `./scripts/go2_mission_run.sh --sim` 기반 가상 시뮬레이션 스모크 테스트 (FSM 상태 천이 검증)
 - [ ] 실물 로봇 센서 토픽 수신 확인 (`/camera/color/image_raw`, `/odom`, `/scan`)
-- [ ] 실제 소품(신호등, 콘, 주차판) 비전 검출 실측 (필요 시 현장 사진 20~30장 촬영 후 5분 재학습)
 - [ ] 12개 웨이포인트 트랙 1바퀴 실주행 디버깅
 
 ---
@@ -96,7 +95,7 @@ ROLAB-QUAD-2026/
     │   ├── go2_localization/        # Map Server, AMCL 로컬라이제이션 패키지
     │   └── go2_navigation/          # Nav2 RPP 컨트롤러 및 플래너 설정 패키지
     ├── missions/                    # [대회 미션 제어 도메인 (C++)]
-    │   ├── mission_vision/          # 신호등(traffic_light_node), 주차 표식(parking_marker_node), 23cm 라바콘(cone_detector_node)
+    │   ├── mission_vision/          # 라바콘 LiDAR 위치 확정 (cone_tracker_node)
     │   └── mission_runner/          # 7단계 대회 시퀀스 상태 머신 (mission_fsm_node)
     └── interfaces/                  # [공통 메시지 인터페이스]
         ├── unitree_api/             # Unitree Sport API 메시지 패키지
@@ -174,38 +173,21 @@ ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 - 파라미터: `go2_bridge/config/bridge_params.yaml`, `go2_localization/config/amcl_params.yaml`,
   `ego_planner/config/ego_planner_params.yaml`, `go2_wall_patrol/config/patrol_params.yaml`
 
-### F. 라바콘 위치 인식 (카메라 + 라이다 퓨전)
+### F. 라바콘 위치 인식 (LiDAR 만)
 ```bash
-# (선택) 외부파라미터 점검: 로봇을 세워 둔 구간이 있는 bag 으로 depth 와 LiDAR 를 맞대어 본다.
-#   두 절반(장소별)의 결과가 0.5°/2 cm 안으로 일치할 때만 저장된다. 10-30 bag 은 불일치 → 기본값 유지.
-python3 src/missions/mission_vision/tools/depth_lidar_align.py ~/bags/<bag> \
-    [--write src/missions/mission_vision/config/camera_extrinsics.yaml]
-# 주행 스택에 콘 추적 추가 (팀원 YOLO 가 로봇 PC 에서 /mission/cone_detections_json 발행)
-./scripts/go2_run.sh --map maps/arena.yaml --cones
+./scripts/go2_run.sh --map maps/arena.yaml --cones          # --cone-regions "x0 y0 x1 y1 ..." 로 콘 구역 바꾸기
 ```
-- 센서 싱크: 카메라 stamp 는 로봇 PC 시계(1970, 미동기). `cone_tracker_node` 가 스트림별로
-  (수신시각 − stamp) 하위 5 % 로 시계 차이를 추정해 NUC 시계로 바꾸고, YOLO 영상 시각에 가장 가까운
-  depth·라이다(±50 ms)를 골라 odom TF 로 영상 시각까지 이동 보정한다. 10초마다 `sync ...` 로그:
-  시계 차이, 맞춘 시간차, YOLO 지연, 보정량, "최신 스캔을 썼다면 어긋났을 양", 스캔당 라이다 콘 후보 수.
-- 좌표는 라이다가 정한다: 매 스캔에서 콘 모양 덩어리(폭 ≤0.30 m, 콘 높이 띠, 위는 비어 있고 주변 바닥보다
-  3 cm 이상 뜬 것)를 찾고, 카메라는 그중 어느 것이 콘인지만 고른다(깊이 추정 반경 0.30 m + 0.05 m/m,
-  깊이 없으면 방향 ±6°). 카메라 각도가 바뀌거나 흔들려도 결과 좌표는 라이다 값. 확정된 콘은 카메라가
-  못 보는 거리(약 2.2 m 너머)에서도 라이다만으로 계속 갱신. 설정: `cone_tracker_params.yaml` refine/lidar_cone.
+- `cone_tracker_node` (11-05 카메라·YOLO 퓨전 삭제, 비전은 팀원 담당): 매 스캔에서 먼저 콘보다 키 큰 기둥(콘 높이 띠와 그 위에
+  모두 점이 있는 4 cm 칸 + 이웃 칸 — 벽·다리·상자)을 빼고, 콘 모양 덩어리(폭 ≤0.30 m, 콘 높이 띠, 위는 비어 있고 주변 바닥보다
+  3 cm 이상 뜬 것)를 찾는다 → `map` 좌표 → 콘 구역(`lidar_only.regions`) 안·지도 벽 칸 밖만 → 같은 자리에서 20스캔 중 70 % 이상
+  보이면 확정 → `~/go2_cones.yaml` 저장. 확정된 콘은 주행 끝까지 유지(가까이 가서 안 보여도 경로 계획에 남는다).
+  출력 `/mission/cones`(PoseArray, EGO-Planner 입력), `/mission/cone_obstacles`(점 고리, 시각화용), `/mission/cone_markers`.
+- 대회장 녹화(145915) 재생: 콘 10/10, 오차 6~13 cm, 가짜 0. 지도가 바뀌면 `regions` 를 다시 정할 것.
 - 경로 계획: `ego_planner` 가 `/mission/cones`(콘 중심)를 받아 벽과 별개로 다룬다 —
   `ego_planner_params.yaml` 의 `cones:` inflate_radius(절대 접근 금지 반경), safe_dist(밀어내는 범위),
   weight(밀어내는 세기), max_range. 네 값 모두 `ros2 param set` 으로 실행 중 변경 가능.
-- 카메라 각도를 바꾼 뒤: 로봇을 평지에 세우고 (앞 2 m 바닥이 보이게)
-  `ros2 run mission_vision camera_floor_calib.py --write src/missions/mission_vision/config/camera_extrinsics.yaml`
-  — 10초 동안 뎁스 바닥 + 발 4개(다리 기구학)로 숙인 각도·옆 기울기·높이를 재서 저장(백업 남김). 좌우 방향과
-  x/y 는 유지. 움직였거나 바닥이 덜 보이면 저장 거부. `--write-params .../cone_tracker_params.yaml` 을 붙이면
-  발 아래 바닥 높이로 `fusion.floor_z` 를 바꾸고 콘 높이 띠(`refine.z_min/z_max`)도 같이 옮긴다 — 카메라 각도가
-  아니라 서는 높이에 따라 바뀌는 값(10-30 bag: −0.336 m, 이전 가정 −0.30). 10-30 bag: 30.7°/31.0°(두 정지 구간), 일부러 20°로 바꾼
-  설정에서도 30.5° 복원.
 - 콘 탐지 합성 시험: `ros2 run mission_vision test_cone_lidar` (55 cm 간격 콘 2개·기둥·벽·바닥 잡음).
-- `cone_tracker_node`: YOLO 박스 + depth 로 대략 위치 → 그 근처 LiDAR 콘 덩어리 선택 → `map` 좌표 → 추적
-  (0.3 m 묶기, 3회·LiDAR 2회 확정, 확정 후엔 LiDAR 만으로 갱신) → `~/go2_cones.yaml` 저장.
-  출력 `/mission/cones`(PoseArray, EGO-Planner 입력), `/mission/cone_obstacles`(점 고리, 시각화용), `/mission/cone_markers`.
-- 설정: `mission_vision/config/cone_tracker_params.yaml`, `camera_extrinsics.yaml`(`camera_floor_calib.py` 측정값).
+- 설정: `mission_vision/config/cone_tracker_params.yaml` (LiDAR 장착 위치 포함).
 
 ---
 

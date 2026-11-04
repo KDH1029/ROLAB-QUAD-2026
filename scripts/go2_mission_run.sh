@@ -53,7 +53,7 @@ fi
 
 echo "----------------------------------------------------------------------"
 echo "2026 RoboWorld Quadruped Competition Mission Stack (450-pt Full Course)"
-echo "  Vision node  : (teammate's YOLO, start it separately - README 비전 입력)"
+echo "  Vision node  : (teammate's - not in this repo)"
 echo "  Controller   : mission_fsm_node (7-Stage C++ State Machine)"
 echo "  Frame        : $REF_FRAME (sim_mode=$SIM_MODE)"
 echo "----------------------------------------------------------------------"

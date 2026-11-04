@@ -1,15 +1,11 @@
 // Route sequencing logic (no ROS): which goal EGO-Planner gets next, when a step counts as done,
-// and the stop-line / parking actions. route_runner_node feeds it the pose, the traffic light and
-// commands every tick and carries out what it returns; test_route_logic drives it with a simulated
-// robot.
+// and the stop-line / parking actions. route_runner_node feeds it the pose and commands every tick
+// and carries out what it returns; test_route_logic drives it with a simulated robot.
+// The traffic light is not handled here (vision is the teammate's, removed 11-05).
 //
 // A step = a saved map point + what to do there:
 //   none      drive through: the next goal is sent once the robot is within pass_radius
-//   stopline  arrive, stand still >= stop_hold_s (rulebook 2 s + margin), then leave only on a FRESH
-//             GREEN (older than signal_max_age_s does not count); after traffic_timeout_s proceed
-//             anyway (the 50 points are lost, the 200 for finishing are not). No signal at all
-//             (camera off / lidar_only: the YOLO node is expected to send a state every frame, UNKNOWN included)
-//             -> proceed after no_signal_wait_s from the stop, not after the 15 s timeout
+//   stopline  arrive, stand still >= stop_hold_s (rulebook 2 s + margin), then go on
 //   parking   arrive, stand still, Sit (1009) for sit_hold_s (rulebook 5 s + margin), RiseSit (1010)
 //   finish    arrive -> done
 #pragma once
@@ -58,15 +54,11 @@ struct Config
   double still_speed{0.05};      // m/s below which the robot counts as standing still
   double still_time_s{0.5};      // stop steps: still this long before the action starts
   double stop_hold_s{2.3};       // stop line: standing still (rule: >= 2 s)
-  double signal_max_age_s{1.0};  // a GREEN older than this does not count
-  double traffic_timeout_s{15.0};// stop line: proceed after this long without a GREEN
-  double no_signal_age_s{2.0};   // no traffic-light message for this long = no camera ...
-  double no_signal_wait_s{2.8};  // ... then proceed this long after stopping (rule hold 2 s + margin)
   double sit_hold_s{5.5};        // parking: sitting (rule: >= 5 s)
   double rise_s{3.0};            // parking: time for RiseSit before driving on
 };
 
-enum class State { IDLE, DRIVE, SETTLE, HOLD, WAIT_GREEN, SIT, RISE, DONE, STOPPED };
+enum class State { IDLE, DRIVE, SETTLE, HOLD, SIT, RISE, DONE, STOPPED };
 
 inline const char * stateName(State s)
 {
@@ -75,7 +67,6 @@ inline const char * stateName(State s)
     case State::DRIVE: return "DRIVE";
     case State::SETTLE: return "SETTLE";
     case State::HOLD: return "HOLD";
-    case State::WAIT_GREEN: return "WAIT_GREEN";
     case State::SIT: return "SIT";
     case State::RISE: return "RISE";
     case State::DONE: return "DONE";
@@ -89,8 +80,6 @@ struct Input
   bool pose_ok{false};
   double x{0}, y{0};             // map frame
   double speed{0};               // m/s (from successive poses)
-  bool green{false};             // latest traffic light state is GREEN ...
-  double signal_age_s{1e9};      // ... received this long ago
 };
 
 struct Output
@@ -190,20 +179,7 @@ public:
       case State::HOLD:
         if (!still) {t0_ = in.t; o.event = "stop line: moved, hold restarts"; return o;}
         if (in.t - t0_ < cfg_.stop_hold_s) return o;
-        state_ = State::WAIT_GREEN;
-        t1_ = t0_;                         // timeout counts from the start of the stop
-        o.event = "stop line: held " + fmt(in.t - t0_) + " s, waiting for GREEN";
-        return o;
-
-      case State::WAIT_GREEN:
-        if (in.green && in.signal_age_s <= cfg_.signal_max_age_s) return next(in.t, "GREEN at " + s.name);
-        if (in.signal_age_s > cfg_.no_signal_age_s && in.t - t1_ >= cfg_.no_signal_wait_s) {
-          return next(in.t, "no traffic-light signal (camera off?) at " + s.name + ", proceeding after the stop");
-        }
-        if (in.t - t1_ >= cfg_.traffic_timeout_s) {
-          return next(in.t, "no GREEN for " + fmt(cfg_.traffic_timeout_s) + " s at " + s.name + ", proceeding");
-        }
-        return o;
+        return next(in.t, "stop line " + s.name + ": held " + fmt(in.t - t0_) + " s, going on");
 
       case State::SIT:
         if (in.t - t0_ < cfg_.sit_hold_s) return o;
@@ -267,6 +243,6 @@ private:
   Config cfg_;
   State state_{State::IDLE}, resume_state_{State::IDLE};
   size_t idx_{0};
-  double t0_{0}, t1_{0};
+  double t0_{0};
 };
 }  // namespace route

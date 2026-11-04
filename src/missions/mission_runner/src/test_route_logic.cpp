@@ -1,6 +1,5 @@
 // Simulated run of route::Logic: a robot that drives straight to the current goal (EGO stand-in,
-// stops at goal_tol), a traffic light that alternates every 5 s and is seen 0.3 s late, a revisited
-// point, a STOP / RESUME, and START from a later step. Checks the rule timings; exit 1 on a failure.
+// stops at goal_tol), a revisited point, a STOP / RESUME, and START from a later step. Checks the rule timings; exit 1 on a failure.
 //   ros2 run mission_runner test_route_logic
 #include <cmath>
 #include <cstdio>
@@ -44,13 +43,11 @@ struct Log
   std::string ev;
 };
 
-std::vector<Log> run(Logic & L, Sim & sim, double t_end, double light_phase, std::vector<double> stop_at = {},
+std::vector<Log> run(Logic & L, Sim & sim, double t_end, std::vector<double> stop_at = {},
                      double resume_after = 0, std::vector<int> * sport = nullptr, std::vector<double> * sport_t = nullptr)
 {
   std::vector<Log> log;
   const double dt = 0.05;
-  double last_seen_change = -1e9;
-  bool seen_green = false;
   auto apply = [&](const Output & o, double t) {
       if (o.set_params) {sim.tol = L.current().goal_tol; sim.vmax = L.current().max_vel;}
       if (o.send_goal) {sim.gx = L.current().x; sim.gy = L.current().y; sim.has_goal = true;}
@@ -65,9 +62,6 @@ std::vector<Log> run(Logic & L, Sim & sim, double t_end, double light_phase, std
   double stopped_t = -1;
   for (double t = dt; t < t_end && L.state() != State::DONE; t += dt) {
     sim.step(dt);
-    // traffic light: GREEN for 5 s, RED for 5 s; the camera reports it 0.3 s late, at 5 Hz
-    const bool green_now = std::fmod(t - 0.3 + light_phase, 10.0) < 5.0;
-    if (std::fmod(t, 0.2) < dt) {seen_green = green_now; last_seen_change = t;}
     for (double s : stop_at) {
       if (std::abs(t - s) < dt / 2) {apply(L.stop("test"), t); stopped_t = t;}
     }
@@ -77,7 +71,6 @@ std::vector<Log> run(Logic & L, Sim & sim, double t_end, double light_phase, std
     }
     Input in;
     in.t = t; in.pose_ok = true; in.x = sim.x; in.y = sim.y; in.speed = sim.speed;
-    in.green = seen_green; in.signal_age_s = t - last_seen_change;
     apply(L.tick(in), t);
   }
   return log;
@@ -106,73 +99,30 @@ double eventTime(const std::vector<Log> & log, const std::string & needle, int n
 int main()
 {
   Config cfg;
-  std::printf("1) full course at three light phases (arriving on GREEN, on RED, just before a change)\n");
-  for (double phase : {0.0, 2.5, 7.0}) {
+  std::printf("1) full course\n");
+  {
     Logic L(course(), cfg);
     Sim sim;
     std::vector<int> api;
     std::vector<double> api_t;
-    auto log = run(L, sim, 200, phase, {}, 0, &api, &api_t);
-    std::printf(" phase %.1f s:\n", phase);
+    auto log = run(L, sim, 200, {}, 0, &api, &api_t);
     for (const auto & l : log) std::printf("    %6.2f  %s\n", l.t, l.ev.c_str());
     check(L.state() == State::DONE, "route completes");
     // the hold counts from when the robot came to rest: still_time_s before the "holding" line
     const double rest = eventTime(log, "stop line stop1: holding") - cfg.still_time_s;
-    const double leave = eventTime(log, "GREEN at stop1");
-    check(rest > 0 && leave - rest >= cfg.stop_hold_s - 1e-6, "stop line: still >= 2.3 s before leaving");
-    // the camera reports the light 0.3 s late: the GREEN it acted on was the light at leave - 0.3 s
-    check(std::fmod(leave - 0.3 + phase, 10.0) < 5.0, "stop line: left on a real GREEN");
+    const double leave = eventTime(log, "going on");
+    check(rest > 0 && leave - rest >= cfg.stop_hold_s - 1e-6 && leave - rest < cfg.stop_hold_s + 0.2,
+          "stop line: still >= 2.3 s, then leaves");
     check(api.size() == 2 && api[0] == 1009 && api[1] == 1010 && api_t[1] - api_t[0] >= cfg.sit_hold_s - 1e-6,
           "parking: Sit 1009, then RiseSit 1010 after >= 5.5 s");
     check(eventTime(log, "passed top", 1) > 0, "revisited point 'top' passed twice");
-  }
-
-  std::printf("2) light never GREEN -> proceed after the timeout\n");
-  {
-    Sim sim;
-    std::vector<Log> log;
-    Config c2 = cfg;
-    c2.signal_max_age_s = -1;  // nothing counts as fresh
-    Logic L2(course(), c2);
-    log = run(L2, sim, 200, 0);
-    const double rest = eventTime(log, "stop line stop1: holding") - c2.still_time_s, go = eventTime(log, "no GREEN");
-    check(go > 0 && std::abs(go - rest - c2.traffic_timeout_s) < 0.1, "proceeds 15 s after the robot stopped");
-    check(L2.state() == State::DONE, "route still completes");
-  }
-
-  std::printf("2b) no traffic-light messages at all (camera off) -> proceed right after the stop\n");
-  {
-    Logic L(course(), cfg);
-    Sim sim;
-    // run() always feeds a light; build the no-signal case by hand: signal age grows forever
-    std::vector<Log> log;
-    auto apply = [&](const Output & o, double t) {
-        if (o.set_params) {sim.tol = L.current().goal_tol; sim.vmax = L.current().max_vel;}
-        if (o.send_goal) {sim.gx = L.current().x; sim.gy = L.current().y; sim.has_goal = true;}
-        if (o.sport_api == 1009) sim.sitting = true;
-        if (o.sport_api == 1010) sim.sitting = false;
-        if (!o.event.empty()) log.push_back({t, o.event});
-      };
-    apply(L.start(0.0), 0.0);
-    for (double t = 0.05; t < 200 && L.state() != State::DONE; t += 0.05) {
-      sim.step(0.05);
-      Input in;
-      in.t = t; in.pose_ok = true; in.x = sim.x; in.y = sim.y; in.speed = sim.speed;
-      in.green = false; in.signal_age_s = 1e9;
-      apply(L.tick(in), t);
-    }
-    const double rest = eventTime(log, "stop line stop1: holding") - cfg.still_time_s;
-    const double go = eventTime(log, "no traffic-light signal");
-    check(go > 0 && go - rest >= cfg.stop_hold_s && std::abs(go - rest - cfg.no_signal_wait_s) < 0.1,
-          "no signal: still >= 2.3 s, proceeds 2.8 s after stopping (not 15 s)");
-    check(L.state() == State::DONE, "route completes without a camera");
   }
 
   std::printf("3) STOP while driving, RESUME 3 s later\n");
   {
     Logic L(course(), cfg);
     Sim sim;
-    auto log = run(L, sim, 200, 2.5, {6.0}, 3.0);
+    auto log = run(L, sim, 200, {6.0}, 3.0);
     for (const auto & l : log) if (l.t > 5.5 && l.t < 10) std::printf("    %6.2f  %s\n", l.t, l.ev.c_str());
     check(eventTime(log, "STOP (test)") > 0 && eventTime(log, "RESUME step") > 0, "stopped and resumed");
     check(L.state() == State::DONE, "route completes after the resume");

@@ -12,8 +12,7 @@ def generate_launch_description():
         DeclareLaunchArgument('use_relative_route', default_value='false'),
         DeclareLaunchArgument('reference_frame', default_value='map'),
 
-        # Vision (YOLO: /mission/traffic_light, /mission/cone_detections_json) is the teammate's node,
-        # started separately - see README "비전 입력".
+        # Vision (traffic light, parking sign) is the teammate's, not in this repo.
         Node(
             package='mission_runner',
             executable='mission_fsm_node',

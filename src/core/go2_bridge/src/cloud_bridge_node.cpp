@@ -108,6 +108,17 @@ public:
     vertical_tol_m_ = declare_parameter<double>("vertical_tol_m", 0.03);
     vertical_min_rings_ = std::max<int>(2, declare_parameter<int>("vertical_min_rings", 3));
     vertical_min_span_m_ = declare_parameter<double>("vertical_min_span_m", 0.08);
+    // Optional second vertical scan for AMCL only (amcl_scan_topic "" = off): just the returns between
+    // amcl_min_z and amcl_max_z in target_frame (base_stab, origin at the body ~0.31 m over the feet).
+    // Default band = 0.30-0.57 m above the floor: over the 0.23-0.25 m cones (they never reach AMCL, so
+    // moved cones cannot pull it) and under the 0.6 m arena walls (hall clutter behind them is cut too).
+    // Floors / ramps / steps cannot enter the band, so fewer stacked rings are needed than for /scan,
+    // and the band is only ~0.27 m tall: 3 rings would drop walls beyond ~3 m, 2 rings keep them to ~4-5 m.
+    amcl_scan_topic_ = declare_parameter<std::string>("amcl_scan_topic", "");
+    amcl_min_z_ = declare_parameter<double>("amcl_min_z", -0.02);
+    amcl_max_z_ = declare_parameter<double>("amcl_max_z", 0.26);
+    amcl_min_rings_ = std::max<int>(1, declare_parameter<int>("amcl_min_rings", 2));
+    amcl_min_span_m_ = declare_parameter<double>("amcl_min_span_m", 0.03);
 
   }
 
@@ -120,6 +131,9 @@ public:
     if (publish_terrain_scan_) {
       scan_pub_ = create_publisher<sensor_msgs::msg::LaserScan>(
         scan_topic_, rclcpp::SensorDataQoS());
+      if (!amcl_scan_topic_.empty()) {
+        amcl_scan_pub_ = create_publisher<sensor_msgs::msg::LaserScan>(amcl_scan_topic_, rclcpp::SensorDataQoS());
+      }
     }
     return CallbackReturn::SUCCESS;
   }
@@ -128,6 +142,7 @@ public:
   {
     pub_->on_activate();
     if (scan_pub_) {scan_pub_->on_activate();}
+    if (amcl_scan_pub_) {amcl_scan_pub_->on_activate();}
     sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
       in_topic_, rclcpp::SensorDataQoS(),
       std::bind(&CloudBridgeNode::onCloud, this, std::placeholders::_1));
@@ -147,6 +162,7 @@ public:
     report_timer_.reset();
     pub_->on_deactivate();
     if (scan_pub_) {scan_pub_->on_deactivate();}
+    if (amcl_scan_pub_) {amcl_scan_pub_->on_deactivate();}
     return CallbackReturn::SUCCESS;
   }
 
@@ -154,6 +170,7 @@ public:
   {
     pub_.reset();
     scan_pub_.reset();
+    amcl_scan_pub_.reset();
     tf_listener_.reset();
     tf_buffer_.reset();
     layout_ = InputLayout();
@@ -166,6 +183,7 @@ public:
     report_timer_.reset();
     pub_.reset();
     scan_pub_.reset();
+    amcl_scan_pub_.reset();
     tf_listener_.reset();
     return CallbackReturn::SUCCESS;
   }
@@ -239,9 +257,11 @@ private:
 
   void publishVerticalScan(
     const std::vector<float> & bx, const std::vector<float> & by, const std::vector<float> & bz,
-    const std::vector<uint16_t> & ring, const builtin_interfaces::msg::Time & stamp)
+    const std::vector<uint16_t> & ring, const builtin_interfaces::msg::Time & stamp,
+    const rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr & pub,
+    float min_z, float max_z, int min_rings, float min_span)
   {
-    if (!scan_pub_ || bx.empty()) {return;}
+    if (!pub || bx.empty()) {return;}
     const int n_az = azimuth_bins_;
     const double d_az = (2.0 * M_PI) / static_cast<double>(n_az);
     int n_ring = 0;
@@ -253,7 +273,7 @@ private:
     std::vector<float> rh(static_cast<size_t>(n_az * n_ring), INF), zz(static_cast<size_t>(n_az * n_ring), 0.0f);
     for (size_t i = 0; i < bx.size(); ++i) {
       const float r = std::hypot(bx[i], by[i]);
-      if (r < min_range_ || r >= max_range_ || ring[i] >= n_ring) {continue;}
+      if (r < min_range_ || r >= max_range_ || ring[i] >= n_ring || bz[i] < min_z || bz[i] > max_z) {continue;}
       int a = static_cast<int>((std::atan2(by[i], bx[i]) + M_PI) / d_az);
       a = std::clamp(a, 0, n_az - 1);
       const size_t k = static_cast<size_t>(a * n_ring + ring[i]);
@@ -272,7 +292,6 @@ private:
     scan->ranges.assign(n_az, INF);
 
     const float tol = static_cast<float>(vertical_tol_m_);
-    const float min_span = static_cast<float>(vertical_min_span_m_);
     for (int a = 0; a < n_az; ++a) {
       const float * r = &rh[static_cast<size_t>(a * n_ring)];
       const float * z = &zz[static_cast<size_t>(a * n_ring)];
@@ -287,13 +306,13 @@ private:
           if (nhi - nlo > tol) {break;}
           lo = nlo; hi = nhi; zlo = std::min(zlo, z[j]); zhi = std::max(zhi, z[j]);
         }
-        if (j - i >= vertical_min_rings_ && zhi - zlo >= min_span) {
+        if (j - i >= min_rings && zhi - zlo >= min_span) {
           best = std::min(best, 0.5f * (lo + hi));
         }
       }
       scan->ranges[a] = best;
     }
-    scan_pub_->publish(std::move(scan));
+    pub->publish(std::move(scan));
   }
 
   void publishTerrainAwareScan(
@@ -518,7 +537,14 @@ private:
     pub_->publish(std::move(out));
     if (publish_terrain_scan_) {
       if (scan_mode_ == "vertical" && layout_.ring >= 0) {
-        publishVerticalScan(stab_x, stab_y, stab_z, stab_ring, out_stamp);
+        const float inf = std::numeric_limits<float>::infinity();
+        publishVerticalScan(stab_x, stab_y, stab_z, stab_ring, out_stamp, scan_pub_, -inf, inf,
+                            vertical_min_rings_, static_cast<float>(vertical_min_span_m_));
+        if (amcl_scan_pub_) {
+          publishVerticalScan(stab_x, stab_y, stab_z, stab_ring, out_stamp, amcl_scan_pub_,
+                              static_cast<float>(amcl_min_z_), static_cast<float>(amcl_max_z_),
+                              amcl_min_rings_, static_cast<float>(amcl_min_span_m_));
+        }
       } else {
         publishTerrainAwareScan(stab_x, stab_y, stab_z, out_stamp);
       }
@@ -552,6 +578,9 @@ private:
   std::string scan_mode_{"slope"};
   double vertical_tol_m_{0.03};
   int vertical_min_rings_{3};
+  std::string amcl_scan_topic_;
+  double amcl_min_z_{-0.02}, amcl_max_z_{0.26}, amcl_min_span_m_{0.03};
+  int amcl_min_rings_{2};
   double vertical_min_span_m_{0.08};
 
   InputLayout layout_;
@@ -560,7 +589,7 @@ private:
   size_t count_{0};
 
   rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_;
-  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_pub_;
+  rclcpp_lifecycle::LifecyclePublisher<sensor_msgs::msg::LaserScan>::SharedPtr scan_pub_, amcl_scan_pub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;

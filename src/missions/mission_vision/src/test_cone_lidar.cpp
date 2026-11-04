@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
     }
     return 0;
   }
-  // XT16 in base_link (bridge_params / camera_extrinsics): 0.25 m forward, 0.1588 m up, yawed 90 deg
+  // XT16 in base_link (bridge_params / cone_tracker_params): 0.25 m forward, 0.1588 m up, yawed 90 deg
   Eigen::Isometry3d base_T_lidar = Eigen::Isometry3d::Identity();
   base_T_lidar.translation() = Eigen::Vector3d(0.25, 0.0, 0.1588);
   base_T_lidar.linear() = Eigen::Quaterniond(0.7070, 0.0024, 0.0063, 0.7071).normalized().toRotationMatrix();

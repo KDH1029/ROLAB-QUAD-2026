@@ -1,111 +1,61 @@
-# cone_tracker_node: YOLO cone boxes + LiDAR (preferred) / depth (fallback) -> world-frame cone tracks.
-# Camera/LiDAR extrinsics live in camera_extrinsics.yaml; pass both files: --params-file cone_tracker_params.yaml --params-file camera_extrinsics.yaml
+# cone_tracker_node: cones from the LiDAR alone -> world-frame (AMCL map) cone positions (cone_lidar.hpp).
+# Camera / YOLO fusion was removed on 11-05 (vision is the teammate's).
+#   145915 replay (cones known from the map): 10/10 within 4-14 cm, 0 fakes (2-3 duplicates 21-28 cm from
+#   cones 1/2); arena4 (17:56, cones moved since): 10 = the 10 placed.
+# Confirmed cones stay for the whole run, also when the robot is too close to see them (under the lowest ring
+# within ~0.8 m): ego_planner plans around every cone on /mission/cones within its cones.max_range.
 cone_tracker_node:
   ros__parameters:
-    # Cone boxes from the teammate's YOLO node (not in this repo). "string": std_msgs/String JSON
-    #   {"stamp":[sec,nsec],"cones":[[x1,y1,x2,y2,conf],...]}  - colour-image pixels, stamp = that image's header
-    #   (default - YOLO runs on the robot PC under Foxy, whose vision_msgs differs from Jazzy's);
-    # "vision_msgs": Detection2DArray on detections_topic (only when YOLO runs on the same ROS distro).
-    # Published cones = camera-confirmed U LiDAR-only-confirmed (duplicates within 0.3 m merged).
-    #   auto (default): camera picks while YOLO messages arrive; LiDAR-only inside `regions` always;
-    #        no YOLO message for vision_timeout_s -> LiDAR-only everywhere (no regions) or in the regions
-    #   fusion: camera required, no LiDAR-only cones          lidar_only: no camera at all
-    # LiDAR-only = a cluster seen at the same map spot in >= 70 % of >= 20 scans. 10-30 bag (building,
-    # no cones): 41 fakes even with map gating - stair/ramp edges, low narrow objects. Set `regions` to
-    # the slalom straights and check on a venue recording.
-    # 11-05: lidar_only by default (YOLO is the teammate's; fusion stays available with mode auto / fusion).
-    #   145915 replay (cones known from the map): 10/10 within 4-14 cm, 0 fakes (2-3 duplicates 21-28 cm
-    #   from cones 1/2); arena4 (17:56, cones moved since): 10 = the 10 placed.
-    mode: "lidar_only"
-    vision_timeout_s: 3.0      # s without any YOLO message (it sends one per frame, cones or not) = camera lost
-    lidar_only:
-      # [x0, y0, x1, y1, ...] world-frame rectangles; left out = everywhere. Never write an empty list
-      #   here - ROS cannot type an empty array and the node aborts at start.
+    cloud_topic: "/velodyne_points"                   # XT16 via cloud_bridge (hesai_lidar frame)
+    base_frame: "base_link"
+    world_frame: "map"                                # AMCL map
+    base_to_lidar:                                    # = bridge_params / URDF
+      xyz: [0.25, 0.0, 0.1588]
+      q_xyzw: [0.0024, 0.0063, 0.7071, 0.7070]
+    sync:
+      buffer_s: 1.0            # s of LiDAR cone candidates kept until their TF has arrived
+
+    lidar_cone:                # what counts as a cone cluster in one scan (cone_lidar.hpp)
+      z_min: -0.306            # m in base_link: 3 cm above the floor ...
+      z_max: -0.086            # ... to the cone top (23 cm) plus margin
+      min_points: 3
+      surface_to_center: 0.05  # m, the LiDAR sees the near face; shift to the cone axis
+      cluster_tol: 0.10        # m, points closer than this join one cluster
+      max_width: 0.30          # m, wider = wall / furniture
+      clear_gap: 0.08          # m above z_max where "something above" starts ...
+      clear_height: 0.60       # ... up to this: anything there = leg / person / box, not a cone
+      floor_gap: 0.03          # m, cluster must stand this far above the lowest point around it
+      floor_radius: 0.40       # m, "around"
+      max_range: 6.0           # m
+      tall_cell: 0.04          # m, columns with points both in the cone band and above the cone top (walls,
+                               #    legs, boxes) are dropped before clustering, so a cone against a wall stands
+                               #    alone instead of joining the wall. Scan only, no map. 0 = off
+      tall_dilate: 1           # cells around a point searched for the other half (a wall's foot and top often
+                               #    fall in neighbouring 4 cm columns)
+      fine_cover: false        # "something above" only right over the cluster points; 145915: no gain, one
+                               #    corner fake - left off
+
+    lidar_only:                # confirmation: the same map spot in >= min_ratio of >= min_scans scans
+      # [x0, y0, x1, y1, ...] world-frame rectangles; left out = everywhere (stair / ramp edges and low narrow
+      #   objects become cones - 10-30 building bag: 41). Never write an empty list here - ROS cannot type an
+      #   empty array and the node aborts at start.
       #   maps/arena1459_nocone: right slalom corridor + the left E pocket where cones stood on 11-04.
       #   (roboworld_2026 drawing: [0.5, 5.45, 5.45, 6.35, 0.5, 0.15, 5.45, 1.05])
       regions: [5.95, -0.35, 7.15, 4.9, 0.55, 2.75, 1.5, 3.85]
-      wall_clearance: 0.0      # m, cones closer to a map wall are ignored (wall foot / baseboard). 0: only a cone
-                               #   centre ON a wall cell is dropped. Wall-foot bits are now removed by the tall-column
-                               #   step (lidar_cone.tall_cell) instead. 145915: 0.15 -> 6/10, 0.05 -> 9/10 (cone 10 is
-                               #   8.5 cm from the map wall, AMCL is ~10 cm off), 0.0 -> 10/10; arena4 (cones moved):
-                               #   0.05 -> 5, 0.0 -> 10 = the 10 placed; no fake cone in either
+      wall_clearance: 0.0      # m, cones closer to a map wall are ignored. 0: only a cone centre ON a wall cell
+                               #   is dropped (wall-foot bits go in the tall-column step). 145915: 0.15 -> 6/10,
+                               #   0.05 -> 9/10 (cone 10 is 8.5 cm from the map wall, AMCL ~10 cm off), 0.0 -> 10/10
       min_ratio: 0.7           # seen in >= 70 % of the scans since first seen ...
       min_scans: 20            # ... judged over >= 20 scans (1 s at 20 Hz)
       confirm_hits: 5
       max_spread: 0.08         # m, sightings within this of the centre count
       assoc: 0.15              # m
       map_topic: "/map"
-    detections_format: "string"
-    detections_json_topic: "/mission/cone_detections_json"
-    detections_topic: "/mission/cone_detections"   # vision_msgs/Detection2DArray (detections_format: vision_msgs)
-    color_info_topic: "/camera/color/camera_info"
-    depth_topic: "/camera/depth/image_rect_raw"      # raw depth; re-projected into colour, no alignment needed
-    depth_info_topic: "/camera/depth/camera_info"
-    cloud_topic: "/velodyne_points"                   # XT16 via cloud_bridge (hesai_lidar frame)
-    base_frame: "base_link"
-    world_frame: "map"                                # AMCL map
-    odom_frame: "odom"                                # smooth odometry TF for motion compensation
-
-    # 0) sync: the camera stamps come from the robot PC clock (not synced, 1970); they are mapped to
-    #    this node's clock, and depth / LiDAR are taken at the image time, not "the latest"
-    sync:
-      buffer_s: 1.0            # s of depth frames and LiDAR scans kept (covers the YOLO delay)
-      max_dt: 0.05             # s, depth / scan farther than this from the image time is not used
-      max_tf_age: 0.2          # s, world TF fallback (latest) only if this close to the image time
-      motion_comp: true        # move depth / scan to the image time with the odom TF
-
-    # 1) coarse: YOLO box + depth (fallback: floor ray through the box bottom)
-    fusion:
-      box_shrink: 0.2          # use the inner 80 % of the box
-      near_fraction: 0.3       # nearest 30 % of depth hits in the box (box also covers floor/wall behind)
-      depth_stride: 4          # px
-      depth_min: 0.25          # m
-      depth_max: 4.0
-      max_range: 4.0           # m from base_link; farther detections are ignored
-      min_score: 0.35
-      surface_to_center: 0.05  # m, near-surface estimate -> cone axis (base 14 cm, measured at ~7 cm height)
-      floor_z: -0.336          # m, floor height in base_link (standing Go2): measured under the feet by
-                               #    tools/camera_floor_calib.py --write-params (10-30 bag; was -0.30)
-
-    # 2) precise: LiDAR finds cone-shaped clusters by itself; the camera only picks which one
-    refine:
-      search_radius: 0.30      # m around the depth estimate ...
-      search_radius_per_m: 0.05  # ... plus this per metre of range (camera pitch error / jitter grows with range)
-      bearing_tol_deg: 6.0     # no depth: match on direction only (floor-ray range depends on the pitch)
-      z_min: -0.306             # m in base_link: 3 cm above the floor ...
-      z_max: -0.086             # ... to the cone top (23 cm) plus margin
-      min_points: 3
-    lidar_cone:                # what counts as a cone cluster (cone_lidar.hpp)
-      cluster_tol: 0.10        # m, points closer than this join one cluster
-      max_width: 0.30          # m, wider = wall / furniture
-      clear_gap: 0.08          # m above z_max where "something above" starts ...
-      clear_height: 0.60       # ... up to this: anything there = leg / person / box, not a cone
-      floor_gap: 0.03          # m, cluster must stand this far above the lowest point around it
-      floor_radius: 0.40       # m, "around" (10-30 bag without cones: 1.1 false clusters per scan,
-                               #    0.34 within 2.5 m; the camera decides which cluster is a cone)
-      max_range: 6.0           # m
-      tall_cell: 0.04          # m, columns with points both in the cone band and above the cone top (walls,
-                               #    legs, boxes) are dropped before clustering, so a cone against a wall stands
-                               #    alone instead of joining the wall. Scan only, no map. 0 = off
-      fine_cover: false        # "something above" only right over the cluster points (tall_cell +-1), not over
-                               #    footprint + 10 cm: the wall top behind a cone 2 cm off the wall no longer counts.
-                               #    Needs regions + map wall gating (they drop the wall-foot bits the wide test
-                               #    caught: synthetic scene without map gets 1-2 such bits per scan). 145915: did not bring
-                               #    cone 10 back, added a corner fake - left off
-
     tracking:
-      assoc_dist: 0.30         # m, same cone if closer than this
-      confirm_hits: 3          # detections before a cone is published ...
-      confirm_lidar_hits: 2    # ... of which at least this many LiDAR-refined (0: allow depth-only)
-      alpha_lidar: 0.5         # position update weight of a LiDAR measurement
-      alpha_coarse: 0.1        # of a coarse one (only until the first LiDAR measurement)
-      alpha_lidar_only: 0.2    # confirmed cones: update from LiDAR clusters alone (beyond the camera's ~2.2 m)
-      lidar_only_assoc: 0.15   # m, tight - another cluster must not drag a confirmed cone
-      tentative_timeout: 2.0   # s, unconfirmed tracks
-      confirmed_timeout: 0.0   # s, confirmed (0: keep; cones are static)
+      alpha_lidar_only: 0.2    # confirmed cones: update weight of a new sighting
 
     output:
       obstacle_radius: 0.08    # m, ring of points per cone on /mission/cone_obstacles (14 cm base);
                                # ego_planner uses /mission/cones (centres) with its own cones.* clearance
       save_path: "~/go2_cones.yaml"  # confirmed cones written on every confirmation and on deactivate
-      load_saved: false        # true: start with the saved cones (e.g. re-run on the same course)
+      load_saved: false        # true: start with the saved cones (same layout again; off when it changes)

@@ -12,29 +12,21 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
-find_package(vision_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-# Cone localisation & tracking (YOLO boxes + LiDAR/depth -> world frame)
+# Cone localisation & tracking from the LiDAR alone (cone_lidar.hpp) -> world frame
 add_executable(cone_tracker_node src/cone_tracker_node.cpp)
 target_include_directories(cone_tracker_node PRIVATE ${EIGEN3_INCLUDE_DIRS} include)
 add_executable(test_cone_lidar src/test_cone_lidar.cpp)
 target_include_directories(test_cone_lidar PRIVATE ${EIGEN3_INCLUDE_DIRS} include)
 ament_target_dependencies(cone_tracker_node
-  rclcpp rclcpp_lifecycle std_msgs sensor_msgs geometry_msgs nav_msgs vision_msgs visualization_msgs tf2_ros)
+  rclcpp rclcpp_lifecycle sensor_msgs geometry_msgs nav_msgs visualization_msgs tf2_ros)
 install(TARGETS cone_tracker_node test_cone_lidar DESTINATION lib/${PROJECT_NAME})
 
-# 1. Camera calibration / check tools (YOLO itself is the teammate's, outside this repo)
-install(PROGRAMS
-  tools/depth_lidar_align.py
-  tools/camera_floor_calib.py
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-# 2. Package assets: config, launch
-install(DIRECTORY launch config
+# Package assets: config
+install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME}
 )
 

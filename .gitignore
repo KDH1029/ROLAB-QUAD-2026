@@ -30,5 +30,5 @@ runs/
 *~
 .DS_Store
 
-# Config backups written by the tools (camera_floor_calib, depth_lidar_align)
+# Config backups written by tools
 *.bak_*

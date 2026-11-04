@@ -4,8 +4,8 @@
 #   ./scripts/go2_run.sh --map maps/arena.yaml                    # SLAM + AMCL + EGO-Planner
 #   ./scripts/go2_run.sh --map maps/arena.yaml --no-motor         # same, cannot move the robot
 #   ./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"    # + AMCL start pose (x y yaw_deg)
-#   ./scripts/go2_run.sh --map maps/arena.yaml --cones            # + cone tracker (default lidar_only; auto = YOLO if it runs)
-#        --cone-mode auto|fusion|lidar_only   --cone-regions "x0 y0 x1 y1 ..."   (LiDAR-only rectangles, map frame)
+#   ./scripts/go2_run.sh --map maps/arena.yaml --cones            # + cone tracker (LiDAR only)
+#        --cone-regions "x0 y0 x1 y1 ..."   (LiDAR cone rectangles, map frame; default = cone_tracker_params)
 #        --leg-odom   AMCL on the leg odometry instead of FAST-LIO (default /Odometry, 11-05: 3 cm vs 10 cm)
 #        lidar_only = no camera at all (stop lines then proceed 2.8 s after stopping: no light signal)
 #   ./scripts/go2_run.sh --map maps/arena.yaml --route maps/route_arena.yaml   # + route runner
@@ -25,7 +25,6 @@ MOTOR=true
 START=""
 CONES=false
 ROUTE=""
-CONE_MODE=lidar_only
 CONE_REGIONS=""
 AMCL_ODOM=/Odometry
 
@@ -37,7 +36,6 @@ while [[ $# -gt 0 ]]; do
         --start) START="$2"; shift 2 ;;
         --cones) CONES=true; shift ;;
         --route) ROUTE="$(realpath "$2")"; shift 2 ;;
-        --cone-mode) CONE_MODE="$2"; CONES=true; shift 2 ;;
         --cone-regions) CONE_REGIONS="$2"; shift 2 ;;
         --leg-odom) AMCL_ODOM=/utlidar/robot_odom; shift ;;
         -h|--help) sed -n 2,18p "$0"; exit 0 ;;
@@ -101,7 +99,7 @@ echo "----------------------------------------------------------------------"
 
 # Launch is a direct child (not inside a pipeline) so Ctrl+C / cleanup reaches it
 ros2 launch go2_navigation go2_stack.launch.py mode:="$MODE" motor:="$MOTOR" map:="$MAP" cones:="$CONES" route:="$ROUTE" \
-    cone_mode:="$CONE_MODE" cone_regions:="$CONE_REGIONS" amcl_odom:="$AMCL_ODOM" \
+    cone_regions:="$CONE_REGIONS" amcl_odom:="$AMCL_ODOM" \
     fastlio_config:="$WS_DIR/config/fastlio/fastlio_xt16_odometry.yaml" > >(tee "$LOG_DIR/stack.log") 2>&1 &
 
 if [ "$MODE" = nav ] && [ -n "$START" ]; then
