@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
   if (!map->loadPriorMap(argv[1])) { std::cerr << "cannot load " << argv[1] << "\n"; return 1; }
   const auto & obs = map->getStaticObstacles();
 
-  // Optional cones on the walked path (env): CONES_EVERY=m between cones, CONES_OFFSET=m sideways
+  // Optional cones on the walked path (env): CONES_EVERY=m between cones, CONES_OFFSET=m sideways, or CONES_FILE
   // (alternating), CONE_INFLATE / CONE_SAFE / CONE_WEIGHT = cones.* parameters (0 weight: off).
   auto envd = [](const char * k, double d) { const char * v = std::getenv(k); return v ? std::atof(v) : d; };
   ConeField cones;
@@ -63,6 +63,16 @@ int main(int argc, char ** argv)
       acc = 0.0;
       const Eigen::Vector2d dir = (traj[i] - traj[i - 1]).normalized();
       cones.centers.push_back(traj[i] + ((k++ % 2) ? offset : -offset) * Eigen::Vector2d(-dir.y(), dir.x()));
+    }
+    map->setCones(cones);
+  }
+  // Or real cone positions (env CONES_FILE: one "x,y" per line, map frame)
+  if (const char * cf = std::getenv("CONES_FILE")) {
+    std::ifstream cfs(cf);
+    std::string cl;
+    while (std::getline(cfs, cl)) {
+      double x, y;
+      if (std::sscanf(cl.c_str(), "%lf,%lf", &x, &y) == 2) cones.centers.emplace_back(x, y);
     }
     map->setCones(cones);
   }
@@ -88,6 +98,15 @@ int main(int argc, char ** argv)
     BsplineTrajectory bt;
     if (!astar.search(s, g, path)) { ++f_astar; continue; }
     if (!opt.optimizeWithContinuity(path, s, Eigen::Vector2d::Zero(), Eigen::Vector2d::Zero(), bt)) continue;
+    if (const char * dump = std::getenv("DUMP_FILE")) {   // per pair: A* path and the optimised trajectory
+      std::ofstream df(dump, std::ios::app);
+      df << "pair " << n << " " << s.x() << " " << s.y() << " " << g.x() << " " << g.y() << "\n";
+      for (const auto & q : path) df << "a " << q.x() << " " << q.y() << "\n";
+      for (double t = 0; t <= bt.getTotalDuration(); t += 0.05) {
+        const Eigen::Vector2d q = bt.evaluatePosition(t);
+        df << "t " << q.x() << " " << q.y() << " " << (map->isInflated(q) ? 1 : 0) << "\n";
+      }
+    }
     if (validate && !opt.isCollisionFree(bt, 0.05)) {
       // Fallback: same control points without optimisation (stays on the A* corridor)
       BsplineOptimizer raw; raw.init(map, 1.0, lambda_obs, 2.0, max_vel, 1.2, safe);
