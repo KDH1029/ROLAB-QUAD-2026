@@ -74,13 +74,15 @@ go2_cmd_vel_to_sport:
     min_vy: 0.08
     min_wz: 0.15
     # Straight-walk yaw trim: wz_out = wz - (yaw_trim_per_vx * vx + yaw_trim_bias) while walking.
-    # ON from 11-04 113612 bag (autonomous Move yaw 0 >= 1 s): LEFT +1.55 deg/s at 0.22 m/s, +3.0 at
-    # 0.37 (+7.5 deg/m) -> line fit 0.144 / -0.004. Sign checked: Move z +=left, trim subtracts.
-    # NOT yet verified on the robot: scripts/go2_yaw_drift.py live --vx 0.3 --secs 6 --trim 0.144,-0.004
-    # Reverse (vx < 0) uses the mirrored trim - unverified. The remote does not go through this bridge.
-    # 0 / 0 = off.
-    yaw_trim_per_vx: 0.144
-    yaw_trim_bias: -0.004
+    # vx here is the COMMANDED speed (commanded > actual). 11-04 live test (go2_yaw_drift.py live):
+    # 0.144/-0.004 (fit on actual speed from the 113612 bag) over-corrected ~-2 deg/m at cmd 0.3 and 0.5;
+    # refit on commanded vx -> 0.110/-0.002, check at cmd 0.5: +0.06 deg/s (+0.1 deg/m).
+    # Not re-tested at cmd 0.3 with these values. Reverse (vx < 0) uses the mirrored trim - unverified.
+    # The remote does not go through this bridge. 0 / 0 = off.
+    # NOTE: go2_yaw_drift.py fits against the ACTUAL speed and includes accel/decel - its suggestions
+    # are not directly usable for this trim (should fit against commanded vx; not changed yet).
+    yaw_trim_per_vx: 0.110
+    yaw_trim_bias: -0.002
     max_ax: 1.0
     max_alphaz: 2.0
     deadman_s: 0.5
