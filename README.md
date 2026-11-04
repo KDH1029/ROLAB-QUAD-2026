@@ -17,8 +17,8 @@ Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞�
 - **경로 계획의 콘 전용 여유**: 콘 중심 좌표를 벽과 별도로 — 절대 접근 금지 반경, 밀어내는 범위·세기를 YAML 로 관리
 - **경로 순차 주행**: 현장에서 저장한 지도 좌표(AMCL) 순서대로 EGO-Planner 에 목표 전달, 구간별 속도·도착 허용 오차,
   정지선(2.3초 정지 + 최신 녹색 신호에만 출발), 주차(Sit 5.5초 → RiseSit), FAST-LIO 튐 감지 시 정지
-- **YOLO 출력 형식 자동 판별**: v8/v11, v5, NMS 포함 출력을 모양으로 판별, Ultralytics 와 같은 letterbox 전처리,
-  onnxruntime → OpenVINO → OpenCV 순으로 로드. 콘 박스는 Foxy(로봇 PC)↔Jazzy(NUC) 사이에서도 되는 JSON 문자열로 전달
+- **YOLO 는 팀원 노드**: 학습·추론 코드는 이 저장소에 없다. 아래 "비전 입력" 형식으로 콘 박스·신호등 상태를 받는다.
+  콘 박스는 Foxy(로봇 PC)↔Jazzy(NUC) 사이에서도 되는 JSON 문자열로 전달
 - **카메라 장착각 측정**: 평지에 서서 10초 — depth 바닥 + 발 4개(다리 기구학)로 각도·높이를 재서 설정에 저장
 - **안전**: 모든 런타임 노드가 lifecycle 노드 (비활성화 = 정지), 모터 브리지는 마지막에 기동, 모터 없는 시험 모드
 - **보험 모드**: 지도·SLAM 없이 RANSAC 벽 직선 추종
@@ -100,11 +100,24 @@ ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 | `src/core/ego_planner/config/ego_planner_params.yaml` | 경로 생성 (팽창·반발 거리, 최적화, 제어 이득, `cones:` 콘 전용 여유) |
 | `src/missions/mission_vision/config/cone_tracker_params.yaml` | 라바콘: 시각 동기화, LiDAR 콘 판정, 추적·저장, 바닥 높이 |
 | `src/missions/mission_vision/config/camera_extrinsics.yaml` | 카메라·LiDAR 장착 위치·각도 (`camera_floor_calib.py` 측정값) |
-| `src/missions/mission_vision/config/yolo_params.yaml` | YOLO: 모델, 클래스 번호, 출력 형식(`output_layout`), 콘 박스 형식(`detections_format`) |
 | `maps/route_<이름>.yaml` (`maps/route_example.yaml`) | 경로: 지점 좌표 + 순서·동작·구간 속도 |
 | `src/fallback/go2_wall_patrol/config/patrol_params.yaml` | 보험 모드 |
 | `config/system_params.yaml` | 매핑 (2D 변환, 자동 수평, 위치 소스) |
 | `config/fastlio/fastlio_xt16_odometry.yaml` | FAST-LIO (XT16) |
+
+## 비전 입력 (팀원 YOLO 노드가 보내는 것)
+
+YOLO 학습·실행은 팀원 담당이고 이 저장소에는 없다. 아래 두 토픽만 맞추면 콘 퓨전(`cone_tracker_node`)과 경로 실행기가 그대로 쓴다.
+
+| 토픽 | 형식 | 받는 쪽 |
+|---|---|---|
+| `/mission/cone_detections_json` | `std_msgs/String`: `{"stamp":[sec,nsec],"cones":[[x1,y1,x2,y2,conf],...]}` — 컬러 영상 픽셀 좌표, `stamp` = 그 영상의 header stamp(로봇 PC 시계 그대로 — 노드가 NUC 시계로 바꾼다), 콘 없으면 `"cones":[]` 로라도 매 프레임 | `cone_tracker_node` (`detections_format: string`) |
+| `/mission/cone_detections` (대신) | `vision_msgs/Detection2DArray`: bbox 중심·크기(px), `results[0].hypothesis.score` — 같은 ROS 배포판일 때만 | `cone_tracker_node` (`detections_format: vision_msgs`) |
+| `/mission/traffic_light` | `std_msgs/String`: 정확히 `GREEN` / `RED` / `UNKNOWN` (다른 글자가 붙으면 GREEN 으로 안 본다), 매 프레임 | `route_runner_node` (`traffic_topic`) |
+
+- 영상·깊이는 `/camera/color/camera_info`·`/camera/depth/image_rect_raw`·`/camera/depth/camera_info` (D435i, 로봇 PC) 를 쓴다
+- YOLO 메시지가 `vision_timeout_s`(3 s) 동안 없으면 `mode: auto` 는 LiDAR 만으로 콘을 잡는다 (YOLO 없이도 동작)
+- 신호등 메시지가 2 s 넘게 없으면 경로 실행기는 정지선에서 2.8 s 서 있다가 출발한다
 
 ## 저장소 구조
 
@@ -113,7 +126,7 @@ src/core/go2_bridge           LiDAR·IMU·odom·모터 브리지, 수직성 스�
 src/core/go2_localization     AMCL 설정
 src/core/go2_navigation       통합 런치 (go2_stack.launch.py)
 src/core/ego_planner          EGO-Planner, 오프라인 시험 도구 (test_plan_on_map)
-src/missions/mission_vision   YOLO, cone_tracker, 카메라 장착각 측정·점검 도구, 콘 판정 합성 시험
+src/missions/mission_vision   cone_tracker, 카메라 장착각 측정·점검 도구, 콘 판정 합성 시험 (YOLO 는 팀원 노드)
 src/missions/mission_runner   경로 순차 실행기 (route_runner_node, 판단 로직 route_logic.hpp), 미션 상태기
 src/fallback/go2_wall_patrol  RANSAC 벽 추종 (보험)
 src/interfaces                Unitree 메시지
@@ -150,10 +163,8 @@ config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 ## 알려진 제한
 
 - FAST-LIO 는 XT16 `/lidar_points` 와 CycloneDDS 에서만 안정적으로 확인됨. 높이(z) 드리프트 있음(9분 +0.83 m, 2D 주행에는 영향 없음)
-- YOLO 모델은 합성 데이터 학습본 (실제 콘·신호등 데이터로 재학습 필요)
 - **슬라럼 통로 폭은 약 1.0 m** (지도 0.99 m). 콘이 통로 가운데에 있으면 양쪽 틈 0.425 m 에 로봇 0.31 m — 각 5.75 cm 여유.
   기본 설정으로는 경로가 안 나오고, `grid.resolution 0.05`·`inflate_radius 0.19`·`cones.inflate_radius 0.25` 로도 25~40 %
-- 현재 YOLO 모델은 합성 데이터 학습본: 실제 신호등 사진 40장에서 콘 2·주차 5 오검출 → 실제 데이터로 재학습
 - 경로 실행기는 가짜 로봇으로만 시험함 (실기 미검증). FAST-LIO 튐 기준(0.5 m)은 계단 충격 오탐 여부를 실기에서 정할 것.
   `mission_fsm_node`(직접 `/cmd_vel` 제어)와 동시에 띄우지 말 것
 - 카메라 없이 LiDAR 만으로 콘 판정(`mode: lidar_only`): 합성 시험 200회 오검출 0·놓침 0 이지만, 콘 없는 10-30 건물 녹화에서

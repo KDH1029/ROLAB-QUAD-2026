@@ -2,9 +2,10 @@
 # Camera/LiDAR extrinsics live in camera_extrinsics.yaml; pass both files: --params-file cone_tracker_params.yaml --params-file camera_extrinsics.yaml
 cone_tracker_node:
   ros__parameters:
-    # Cone boxes from yolo_detector_node. "string": std_msgs/String JSON (default - YOLO runs on the
-    # robot PC under Foxy, whose vision_msgs differs from Jazzy's); "vision_msgs": Detection2DArray
-    # (only when YOLO runs on the same ROS distro). Must match yolo_detector_node detections_format.
+    # Cone boxes from the teammate's YOLO node (not in this repo). "string": std_msgs/String JSON
+    #   {"stamp":[sec,nsec],"cones":[[x1,y1,x2,y2,conf],...]}  - colour-image pixels, stamp = that image's header
+    #   (default - YOLO runs on the robot PC under Foxy, whose vision_msgs differs from Jazzy's);
+    # "vision_msgs": Detection2DArray on detections_topic (only when YOLO runs on the same ROS distro).
     # Published cones = camera-confirmed U LiDAR-only-confirmed (duplicates within 0.3 m merged).
     #   auto (default): camera picks while YOLO messages arrive; LiDAR-only inside `regions` always;
     #        no YOLO message for vision_timeout_s -> LiDAR-only everywhere (no regions) or in the regions

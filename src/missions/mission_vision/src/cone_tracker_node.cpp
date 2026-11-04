@@ -2,7 +2,7 @@
  * @file cone_tracker_node.cpp
  * @brief Cone localisation: YOLO boxes + LiDAR (preferred) / depth (fallback) -> world-frame tracks.
  *
- * Per detection (from yolo_detector_node: std_msgs/String JSON by default - the robot PC runs Foxy,
+ * Per detection (from the teammate's YOLO node: std_msgs/String JSON by default - the robot PC runs Foxy,
  * whose vision_msgs differs from Jazzy's - or vision_msgs/Detection2DArray, detections_format):
  *   1. Coarse: depth pixels re-projected into the colour image (no aligned depth needed), nearest
  *      fraction inside the box -> rough cone position in base_link. Without depth: the ray through
@@ -90,7 +90,7 @@ struct Box
   double cu, cv, sx, sy, score;
 };
 
-/// {"stamp":[sec,nsec],...,"cones":[[x1,y1,x2,y2,conf],...]} from yolo_detector_node. Only these two
+/// {"stamp":[sec,nsec],...,"cones":[[x1,y1,x2,y2,conf],...]} from the YOLO node. Only these two
 /// keys are read; false when the stamp is missing.
 bool parseConeJson(const std::string & s, int64_t & sec, int64_t & nsec, std::vector<Box> & boxes)
 {

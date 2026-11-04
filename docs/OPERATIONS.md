@@ -21,8 +21,8 @@ Unitree Go2 Edu와 Hesai XT16 3D LiDAR 환경에서 보행 시 발생하는 착�
 - [x] **1:1 CAD 트랙 맵 & 웨이포인트**: $6\text{m} \times 8\text{m}$ 도면 맵(`maps/roboworld_2026.pgm`) 및 12개 공식 웨이포인트([`waypoints_track.yaml`](../src/missions/mission_runner/config/waypoints_track.yaml)) 정합
 - [x] **C++ Core 스택 (`go2_bridge`)**: 151Hz 오도메트리 TF, 12-DoF FK 접촉 평면 보정(`base_stab`), $18^\circ$ 경사로/$0.1\text{m}$ 장애물 분리 필터, Sport API 제어기 구축
 - [x] **7단계 미션 FSM (`mission_runner`)**: 출발선(IN) → 경사로 → 정지선1(신호등 2초 정지/초록불 출발) → 슬라럼 → 정지선2 → 주차(5초 착석) → 도착선(OUT) 상태 머신 작성
-- [x] **YOLOv8-Nano 비전 (`mission_vision`)**: 3개 클래스(0: 신호등, 1: 23cm 콘, 2: 10cm 주차 표지판) 사전 학습 및 `yolo_mission.onnx` 모델 배치 (OpenCV DNN 0-dependency 추론)
-- [x] **통합 런처 및 유틸리티**: 원터치 실행기([`go2_mission_run.sh`](../scripts/go2_mission_run.sh)), 재학습 스크립트([`train_mission_yolo.py`](../scripts/train_mission_yolo.py)), 추론 테스트기([`test_yolo_inference.py`](../scripts/test_yolo_inference.py))
+- [x] **비전 입력 (`mission_vision`)**: YOLO 학습·추론은 팀원 노드(11-05 저장소에서 삭제). 입력 형식은 README "비전 입력"
+- [x] **통합 런처 및 유틸리티**: 원터치 실행기([`go2_mission_run.sh`](../scripts/go2_mission_run.sh))
 
 ### 🔄 다음 작업 및 디버깅 예정 항목
 - [ ] `./scripts/go2_mission_run.sh --sim` 기반 가상 시뮬레이션 스모크 테스트 (FSM 상태 천이 검증)
@@ -180,7 +180,7 @@ ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 #   두 절반(장소별)의 결과가 0.5°/2 cm 안으로 일치할 때만 저장된다. 10-30 bag 은 불일치 → 기본값 유지.
 python3 src/missions/mission_vision/tools/depth_lidar_align.py ~/bags/<bag> \
     [--write src/missions/mission_vision/config/camera_extrinsics.yaml]
-# 주행 스택에 콘 추적 추가 (YOLO 는 로봇 PC 에서 /mission/cone_detections 발행)
+# 주행 스택에 콘 추적 추가 (팀원 YOLO 가 로봇 PC 에서 /mission/cone_detections_json 발행)
 ./scripts/go2_run.sh --map maps/arena.yaml --cones
 ```
 - 센서 싱크: 카메라 stamp 는 로봇 PC 시계(1970, 미동기). `cone_tracker_node` 가 스트림별로

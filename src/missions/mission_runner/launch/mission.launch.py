@@ -1,6 +1,3 @@
-import os
-
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
@@ -15,14 +12,8 @@ def generate_launch_description():
         DeclareLaunchArgument('use_relative_route', default_value='false'),
         DeclareLaunchArgument('reference_frame', default_value='map'),
 
-        Node(
-            package='mission_vision',
-            executable='yolo_detector_node.py',
-            name='yolo_detector_node',
-            output='screen',
-            parameters=[os.path.join(
-                get_package_share_directory('mission_vision'), 'config', 'yolo_params.yaml')]
-        ),
+        # Vision (YOLO: /mission/traffic_light, /mission/cone_detections_json) is the teammate's node,
+        # started separately - see README "비전 입력".
         Node(
             package='mission_runner',
             executable='mission_fsm_node',

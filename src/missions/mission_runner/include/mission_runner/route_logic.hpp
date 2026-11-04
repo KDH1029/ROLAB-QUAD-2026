@@ -8,7 +8,7 @@
 //   stopline  arrive, stand still >= stop_hold_s (rulebook 2 s + margin), then leave only on a FRESH
 //             GREEN (older than signal_max_age_s does not count); after traffic_timeout_s proceed
 //             anyway (the 50 points are lost, the 200 for finishing are not). No signal at all
-//             (camera off / lidar_only: yolo_detector_node sends a state every frame, UNKNOWN included)
+//             (camera off / lidar_only: the YOLO node is expected to send a state every frame, UNKNOWN included)
 //             -> proceed after no_signal_wait_s from the stop, not after the 15 s timeout
 //   parking   arrive, stand still, Sit (1009) for sit_hold_s (rulebook 5 s + margin), RiseSit (1010)
 //   finish    arrive -> done

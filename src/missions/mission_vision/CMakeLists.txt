@@ -26,18 +26,15 @@ ament_target_dependencies(cone_tracker_node
   rclcpp rclcpp_lifecycle std_msgs sensor_msgs geometry_msgs nav_msgs vision_msgs visualization_msgs tf2_ros)
 install(TARGETS cone_tracker_node test_cone_lidar DESTINATION lib/${PROJECT_NAME})
 
-# 1. Modular Python YOLO Detector Node
+# 1. Camera calibration / check tools (YOLO itself is the teammate's, outside this repo)
 install(PROGRAMS
-  scripts/yolo_detector_node.py
   tools/depth_lidar_align.py
   tools/camera_floor_calib.py
-  tools/yolo_model_check.py
-  tools/bag_to_images.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# 2. Package assets: config, launch, models
-install(DIRECTORY launch config models
+# 2. Package assets: config, launch
+install(DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
 )
 
