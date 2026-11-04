@@ -13,13 +13,19 @@ cone_tracker_node:
     # LiDAR-only = a cluster seen at the same map spot in >= 70 % of >= 20 scans. 10-30 bag (building,
     # no cones): 41 fakes even with map gating - stair/ramp edges, low narrow objects. Set `regions` to
     # the slalom straights and check on a venue recording.
-    mode: "auto"
+    # 11-05: lidar_only by default (YOLO is the teammate's; fusion stays available with mode auto / fusion).
+    #   145915 replay (cones known from the map): 7/10 cones within 4-10 cm, 0 fakes outside the cones;
+    #   the 3 missed ones stand against a wall. arena4 (17:56, cones moved since) 2 + 3 at other spots.
+    mode: "lidar_only"
     vision_timeout_s: 3.0      # s without any YOLO message (it sends one per frame, cones or not) = camera lost
     lidar_only:
-      # regions: [0.5, 5.45, 5.45, 6.35, 0.5, 0.15, 5.45, 1.05]   # [x0, y0, x1, y1, ...] world-frame rectangles
-      #   (example: the two slalom straights of maps/roboworld_2026); left out = everywhere. Never write
-      #   an empty list here - ROS cannot type an empty array and the node aborts at start.
-      wall_clearance: 0.15     # m, cones closer to a map wall are ignored (wall foot / baseboard)
+      # [x0, y0, x1, y1, ...] world-frame rectangles; left out = everywhere. Never write an empty list
+      #   here - ROS cannot type an empty array and the node aborts at start.
+      #   maps/arena1459_nocone: right slalom corridor + the left E pocket where cones stood on 11-04.
+      #   (roboworld_2026 drawing: [0.5, 5.45, 5.45, 6.35, 0.5, 0.15, 5.45, 1.05])
+      regions: [5.95, -0.35, 7.15, 4.9, 0.55, 2.75, 1.5, 3.85]
+      wall_clearance: 0.05     # m, cones closer to a map wall are ignored (wall foot / baseboard).
+                               #   0.15 lost the cones standing against the corridor walls (145915: 6 -> 7 of 10)
       min_ratio: 0.7           # seen in >= 70 % of the scans since first seen ...
       min_scans: 20            # ... judged over >= 20 scans (1 s at 20 Hz)
       confirm_hits: 5

@@ -4,7 +4,7 @@
 #   ./scripts/go2_run.sh --map maps/arena.yaml                    # SLAM + AMCL + EGO-Planner
 #   ./scripts/go2_run.sh --map maps/arena.yaml --no-motor         # same, cannot move the robot
 #   ./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"    # + AMCL start pose (x y yaw_deg)
-#   ./scripts/go2_run.sh --map maps/arena.yaml --cones            # + cone tracker (auto: YOLO if it runs, else LiDAR)
+#   ./scripts/go2_run.sh --map maps/arena.yaml --cones            # + cone tracker (default lidar_only; auto = YOLO if it runs)
 #        --cone-mode auto|fusion|lidar_only   --cone-regions "x0 y0 x1 y1 ..."   (LiDAR-only rectangles, map frame)
 #        lidar_only = no camera at all (stop lines then proceed 2.8 s after stopping: no light signal)
 #   ./scripts/go2_run.sh --map maps/arena.yaml --route maps/route_arena.yaml   # + route runner
@@ -24,7 +24,7 @@ MOTOR=true
 START=""
 CONES=false
 ROUTE=""
-CONE_MODE=auto
+CONE_MODE=lidar_only
 CONE_REGIONS=""
 
 while [[ $# -gt 0 ]]; do
