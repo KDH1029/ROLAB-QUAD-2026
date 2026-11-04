@@ -5,6 +5,13 @@
 // or continue above the cone top (legs, people, boxes); bits of floor that rise into the band
 // (thresholds, ramps, body pitch) are flat with the floor next to them. On the 10-30 bag (no cones)
 // the floor test took out most of the 1-5 false clusters per scan.
+//
+// Tall columns go first (tall_cell): a small vertical column holding points both in the cone band and
+// above the cone top is something taller than a cone - a wall, a leg, a box side. Those points are
+// dropped before clustering, so a cone standing against a wall becomes its own small cluster instead of
+// one long cluster with the wall (11-05, 145915 replay: cone 10, 2 cm from the inner wall, was joined to
+// the wall in 338 scans and clean in 141). This uses only the scan itself - no map, so a localisation
+// error cannot delete a cone or keep a wall.
 #pragma once
 
 #include <algorithm>
@@ -30,6 +37,7 @@ struct Config
   double floor_gap{0.03};       // m, cluster mean must be this far above the lowest point around it
   double floor_radius{0.40};    // m, "around" for floor_gap (no floor point there: not judged)
   double surface_to_center{0.05};  // m, the LiDAR sees the near face; shift to the cone axis
+  double tall_cell{0.04};       // m, column size for the tall-column removal above; 0 = off
 };
 
 struct Candidate
@@ -49,6 +57,23 @@ inline std::vector<Candidate> findCones(const std::vector<Eigen::Vector3d> & pts
                                         const Config & c)
 {
   const double cell = c.cluster_tol;
+  // columns (tall_cell) with points both in the band and above the cone top: taller than a cone
+  std::unordered_map<long long, int> tall;   // bit 1 = band point, bit 2 = above point
+  auto tkey = [&](const Eigen::Vector3d & p) {
+    return detail::key(static_cast<int>(std::floor(p.x() / c.tall_cell)), static_cast<int>(std::floor(p.y() / c.tall_cell)));
+  };
+  if (c.tall_cell > 0.0) {
+    for (const auto & p : pts) {
+      if (p.head<2>().norm() > c.max_range) continue;
+      if (p.z() >= c.z_min && p.z() <= c.z_max) tall[tkey(p)] |= 1;
+      else if (p.z() > c.z_max + c.clear_gap && p.z() <= c.z_max + c.clear_height) tall[tkey(p)] |= 2;
+    }
+  }
+  auto in_tall = [&](const Eigen::Vector3d & p) {
+    if (c.tall_cell <= 0.0) return false;
+    auto it = tall.find(tkey(p));
+    return it != tall.end() && it->second == 3;
+  };
   std::vector<Eigen::Vector2d> band;
   std::vector<double> band_z;
   std::unordered_map<long long, int> above;  // cells (cluster_tol) with points above the cone top
@@ -59,6 +84,9 @@ inline std::vector<Candidate> findCones(const std::vector<Eigen::Vector3d> & pts
       const long long k = detail::key(static_cast<int>(std::floor(p.x() / cell)), static_cast<int>(std::floor(p.y() / cell)));
       auto it = low.find(k);
       if (it == low.end() || p.z() < it->second) low[k] = p.z();
+    }
+    if ((p.z() >= c.z_min && p.z() <= c.z_max) || (p.z() > c.z_max + c.clear_gap && p.z() <= c.z_max + c.clear_height)) {
+      if (in_tall(p)) continue;   // wall / leg / box column: neither a cone point nor "something above"
     }
     if (p.z() >= c.z_min && p.z() <= c.z_max) {
       band.push_back(p.head<2>());

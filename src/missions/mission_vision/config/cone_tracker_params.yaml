@@ -81,6 +81,9 @@ cone_tracker_node:
       floor_radius: 0.40       # m, "around" (10-30 bag without cones: 1.1 false clusters per scan,
                                #    0.34 within 2.5 m; the camera decides which cluster is a cone)
       max_range: 6.0           # m
+      tall_cell: 0.04          # m, columns with points both in the cone band and above the cone top (walls,
+                               #    legs, boxes) are dropped before clustering, so a cone against a wall stands
+                               #    alone instead of joining the wall. Scan only, no map. 0 = off
 
     tracking:
       assoc_dist: 0.30         # m, same cone if closer than this
