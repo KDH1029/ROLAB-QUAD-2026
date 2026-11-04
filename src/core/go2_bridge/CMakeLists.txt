@@ -60,16 +60,7 @@ ament_target_dependencies(cmd_vel_to_sport_node
   unitree_api
 )
 
-# 5. mapper_node (C++ Live 3D Mapper & PCD-to-2D Converter)
-add_executable(mapper_node src/mapper_node.cpp)
-ament_target_dependencies(mapper_node
-  rclcpp
-  sensor_msgs
-  tf2
-  tf2_ros
-)
-
-# 6. odom_nav_node (C++ 20Hz Closed-Loop Odometry Controller)
+# 5. odom_nav_node (C++ 20Hz Closed-Loop Odometry Controller)
 add_executable(odom_nav_node src/odom_nav_node.cpp)
 ament_target_dependencies(odom_nav_node
   rclcpp
@@ -86,7 +77,6 @@ install(TARGETS
   imu_bridge_node
   cloud_bridge_node
   cmd_vel_to_sport_node
-  mapper_node
   odom_nav_node
   DESTINATION lib/${PROJECT_NAME}
 )

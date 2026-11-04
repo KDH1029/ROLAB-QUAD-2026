@@ -69,8 +69,9 @@ ros2 run mission_vision camera_floor_calib.py \
     --write src/missions/mission_vision/config/camera_extrinsics.yaml \
     --write-params src/missions/mission_vision/config/cone_tracker_params.yaml
 
-# 2. 매핑 (조종기로 주행, 모터 명령 없음) + 전부 녹화 (다른 터미널: ./scripts/go2_record.sh <이름> "<메모>")
-./scripts/go2_map_run.sh --lio --name arena --no-default
+# 2. 녹화 (조종기로 주행): ./scripts/go2_record.sh <이름> "<메모>"
+# 지도는 이 저장소 밖에서 만든다 (FAST-LIO 녹화 재생 → .pgm/.yaml). 결과를 maps/ 에 두고, 콘이 찍혔으면
+#   python3 scripts/go2_map_clean.py maps/arena.yaml --write   → maps/arena_clean.yaml
 
 # 3. 주행 스택
 ./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"         # --cones: 라바콘 추적, --no-motor: 모터 없음
@@ -117,7 +118,7 @@ src/missions/mission_runner   경로 순차 실행기 (route_runner_node, 판단
 src/fallback/go2_wall_patrol  RANSAC 벽 추종 (보험)
 src/interfaces                Unitree 메시지
 src/external                  FAST-LIO, Livox 메시지, Hesai 드라이버 (포크, 출처: src/external/README.md)
-scripts/                      go2_run.sh, go2_map_run.sh, go2_amcl_init.py, go2_goto.py, go2_route.py
+scripts/                      go2_run.sh, go2_map_clean.py, go2_amcl_init.py, go2_goto.py, go2_route.py
 config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 ```
 

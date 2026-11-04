@@ -56,14 +56,12 @@ map  ──(AMCL / Map Server)──>  odom  ──(151Hz Leg Odometry)──>  
    - 중앙 교차로 등이 완만한 언덕 형태로 솟아 있는 지형에서 단순 높이 임계값($z > z_{\min}$)으로 자를 경우 오르막 바닥이 장애물로 오인되는 문제를 해결하기 위해, 방위각 섹터별 반경 빈(`radial_bin_m`)의 최하단 점들로 국소 지면 프로파일을 추정합니다.
    - 인접 빈 간 경사각이 `max_walkable_slope_deg`(기본 $18^\circ$) 이하인 완만한 경사면은 바닥으로 통과시키고, 국소 지면 대비 `obstacle_min_dz`(기본 $0.18\text{m}$) 이상 수직으로 솟은 벽/기둥만 `/scan`에 반영합니다.
 
-4. **로컬 지면 평탄화 기반 C++ 3D/2D 매퍼 (`mapper_node`)**
-   - 실시간(`live`) 주행 데이터 또는 오프라인 3D PCD 파일(`pcd2map`)로부터 2D 점유격자 지도(`.pgm`, `.yaml`)를 고속으로 생성합니다.
-   - C++ `std::nth_element`($O(N)$ 선형 시간 선택)를 사용해 $0.5\text{m} \times 0.5\text{m}$ 국소 셀 단위로 하위 5% 높이를 지면 기준선으로 삼고, 상대 높이(`wall_z_min` ~ `wall_z_max`)에 있는 점만 벽으로 추출하므로 언덕 경사면이 벽으로 막히지 않습니다.
+4. (삭제 11-05) 저장소 안 매퍼(`mapper_node`) — 지도는 저장소 밖에서 만든다.
 
 5. **C++ 20Hz 오도메트리 직결 주행기 (`odom_nav_node`) 및 모터 제어 브릿지 (`cmd_vel_to_sport_node`)**
    - `odom_nav_node`: Nav2 없이도 20Hz C++ 제어 루프(`ALIGN` $\rightarrow$ `CRUISE` $\rightarrow$ `YAW_LOCK`)와 전방 `/scan` 장애물 비상 정지 로직으로 목표 3D 좌표를 추종합니다.
    - `cmd_vel_to_sport_node`: `/cmd_vel` 명령을 Unitree Sport API(`/api/sport/request`, API ID `1008`)로 변환하며, 최소 유효 속도 데드밴드(`min_vx`, `min_vy`, `min_wz`), 가속도 제한, 데드맨 타임아웃(`0.5s`)을 적용합니다.
-   - `scripts/go2_mapper.py`와 `scripts/go2_odom_nav.py`는 YAML/JSON 설정 파싱 후 `os.execvp`를 통해 프로세스를 C++ 바이너리(`mapper_node`, `odom_nav_node`)로 즉시 교체하므로 주행 및 매핑 중 Python 런타임 메모리가 상주하지 않습니다.
+   - `scripts/go2_odom_nav.py`는 YAML/JSON 설정 파싱 후 `os.execvp`를 통해 프로세스를 C++ 바이너리(`odom_nav_node`)로 즉시 교체하므로 주행 중 Python 런타임 메모리가 상주하지 않습니다.
 
 ---
 
@@ -86,18 +84,15 @@ ROLAB-QUAD-2026/
 │   ├── map_default.pgm              # 기본 2D 점유격자 이미지
 │   └── map_default_elevation.npz    # 2.5D 지면 고도 및 경사도 데이터
 ├── scripts/
-│   ├── build_hybrid_map.py          # 규격 도면 맵 생성(cad) 및 실측 라이다 맵 합성(merge) 도구
-│   ├── go2_map_run.sh               # [1단계] 실시간 매핑 및 PCD -> 2D 변환 실행 스크립트
 │   ├── go2_odom_run.sh              # [2단계] 오도메트리 및 기구학 브릿지 단독 실행 스크립트
 │   ├── go2_nav_run.sh               # [통합] 브릿지 + AMCL + Nav2 자율주행 실행 스크립트
 │   ├── go2_mission_run.sh           # [대회 미션] 비전 인식 + 7단계 미션 FSM 통합 실행 스크립트
-│   ├── go2_mapper.py                # C++ mapper_node 실행용 경량 CLI 런처 (os.execvp)
 │   ├── go2_odom_nav.py              # C++ odom_nav_node 실행용 경량 CLI 런처 (os.execvp)
 │   ├── go2_goto.py                  # Nav2 목표 좌표 전송 및 웨이포인트 관리 CLI
 │   └── sim_nav_test.py              # 오프라인 검증용 사족보행 기구학/라이다 시뮬레이터
 └── src/
     ├── core/                        # [기반 기술 도메인]
-    │   ├── go2_bridge/              # C++ 핵심 노드 패키지 (odom_tf, imu_bridge, cloud_bridge, cmd_vel_to_sport, mapper_node, odom_nav_node)
+    │   ├── go2_bridge/              # C++ 핵심 노드 패키지 (odom_tf, imu_bridge, cloud_bridge, cmd_vel_to_sport, odom_nav_node)
     │   ├── go2_localization/        # Map Server, AMCL 로컬라이제이션 패키지
     │   └── go2_navigation/          # Nav2 RPP 컨트롤러 및 플래너 설정 패키지
     ├── missions/                    # [대회 미션 제어 도메인 (C++)]
@@ -120,20 +115,13 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-### A. 매핑 및 하이브리드 도면 지도 생성 (Mapping & CAD Merge)
+### A. 지도
+저장소 안의 매핑 도구(go2_map_run.sh, go2_mapper.py, mapper_node, build_hybrid_map.py)는 11-05 삭제했다.
+지도(.pgm/.yaml)는 저장소 밖에서 FAST-LIO 녹화 재생으로 만들어 `maps/` 에 둔다.
 ```bash
-# 0) 대회 규정집 치수(8m x 6m) 기반 정밀 도면 맵 생성 및 현장 라이다 맵 합성(라바콘 제거)
-python3 scripts/build_hybrid_map.py cad --name roboworld_2026 --set-default
-python3 scripts/build_hybrid_map.py merge --scan-pgm maps/live_scan.pgm --name roboworld_hybrid --set-default
-
-# 1) 실물 로봇 실시간 스캔 매핑 (종료 시 Ctrl+C를 누르면 maps/ 아래에 자동 저장)
-./scripts/go2_map_run.sh --name course_map
-
-# 2) 기존 3D PCD 파일을 2D 점유격자(.pgm/.yaml)로 변환
-./scripts/go2_map_run.sh --pcd /path/to/scan.pcd --name course_map
-
-# 3) 시뮬레이션 모드 매핑 테스트
-./scripts/go2_map_run.sh --sim --name sim_map --duration 10
+# 매핑 중 찍힌 라바콘 등 작은 물체 제거 (미리보기 → --write)
+python3 scripts/go2_map_clean.py maps/arena.yaml
+python3 scripts/go2_map_clean.py maps/arena.yaml --write
 ```
 
 ### B. 오도메트리 단독 주행 (Odometry-Direct Mode)
@@ -166,15 +154,14 @@ FAST-LIO 는 이 저장소에 포함하지 않고, 팀이 원래 쓰던 빌드�
 - 설정: [`config/fastlio/fastlio_xt16_odometry.yaml`](../config/fastlio/fastlio_xt16_odometry.yaml) — 원본 `odometry.yaml` 포크, `FORK:` 3곳만 변경
 - 라이다 입력은 반드시 XT16 `/lidar_points`. `/utlidar/cloud`(L1) 를 넣으면 2분 안에 km 단위로 발산한다 (bag 재생 실측)
 ```bash
-source scripts/go2_slam_env.sh
+source /opt/ros/jazzy/setup.bash && source install/setup.bash
 ros2 launch go2_bridge bridge.launch.py &
 ros2 run fast_lio fastlio_mapping --ros-args --params-file "$GO2_FASTLIO_CONFIG"
 ```
 
 ### E. 한 줄 실행 (lifecycle 스택)
 ```bash
-# 0) 지도 (조종기로 한 바퀴, 모터 명령 없음)
-./scripts/go2_map_run.sh --lio --name arena --no-default
+# 0) 지도: maps/arena.yaml (저장소 밖에서 제작, 콘은 go2_map_clean.py 로 제거)
 # 1) 주행 스택: 브리지 + FAST-LIO + AMCL(Omni, 수직성 스캔) + EGO-Planner + 모터 브리지
 ./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"            # --no-motor 로 모터 없이
 python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0                    # 목표는 map 좌표

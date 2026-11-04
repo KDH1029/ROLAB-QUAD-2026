@@ -43,7 +43,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ "$MODE" = nav ] && [ ! -f "$MAP" ]; then
-    echo "[ERROR] --mode nav needs --map <map.yaml> (make one with scripts/go2_map_run.sh --lio)"
+    echo "[ERROR] --mode nav needs --map <map.yaml> (maps are made outside this repo; clean cones with scripts/go2_map_clean.py)"
     exit 1
 fi
 
