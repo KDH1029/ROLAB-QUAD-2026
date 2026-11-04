@@ -7,7 +7,9 @@
 //   none      drive through: the next goal is sent once the robot is within pass_radius
 //   stopline  arrive, stand still >= stop_hold_s (rulebook 2 s + margin), then leave only on a FRESH
 //             GREEN (older than signal_max_age_s does not count); after traffic_timeout_s proceed
-//             anyway (the 50 points are lost, the 200 for finishing are not)
+//             anyway (the 50 points are lost, the 200 for finishing are not). No signal at all
+//             (camera off / lidar_only: yolo_detector_node sends a state every frame, UNKNOWN included)
+//             -> proceed after no_signal_wait_s from the stop, not after the 15 s timeout
 //   parking   arrive, stand still, Sit (1009) for sit_hold_s (rulebook 5 s + margin), RiseSit (1010)
 //   finish    arrive -> done
 #pragma once
@@ -58,6 +60,8 @@ struct Config
   double stop_hold_s{2.3};       // stop line: standing still (rule: >= 2 s)
   double signal_max_age_s{1.0};  // a GREEN older than this does not count
   double traffic_timeout_s{15.0};// stop line: proceed after this long without a GREEN
+  double no_signal_age_s{2.0};   // no traffic-light message for this long = no camera ...
+  double no_signal_wait_s{2.8};  // ... then proceed this long after stopping (rule hold 2 s + margin)
   double sit_hold_s{5.5};        // parking: sitting (rule: >= 5 s)
   double rise_s{3.0};            // parking: time for RiseSit before driving on
 };
@@ -193,6 +197,9 @@ public:
 
       case State::WAIT_GREEN:
         if (in.green && in.signal_age_s <= cfg_.signal_max_age_s) return next(in.t, "GREEN at " + s.name);
+        if (in.signal_age_s > cfg_.no_signal_age_s && in.t - t1_ >= cfg_.no_signal_wait_s) {
+          return next(in.t, "no traffic-light signal (camera off?) at " + s.name + ", proceeding after the stop");
+        }
         if (in.t - t1_ >= cfg_.traffic_timeout_s) {
           return next(in.t, "no GREEN for " + fmt(cfg_.traffic_timeout_s) + " s at " + s.name + ", proceeding");
         }

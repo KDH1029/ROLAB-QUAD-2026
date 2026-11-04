@@ -140,6 +140,34 @@ int main()
     check(L2.state() == State::DONE, "route still completes");
   }
 
+  std::printf("2b) no traffic-light messages at all (camera off) -> proceed right after the stop\n");
+  {
+    Logic L(course(), cfg);
+    Sim sim;
+    // run() always feeds a light; build the no-signal case by hand: signal age grows forever
+    std::vector<Log> log;
+    auto apply = [&](const Output & o, double t) {
+        if (o.set_params) {sim.tol = L.current().goal_tol; sim.vmax = L.current().max_vel;}
+        if (o.send_goal) {sim.gx = L.current().x; sim.gy = L.current().y; sim.has_goal = true;}
+        if (o.sport_api == 1009) sim.sitting = true;
+        if (o.sport_api == 1010) sim.sitting = false;
+        if (!o.event.empty()) log.push_back({t, o.event});
+      };
+    apply(L.start(0.0), 0.0);
+    for (double t = 0.05; t < 200 && L.state() != State::DONE; t += 0.05) {
+      sim.step(0.05);
+      Input in;
+      in.t = t; in.pose_ok = true; in.x = sim.x; in.y = sim.y; in.speed = sim.speed;
+      in.green = false; in.signal_age_s = 1e9;
+      apply(L.tick(in), t);
+    }
+    const double rest = eventTime(log, "stop line stop1: holding") - cfg.still_time_s;
+    const double go = eventTime(log, "no traffic-light signal");
+    check(go > 0 && go - rest >= cfg.stop_hold_s && std::abs(go - rest - cfg.no_signal_wait_s) < 0.1,
+          "no signal: still >= 2.3 s, proceeds 2.8 s after stopping (not 15 s)");
+    check(L.state() == State::DONE, "route completes without a camera");
+  }
+
   std::printf("3) STOP while driving, RESUME 3 s later\n");
   {
     Logic L(course(), cfg);

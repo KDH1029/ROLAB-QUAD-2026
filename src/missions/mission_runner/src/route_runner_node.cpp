@@ -81,6 +81,8 @@ public:
     cfg_.stop_hold_s = p("stop_hold_s", cfg_.stop_hold_s);
     cfg_.signal_max_age_s = p("signal_max_age_s", cfg_.signal_max_age_s);
     cfg_.traffic_timeout_s = p("traffic_timeout_s", cfg_.traffic_timeout_s);
+    cfg_.no_signal_age_s = p("no_signal_age_s", cfg_.no_signal_age_s);
+    cfg_.no_signal_wait_s = p("no_signal_wait_s", cfg_.no_signal_wait_s);
     cfg_.sit_hold_s = p("sit_hold_s", cfg_.sit_hold_s);
     cfg_.rise_s = p("rise_s", cfg_.rise_s);
   }

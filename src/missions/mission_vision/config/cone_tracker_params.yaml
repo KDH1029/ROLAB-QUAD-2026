@@ -5,12 +5,15 @@ cone_tracker_node:
     # Cone boxes from yolo_detector_node. "string": std_msgs/String JSON (default - YOLO runs on the
     # robot PC under Foxy, whose vision_msgs differs from Jazzy's); "vision_msgs": Detection2DArray
     # (only when YOLO runs on the same ROS distro). Must match yolo_detector_node detections_format.
-    # fusion: the camera (YOLO) says which LiDAR cluster is a cone (default).
-    # lidar_only: no camera; a cluster seen at the same map spot in >= 70 % of >= 20 scans is a cone.
-    #   10-30 bag (building, no cones): 41 fakes confirmed even with map gating - stair/ramp edges and
-    #   low narrow objects (stools, boxes) look like cones to the LiDAR. Use it only with `regions`
-    #   restricted to the slalom straights, and check it on a venue recording first.
-    mode: "fusion"
+    # Published cones = camera-confirmed U LiDAR-only-confirmed (duplicates within 0.3 m merged).
+    #   auto (default): camera picks while YOLO messages arrive; LiDAR-only inside `regions` always;
+    #        no YOLO message for vision_timeout_s -> LiDAR-only everywhere (no regions) or in the regions
+    #   fusion: camera required, no LiDAR-only cones          lidar_only: no camera at all
+    # LiDAR-only = a cluster seen at the same map spot in >= 70 % of >= 20 scans. 10-30 bag (building,
+    # no cones): 41 fakes even with map gating - stair/ramp edges, low narrow objects. Set `regions` to
+    # the slalom straights and check on a venue recording.
+    mode: "auto"
+    vision_timeout_s: 3.0      # s without any YOLO message (it sends one per frame, cones or not) = camera lost
     lidar_only:
       # regions: [0.5, 5.45, 5.45, 6.35, 0.5, 0.15, 5.45, 1.05]   # [x0, y0, x1, y1, ...] world-frame rectangles
       #   (example: the two slalom straights of maps/roboworld_2026); left out = everywhere. Never write

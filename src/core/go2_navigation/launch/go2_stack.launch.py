@@ -3,6 +3,8 @@
 mode:=nav     bridges + FAST-LIO + map_server/AMCL + EGO-Planner (+ motor bridge)
 mode:=patrol  bridges + RANSAC wall runner (+ motor bridge)   -- fallback when SLAM/AMCL fail
 motor:=false  never starts cmd_vel_to_sport: nothing can move the robot
+cones:=true   + cone_tracker_node; cone_mode:=auto|fusion|lidar_only, cone_regions:="x0 y0 x1 y1 ..."
+              (auto: camera picks while YOLO runs, LiDAR-only when it stops / inside the regions)
 route:=<file> + route_runner_node (saved points -> EGO goals, stop line / parking); idle until
               START on /route/cmd (scripts/go2_route.py start)
 
@@ -61,9 +63,15 @@ def stack(context):
         managed.append('ego_planner_node')
         if LaunchConfiguration('cones').perform(context).lower() == 'true':
             # Cone tracker (YOLO runs on the robot PC and publishes /mission/cone_detections)
+            over = {'mode': LaunchConfiguration('cone_mode').perform(context)}
+            reg = LaunchConfiguration('cone_regions').perform(context).replace(',', ' ').split()
+            if reg:
+                if len(reg) % 4:
+                    raise RuntimeError('cone_regions needs x0 y0 x1 y1 per rectangle')
+                over['lidar_only.regions'] = [float(v) for v in reg]
             nodes.append(lc('mission_vision', 'cone_tracker_node', 'cone_tracker_node',
                             [share('mission_vision', 'config', 'cone_tracker_params.yaml'),
-                             share('mission_vision', 'config', 'camera_extrinsics.yaml')]))
+                             share('mission_vision', 'config', 'camera_extrinsics.yaml'), over]))
             managed.append('cone_tracker_node')
         route = LaunchConfiguration('route').perform(context)
         if route:
@@ -100,6 +108,9 @@ def generate_launch_description():
         DeclareLaunchArgument('motor', default_value='true', description='false: no cmd_vel_to_sport'),
         DeclareLaunchArgument('map', default_value='', description='map yaml (mode:=nav)'),
         DeclareLaunchArgument('cones', default_value='false', description='true: cone_tracker_node'),
+        DeclareLaunchArgument('cone_mode', default_value='auto', description='auto | fusion | lidar_only'),
+        DeclareLaunchArgument('cone_regions', default_value='',
+                              description='LiDAR-only cone rectangles "x0 y0 x1 y1 ..." (map frame)'),
         DeclareLaunchArgument('route', default_value='', description='route file: route_runner_node (mode:=nav)'),
         DeclareLaunchArgument('fastlio_config', default_value='',
                               description='FAST-LIO parameter file (mode:=nav)'),
