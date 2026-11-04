@@ -123,11 +123,24 @@ if [ "$SIM_MODE" = false ] && [ -z "${GO2_MAP_TEST_LO:-}" ]; then
         sleep 4
     fi
 fi
+# The bridges are lifecycle nodes (3df13ca): started bare they sit unconfigured and publish nothing
+# (the map then ends with "No scan keyframes accumulated"). Bring each one up to active.
+lc_up() {
+    local n s
+    for n in "$@"; do
+        for s in configure activate; do
+            timeout 15 ros2 lifecycle set "/$n" "$s" >/dev/null 2>&1 \
+                || { echo "[ERROR] lifecycle $s failed for /$n - see $LOG_DIR"; exit 1; }
+        done
+    done
+    echo "[INFO] active: $*"
+}
 if [ "$LIO_MODE" = true ]; then
     # FAST-LIO publishes camera_init->body, so imu_bridge must not publish base_link->body.
     "$BR/imu_bridge_node" --ros-args -p publish_static_tf:=false >"$LOG_DIR/imu.log" 2>&1 &
     "$BR/cloud_bridge_node" --ros-args -p publish_terrain_scan:=false >"$LOG_DIR/cloud.log" 2>&1 &
     sleep 2
+    lc_up go2_imu_bridge go2_cloud_bridge
     echo "[INFO] Starting FAST-LIO — keep the robot still for 2 s"
     "$(ros2 pkg prefix fast_lio)/lib/fast_lio/fastlio_mapping" --ros-args -r __node:=fastlio_odometry \
         --params-file "$WS_DIR/config/fastlio/fastlio_xt16_odometry.yaml" >"$LOG_DIR/fastlio.log" 2>&1 &
@@ -136,6 +149,8 @@ else
     "$BR/odom_tf_node" >"$LOG_DIR/odom_tf.log" 2>&1 &
     "$BR/imu_bridge_node" >"$LOG_DIR/imu.log" 2>&1 &
     "$BR/cloud_bridge_node" >"$LOG_DIR/cloud.log" 2>&1 &
+    sleep 2
+    lc_up go2_odom_tf go2_imu_bridge go2_cloud_bridge
     POSE_SOURCE=leg
 fi
 sleep 1

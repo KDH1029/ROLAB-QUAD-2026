@@ -68,6 +68,9 @@ def main():
     ap.add_argument('--erase', type=lambda s: pt(s, 3), action='append', default=[], help='x,y,r: free cells')
     ap.add_argument('--region', type=float, nargs=4, metavar=('X0', 'Y0', 'X1', 'Y1'), action='append', default=[],
                     help='only remove blobs inside these boxes (repeatable; default: whole map)')
+    ap.add_argument('--near-path', type=float, default=1.0,
+                    help='only blobs within this distance (m) of the mapping trajectory <name>_traj.csv, if it '
+                         'exists (cones are on the course; far walls hit sparsely break into specks). 0 = off')
     ap.add_argument('--write', action='store_true', help='write <name>_clean.yaml/.pgm (default: preview only)')
     a = ap.parse_args()
 
@@ -87,6 +90,12 @@ def main():
     def to_rc(x, y):
         return int(H - 1 - np.floor((y - oy) / res)), int(np.floor((x - ox) / res))
 
+    stem0 = os.path.splitext(a.map_yaml)[0]
+    traj = None
+    if a.near_path > 0 and os.path.exists(stem0 + '_traj.csv'):
+        traj = np.loadtxt(stem0 + '_traj.csv', delimiter=',', ndmin=2)[:, :2]
+        print(f'only blobs within {a.near_path:.1f} m of {stem0}_traj.csv ({len(traj)} poses)')
+
     lab, n = ndi.label(occ, structure=np.ones((3, 3)))
     sl = ndi.find_objects(lab)
     keep_labels = set()
@@ -104,6 +113,8 @@ def main():
             continue
         rr, cc = np.nonzero(lab[s] == k)
         x, y = to_xy(rr.mean() + s[0].start, cc.mean() + s[1].start)
+        if traj is not None and np.min(np.hypot(traj[:, 0] - x, traj[:, 1] - y)) > a.near_path:
+            continue
         inside = not a.region or any(min(b[0], b[2]) <= x <= max(b[0], b[2]) and min(b[1], b[3]) <= y <= max(b[1], b[3])
                                      for b in a.region)
         item = (x, y, size, len(rr))
