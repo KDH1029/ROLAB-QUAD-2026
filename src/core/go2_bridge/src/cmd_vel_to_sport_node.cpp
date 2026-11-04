@@ -38,6 +38,13 @@ public:
     max_ax_ = declare_parameter<double>("max_ax", 1.0);
     max_alphaz_ = declare_parameter<double>("max_alphaz", 2.0);
     deadman_s_ = declare_parameter<double>("deadman_s", 0.5);
+    // Straight-walk yaw trim (feed-forward): the robot turns while told to go straight; subtract
+    // what it turns by - wz_out = wz - (yaw_trim_per_vx * vx + yaw_trim_bias), only while walking
+    // forward/back (never in place). Applied after the min_wz floor so a 0.03 rad/s trim is not
+    // inflated to 0.15. Measure with scripts/go2_yaw_drift.py on a straight-walk bag.
+    // 11-04 morning bag (113612, 0.26 m/s, wz = 0 for >= 1 s): +1.96 deg/s to the left -> ~0.13.
+    yaw_trim_per_vx_ = declare_parameter<double>("yaw_trim_per_vx", 0.0);
+    yaw_trim_bias_ = declare_parameter<double>("yaw_trim_bias", 0.0);
   }
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override
@@ -58,8 +65,8 @@ public:
     timer_ = create_wall_timer(50ms, std::bind(&CmdVelToSportNode::onTimer, this));
     RCLCPP_INFO(
       get_logger(),
-      "cmd_vel_to_sport active: %s -> %s (max_vx=%.2f, min_vx=%.2f, max_wz=%.2f)",
-      cmd_vel_topic_.c_str(), sport_req_topic_.c_str(), max_vx_, min_vx_, max_wz_);
+      "cmd_vel_to_sport active: %s -> %s (max_vx=%.2f, min_vx=%.2f, max_wz=%.2f, yaw trim %.3f*vx%+.3f rad/s)",
+      cmd_vel_topic_.c_str(), sport_req_topic_.c_str(), max_vx_, min_vx_, max_wz_, yaw_trim_per_vx_, yaw_trim_bias_);
     return CallbackReturn::SUCCESS;
   }
 
@@ -163,7 +170,12 @@ private:
       return;
     }
 
-    sendMove(current_vx_, current_vy_, current_wz_);
+    double wz_out = current_wz_;
+    if (std::abs(current_vx_) > 0.05) {      // walking: cancel the straight-walk turn
+      wz_out -= yaw_trim_per_vx_ * current_vx_ + (current_vx_ > 0.0 ? yaw_trim_bias_ : -yaw_trim_bias_);
+      wz_out = std::clamp(wz_out, -max_wz_, max_wz_);
+    }
+    sendMove(current_vx_, current_vy_, wz_out);
     is_moving_ = true;
   }
 
@@ -198,6 +210,7 @@ private:
   double min_vx_{0.08};
   double min_vy_{0.08};
   double min_wz_{0.15};
+  double yaw_trim_per_vx_{0.0}, yaw_trim_bias_{0.0};
   double max_ax_{1.0};
   double max_alphaz_{2.0};
   double deadman_s_{0.5};

@@ -73,6 +73,12 @@ go2_cmd_vel_to_sport:
     min_vx: 0.08
     min_vy: 0.08
     min_wz: 0.15
+    # Straight-walk yaw trim: wz_out = wz - (yaw_trim_per_vx * vx + yaw_trim_bias) while walking.
+    # 11-04 morning bag: told to go straight (wz = 0 >= 1 s) it turned LEFT +1.96 deg/s at 0.26 m/s
+    # (+7.5 deg/m) -> yaw_trim_per_vx ~0.13. 0 = off. Set it from a straight-walk test:
+    #   python3 scripts/go2_yaw_drift.py <bag>
+    yaw_trim_per_vx: 0.0
+    yaw_trim_bias: 0.0
     max_ax: 1.0
     max_alphaz: 2.0
     deadman_s: 0.5
