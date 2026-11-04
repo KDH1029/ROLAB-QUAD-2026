@@ -38,6 +38,14 @@ struct Config
   double floor_radius{0.40};    // m, "around" for floor_gap (no floor point there: not judged)
   double surface_to_center{0.05};  // m, the LiDAR sees the near face; shift to the cone axis
   double tall_cell{0.04};       // m, column size for the tall-column removal above; 0 = off
+  int tall_dilate{1};           // a point is in a tall structure when band AND above points occur within this
+                                // many tall_cell cells around it: a wall's foot and top often fall in neighbouring
+                                // 4 cm columns (slight lean, ring azimuth offsets) - 0 left cone 10 joined (145915)
+  // "something above" is looked for only right over the cluster's points (tall_cell cells, +-1), not
+  // over its whole footprint + a cluster_tol cell: a cone 2 cm in front of a wall hides the wall's
+  // foot, so the wall top 9-14 cm behind the cone's visible face is not a tall column and used to
+  // count as "above" (145915: cone 10). Tables / boxes over a cone still cover its points. 0 = old test.
+  bool fine_cover{false};       // off by default (no map / regions: the wide test also drops wall-foot bits)
 };
 
 struct Candidate
@@ -71,12 +79,23 @@ inline std::vector<Candidate> findCones(const std::vector<Eigen::Vector3d> & pts
   }
   auto in_tall = [&](const Eigen::Vector3d & p) {
     if (c.tall_cell <= 0.0) return false;
-    auto it = tall.find(tkey(p));
-    return it != tall.end() && it->second == 3;
+    const int ix = static_cast<int>(std::floor(p.x() / c.tall_cell)), iy = static_cast<int>(std::floor(p.y() / c.tall_cell));
+    const bool is_band = p.z() >= c.z_min && p.z() <= c.z_max;
+    const int want = is_band ? 2 : 1;          // a band point needs an above point near it, and vice versa
+    auto here = tall.find(detail::key(ix, iy));
+    if (here != tall.end() && here->second == 3) return true;
+    for (int dx = -c.tall_dilate; dx <= c.tall_dilate; ++dx) {
+      for (int dy = -c.tall_dilate; dy <= c.tall_dilate; ++dy) {
+        auto it = tall.find(detail::key(ix + dx, iy + dy));
+        if (it != tall.end() && (it->second & want)) return true;
+      }
+    }
+    return false;
   };
   std::vector<Eigen::Vector2d> band;
   std::vector<double> band_z;
   std::unordered_map<long long, int> above;  // cells (cluster_tol) with points above the cone top
+  std::unordered_map<long long, int> above_f;  // the same in tall_cell cells (fine_cover)
   std::unordered_map<long long, double> low;  // lowest z per cell, band and below (floor level)
   for (const auto & p : pts) {
     if (p.head<2>().norm() > c.max_range) continue;
@@ -93,6 +112,7 @@ inline std::vector<Candidate> findCones(const std::vector<Eigen::Vector3d> & pts
       band_z.push_back(p.z());
     } else if (p.z() > c.z_max + c.clear_gap && p.z() <= c.z_max + c.clear_height) {
       above[detail::key(static_cast<int>(std::floor(p.x() / cell)), static_cast<int>(std::floor(p.y() / cell)))]++;
+      if (c.tall_cell > 0.0) above_f[tkey(p)]++;
     }
   }
   // grid-hash clustering: points of neighbouring cells within cluster_tol are connected
@@ -133,11 +153,21 @@ inline std::vector<Candidate> findCones(const std::vector<Eigen::Vector3d> & pts
     if (static_cast<int>(members.size()) < c.min_points || width > c.max_width) continue;
     // anything right above the cluster footprint (one cell margin) -> not a cone
     bool covered = false;
-    const int x0 = static_cast<int>(std::floor(lo.x() / cell)) - 1, x1 = static_cast<int>(std::floor(hi.x() / cell)) + 1;
-    const int y0 = static_cast<int>(std::floor(lo.y() / cell)) - 1, y1 = static_cast<int>(std::floor(hi.y() / cell)) + 1;
-    for (int ix = x0; ix <= x1 && !covered; ++ix) {
-      for (int iy = y0; iy <= y1 && !covered; ++iy) {
-        covered = above.count(detail::key(ix, iy)) > 0;
+    if (c.fine_cover && c.tall_cell > 0.0) {
+      for (int i : members) {
+        const int fx = static_cast<int>(std::floor(band[i].x() / c.tall_cell)), fy = static_cast<int>(std::floor(band[i].y() / c.tall_cell));
+        for (int dx = -1; dx <= 1 && !covered; ++dx) {
+          for (int dy = -1; dy <= 1 && !covered; ++dy) covered = above_f.count(detail::key(fx + dx, fy + dy)) > 0;
+        }
+        if (covered) break;
+      }
+    } else {
+      const int x0 = static_cast<int>(std::floor(lo.x() / cell)) - 1, x1 = static_cast<int>(std::floor(hi.x() / cell)) + 1;
+      const int y0 = static_cast<int>(std::floor(lo.y() / cell)) - 1, y1 = static_cast<int>(std::floor(hi.y() / cell)) + 1;
+      for (int ix = x0; ix <= x1 && !covered; ++ix) {
+        for (int iy = y0; iy <= y1 && !covered; ++iy) {
+          covered = above.count(detail::key(ix, iy)) > 0;
+        }
       }
     }
     if (covered) continue;

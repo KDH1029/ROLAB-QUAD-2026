@@ -14,8 +14,8 @@ cone_tracker_node:
     # no cones): 41 fakes even with map gating - stair/ramp edges, low narrow objects. Set `regions` to
     # the slalom straights and check on a venue recording.
     # 11-05: lidar_only by default (YOLO is the teammate's; fusion stays available with mode auto / fusion).
-    #   145915 replay (cones known from the map): 7/10 cones within 4-10 cm, 0 fakes outside the cones;
-    #   the 3 missed ones stand against a wall. arena4 (17:56, cones moved since) 2 + 3 at other spots.
+    #   145915 replay (cones known from the map): 10/10 within 4-14 cm, 0 fakes (2-3 duplicates 21-28 cm
+    #   from cones 1/2); arena4 (17:56, cones moved since): 10 = the 10 placed.
     mode: "lidar_only"
     vision_timeout_s: 3.0      # s without any YOLO message (it sends one per frame, cones or not) = camera lost
     lidar_only:
@@ -24,8 +24,11 @@ cone_tracker_node:
       #   maps/arena1459_nocone: right slalom corridor + the left E pocket where cones stood on 11-04.
       #   (roboworld_2026 drawing: [0.5, 5.45, 5.45, 6.35, 0.5, 0.15, 5.45, 1.05])
       regions: [5.95, -0.35, 7.15, 4.9, 0.55, 2.75, 1.5, 3.85]
-      wall_clearance: 0.05     # m, cones closer to a map wall are ignored (wall foot / baseboard).
-                               #   0.15 lost the cones standing against the corridor walls (145915: 6 -> 7 of 10)
+      wall_clearance: 0.0      # m, cones closer to a map wall are ignored (wall foot / baseboard). 0: only a cone
+                               #   centre ON a wall cell is dropped. Wall-foot bits are now removed by the tall-column
+                               #   step (lidar_cone.tall_cell) instead. 145915: 0.15 -> 6/10, 0.05 -> 9/10 (cone 10 is
+                               #   8.5 cm from the map wall, AMCL is ~10 cm off), 0.0 -> 10/10; arena4 (cones moved):
+                               #   0.05 -> 5, 0.0 -> 10 = the 10 placed; no fake cone in either
       min_ratio: 0.7           # seen in >= 70 % of the scans since first seen ...
       min_scans: 20            # ... judged over >= 20 scans (1 s at 20 Hz)
       confirm_hits: 5
@@ -84,6 +87,11 @@ cone_tracker_node:
       tall_cell: 0.04          # m, columns with points both in the cone band and above the cone top (walls,
                                #    legs, boxes) are dropped before clustering, so a cone against a wall stands
                                #    alone instead of joining the wall. Scan only, no map. 0 = off
+      fine_cover: false        # "something above" only right over the cluster points (tall_cell +-1), not over
+                               #    footprint + 10 cm: the wall top behind a cone 2 cm off the wall no longer counts.
+                               #    Needs regions + map wall gating (they drop the wall-foot bits the wide test
+                               #    caught: synthetic scene without map gets 1-2 such bits per scan). 145915: did not bring
+                               #    cone 10 back, added a corner fake - left off
 
     tracking:
       assoc_dist: 0.30         # m, same cone if closer than this

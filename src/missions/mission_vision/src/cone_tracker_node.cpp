@@ -250,6 +250,8 @@ public:
     lcfg_.floor_gap = declare_parameter<double>("lidar_cone.floor_gap", 0.03);
     lcfg_.floor_radius = declare_parameter<double>("lidar_cone.floor_radius", 0.40);
     lcfg_.tall_cell = declare_parameter<double>("lidar_cone.tall_cell", 0.04);
+    lcfg_.fine_cover = declare_parameter<bool>("lidar_cone.fine_cover", false);
+    lcfg_.tall_dilate = declare_parameter<int>("lidar_cone.tall_dilate", 1);
     lidar_only_assoc_ = declare_parameter<double>("tracking.lidar_only_assoc", 0.15);
     alpha_lidar_only_ = declare_parameter<double>("tracking.alpha_lidar_only", 0.2);
     mode_ = declare_parameter<std::string>("mode", "auto");            // auto | fusion | lidar_only
