@@ -46,7 +46,12 @@ def stack(context):
     if mode == 'nav':
         if not map_yaml:
             raise RuntimeError('mode:=nav needs map:=<map.yaml>')
-        nodes.append(lc('go2_bridge', 'odom_tf_node', 'go2_odom_tf', [bridge_params]))
+        # AMCL odometry = FAST-LIO (/Odometry), not the leg odometry: 11-05 replays (3 arena bags) AMCL median
+        # 9-14 cm -> 3-3.6 cm, scan match 92-96 -> 97-99 %. EGO already drives on FAST-LIO, so leg-odom AMCL
+        # bought no real independence; a FAST-LIO jump stops the route (route_runner). bridge_params keeps the
+        # leg odometry for launches without FAST-LIO (bridge.launch / bringup.launch).
+        nodes.append(lc('go2_bridge', 'odom_tf_node', 'go2_odom_tf',
+                        [bridge_params, {'odom_topic': LaunchConfiguration('amcl_odom').perform(context)}]))
         managed.append('go2_odom_tf')
         # FAST-LIO is not a lifecycle node; its TF goes to /tf_lio so camera_init->body does not
         # fight base_link->body from imu_bridge.
@@ -108,6 +113,8 @@ def generate_launch_description():
         DeclareLaunchArgument('motor', default_value='true', description='false: no cmd_vel_to_sport'),
         DeclareLaunchArgument('map', default_value='', description='map yaml (mode:=nav)'),
         DeclareLaunchArgument('cones', default_value='false', description='true: cone_tracker_node'),
+        DeclareLaunchArgument('amcl_odom', default_value='/Odometry',
+                              description='odometry under AMCL: /Odometry (FAST-LIO, default) | /utlidar/robot_odom (legs)'),
         DeclareLaunchArgument('cone_mode', default_value='lidar_only', description='lidar_only (default) | auto | fusion'),
         DeclareLaunchArgument('cone_regions', default_value='',
                               description='LiDAR-only cone rectangles "x0 y0 x1 y1 ..." (map frame)'),
