@@ -6,6 +6,7 @@
 #   ./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"    # + AMCL start pose (x y yaw_deg)
 #   ./scripts/go2_run.sh --map maps/arena.yaml --cones            # + cone tracker (LiDAR only)
 #        --cone-regions "x0 y0 x1 y1 ..."   (LiDAR cone rectangles, map frame; default = cone_tracker_params)
+#        --plan-map maps/arena1459_plan.bin   closed-wall planning layer for EGO (scripts/go2_plan_map.py)
 #        --leg-odom   AMCL on the leg odometry instead of FAST-LIO (default /Odometry, 11-05: 3 cm vs 10 cm)
 #   ./scripts/go2_run.sh --mode patrol                            # RANSAC wall-runner fallback
 #
@@ -23,6 +24,7 @@ START=""
 CONES=false
 CONE_REGIONS=""
 AMCL_ODOM=/Odometry
+PLAN_MAP=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -33,6 +35,7 @@ while [[ $# -gt 0 ]]; do
         --cones) CONES=true; shift ;;
         --cone-regions) CONE_REGIONS="$2"; shift 2 ;;
         --leg-odom) AMCL_ODOM=/utlidar/robot_odom; shift ;;
+        --plan-map) PLAN_MAP="$(realpath "$2")"; shift 2 ;;
         -h|--help) sed -n 2,18p "$0"; exit 0 ;;
         *) echo "[ERROR] unknown argument: $1"; exit 1 ;;
     esac
@@ -94,7 +97,7 @@ echo "----------------------------------------------------------------------"
 
 # Launch is a direct child (not inside a pipeline) so Ctrl+C / cleanup reaches it
 ros2 launch go2_navigation go2_stack.launch.py mode:="$MODE" motor:="$MOTOR" map:="$MAP" cones:="$CONES" \
-    cone_regions:="$CONE_REGIONS" amcl_odom:="$AMCL_ODOM" \
+    cone_regions:="$CONE_REGIONS" amcl_odom:="$AMCL_ODOM" plan_map:="$PLAN_MAP" \
     fastlio_config:="$WS_DIR/config/fastlio/fastlio_xt16_odometry.yaml" > >(tee "$LOG_DIR/stack.log") 2>&1 &
 
 if [ "$MODE" = nav ] && [ -n "$START" ]; then

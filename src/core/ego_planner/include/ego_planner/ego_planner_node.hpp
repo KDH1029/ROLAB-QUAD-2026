@@ -163,6 +163,13 @@ private:
   bool have_last_odom_{false};
   bool blocked_stop_{false};
   std::string static_map_path_;
+  std::string prior_frame_;                       // prior layer frame ('' = already in map_frame)
+  double prior_period_s_{1.0};
+  std::vector<Eigen::Vector2d> prior_pts_;        // prior layer as loaded (prior_frame)
+  rclcpp::Time last_prior_t_{0, 0, RCL_ROS_TIME};
+  bool prior_placed_{false};
+  int prior_fail_{0};
+  void placePrior();
   std::string goal_base_frame_{"base_link"};
   std::string goal_frame_;
   std::string extra_obstacle_topic_;

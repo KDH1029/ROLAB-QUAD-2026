@@ -79,6 +79,12 @@ EgoPlannerNode::EgoPlannerNode()
   cones_max_range_ = declare_parameter<double>("cones.max_range", 8.0);
   static_map_path_ = declare_parameter<std::string>("static_map_path", "");
   use_prior_map_ = declare_parameter<bool>("use_prior_map", false);
+  // Prior layer frame: '' = the points are already in map_frame (old behaviour). 'map' = they are in the AMCL
+  // map frame (e.g. maps/arena1459_plan.bin from scripts/go2_plan_map.py) and are placed into map_frame every
+  // prior_map.period_s from the robot pose in both frames (the same way cones and goals are), so today's
+  // hand-placed start offset and drift are followed.
+  prior_frame_ = declare_parameter<std::string>("prior_map.frame", "");
+  prior_period_s_ = declare_parameter<double>("prior_map.period_s", 1.0);
 
   // Runtime changes are accepted in any state; they take effect on the next plan.
   param_cb_ = add_on_set_parameters_callback(
@@ -102,8 +108,14 @@ CallbackReturn EgoPlannerNode::on_configure(const rclcpp_lifecycle::State &)
       if (home) resolved_path = std::string(home) + resolved_path.substr(1);
     }
     if (grid_map_->loadPriorMap(resolved_path)) {
-      RCLCPP_INFO(get_logger(), "Loaded prior obstacle layer (%zu points) from %s",
-                  grid_map_->getStaticObstacles().size(), resolved_path.c_str());
+      RCLCPP_INFO(get_logger(), "Loaded prior obstacle layer (%zu points) from %s (frame %s)",
+                  grid_map_->getStaticObstacles().size(), resolved_path.c_str(),
+                  prior_frame_.empty() ? "= map_frame" : prior_frame_.c_str());
+      if (!prior_frame_.empty()) {
+        prior_pts_ = grid_map_->getStaticObstacles();      // placed once the robot pose is known
+        grid_map_->setStaticObstacles({});
+        prior_placed_ = false;
+      }
       grid_map_->updateStaticOnly(Eigen::Vector2d(0.0, 0.0));
     } else {
       RCLCPP_WARN(get_logger(), "Failed to load prior obstacle map from %s. Using live sensing only.",
@@ -330,7 +342,30 @@ void EgoPlannerNode::onScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr ms
 {
   if (!has_odom_) return;
   has_cloud_ = true;
+  placePrior();
   grid_map_->updateScan(msg, robot_pos_, robot_yaw_);
+}
+
+void EgoPlannerNode::placePrior()
+{
+  if (prior_pts_.empty() || prior_frame_ == map_frame_) return;
+  const rclcpp::Time t = now();
+  if (prior_placed_ && (t - last_prior_t_).seconds() < prior_period_s_) return;
+  std::vector<Eigen::Vector2d> out;
+  if (!toOdomFrame(prior_frame_, prior_pts_, out)) {
+    if (++prior_fail_ % 50 == 1) {
+      RCLCPP_WARN(get_logger(), "prior layer: no TF %s -> %s yet - planning on the live scan only",
+                  prior_frame_.c_str(), goal_base_frame_.c_str());
+    }
+    return;
+  }
+  grid_map_->setStaticObstacles(out);
+  last_prior_t_ = t;
+  if (!prior_placed_) {
+    RCLCPP_INFO(get_logger(), "prior layer placed: %zu points %s -> %s", out.size(), prior_frame_.c_str(),
+                map_frame_.c_str());
+    prior_placed_ = true;
+  }
 }
 
 void EgoPlannerNode::onGoal(const geometry_msgs::msg::PoseStamped::SharedPtr msg)

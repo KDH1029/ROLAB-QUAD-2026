@@ -58,6 +58,7 @@ public:
   void setExtraObstacles(const std::vector<Eigen::Vector2d> & pts) { extra_obstacles_ = pts; }
   // Cones: hard disc in the inflation layer (applied on the next update) + optimizer repulsion
   void setCones(const ConeField & cones) { cones_ = cones; }
+  void setStaticObstacles(const std::vector<Eigen::Vector2d> & pts) { static_obstacles_ = pts; }
   const ConeField & getCones() const { return cones_; }
   /// Cone repulsion at pos: cost already multiplied by cones.weight; grad points INTO the cones
   /// (the optimizer descends, so the curve moves away).

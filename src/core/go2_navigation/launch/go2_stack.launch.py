@@ -60,8 +60,15 @@ def stack(context):
         nodes.append(lc('nav2_amcl', 'amcl', 'amcl',
                         [share('go2_localization', 'config', 'amcl_params.yaml')]))
         managed += ['map_server', 'amcl']
+        ego_over = {}
+        plan_map = LaunchConfiguration('plan_map').perform(context)
+        if plan_map:
+            if not os.path.isfile(plan_map):
+                raise RuntimeError(f'plan_map not found: {plan_map}')
+            # closed-wall planning layer (scripts/go2_plan_map.py), AMCL map frame
+            ego_over = {'use_prior_map': True, 'static_map_path': plan_map, 'prior_map.frame': 'map'}
         nodes.append(lc('ego_planner', 'ego_planner_node', 'ego_planner_node',
-                        [share('ego_planner', 'config', 'ego_planner_params.yaml')]))
+                        [share('ego_planner', 'config', 'ego_planner_params.yaml'), ego_over]))
         managed.append('ego_planner_node')
         if LaunchConfiguration('cones').perform(context).lower() == 'true':
             # Cone tracker (LiDAR only)
@@ -104,6 +111,8 @@ def generate_launch_description():
         DeclareLaunchArgument('motor', default_value='true', description='false: no cmd_vel_to_sport'),
         DeclareLaunchArgument('map', default_value='', description='map yaml (mode:=nav)'),
         DeclareLaunchArgument('cones', default_value='false', description='true: cone_tracker_node'),
+        DeclareLaunchArgument('plan_map', default_value='',
+                              description='closed-wall planning layer .bin (map frame) for EGO-Planner, e.g. maps/arena1459_plan.bin'),
         DeclareLaunchArgument('amcl_odom', default_value='/Odometry',
                               description='odometry under AMCL: /Odometry (FAST-LIO, default) | /utlidar/robot_odom (legs)'),
         DeclareLaunchArgument('cone_regions', default_value='',
