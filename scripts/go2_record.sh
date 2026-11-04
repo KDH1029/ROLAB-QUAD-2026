@@ -45,7 +45,7 @@ EXCL='^/(cloud_registered.*|Laser_map|path|velodyne_points|.*costmap.*|.*/compre
 # 녹화 전 점검 — 있어야 할 것과 있으면 좋은 것
 MUST=(/lowstate /sportmodestate /utlidar/robot_odom /utlidar/cloud_base /utlidar/cloud_deskewed /utlidar/imu /lidar_points /wirelesscontroller /tf_static)
 WANT=(/cmd_vel /api/sport/request /camera/color/image_raw /camera/depth/image_rect_raw /camera/infra1/image_rect_raw /camera/infra2/image_rect_raw /camera/color/camera_info /camera/depth/camera_info /camera/extrinsics/depth_to_color /frontvideostream /Odometry \
-      /amcl_pose /mission/cones /route/status)   # D435i 는 로봇 내부 PC 에 꽂혀 /camera/... 로 나온다
+      /amcl_pose /mission/cones)   # D435i 는 로봇 내부 PC 에 꽂혀 /camera/... 로 나온다
 LIST=$(timeout 8 ros2 topic list 2>/dev/null)
 echo "── 필수"; miss=0
 for t in "${MUST[@]}"; do grep -qx "$t" <<<"$LIST" && echo "  ✓ $t" || { echo "  ✗ $t"; miss=1; }; done

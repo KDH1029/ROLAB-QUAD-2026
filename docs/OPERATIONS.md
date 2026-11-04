@@ -18,14 +18,12 @@ Unitree Go2 Edu와 Hesai XT16 3D LiDAR 환경에서 보행 시 발생하는 착�
 > **현재 단계**: 뼈대 로직 및 사전 모델 구축 완료, **실제 로봇 하드웨어 및 현장 트랙 검증 전 단계**
 
 ### ✅ 구현 및 반영 완료 항목
-- [x] **1:1 CAD 트랙 맵 & 웨이포인트**: $6\text{m} \times 8\text{m}$ 도면 맵(`maps/roboworld_2026.pgm`) 및 12개 공식 웨이포인트([`waypoints_track.yaml`](../src/missions/mission_runner/config/waypoints_track.yaml)) 정합
+- [x] **1:1 CAD 트랙 맵 & 웨이포인트**: $6\text{m} \times 8\text{m}$ 도면 맵(`maps/roboworld_2026.pgm`) 정합
 - [x] **C++ Core 스택 (`go2_bridge`)**: 151Hz 오도메트리 TF, 12-DoF FK 접촉 평면 보정(`base_stab`), $18^\circ$ 경사로/$0.1\text{m}$ 장애물 분리 필터, Sport API 제어기 구축
-- [x] **7단계 미션 FSM (`mission_runner`)**: 출발선(IN) → 경사로 → 정지선1(신호등 2초 정지/초록불 출발) → 슬라럼 → 정지선2 → 주차(5초 착석) → 도착선(OUT) 상태 머신 작성
+- [x] **미션 제어**: 팀원 담당(11-05 저장소에서 `mission_runner` 삭제)
 - [x] **라바콘 (`mission_vision`)**: LiDAR 단독 `cone_tracker_node`. 카메라·YOLO·신호등 처리는 팀원 담당(11-05 저장소에서 삭제)
-- [x] **통합 런처 및 유틸리티**: 원터치 실행기([`go2_mission_run.sh`](../scripts/go2_mission_run.sh))
 
 ### 🔄 다음 작업 및 디버깅 예정 항목
-- [ ] `./scripts/go2_mission_run.sh --sim` 기반 가상 시뮬레이션 스모크 테스트 (FSM 상태 천이 검증)
 - [ ] 실물 로봇 센서 토픽 수신 확인 (`/camera/color/image_raw`, `/odom`, `/scan`)
 - [ ] 12개 웨이포인트 트랙 1바퀴 실주행 디버깅
 
@@ -70,7 +68,6 @@ map  ──(AMCL / Map Server)──>  odom  ──(151Hz Leg Odometry)──>  
 ROLAB-QUAD-2026/
 ├── config/
 │   ├── system_params.yaml           # 매핑/오도메트리 주행/센서 외부 파라미터 통합 설정
-│   ├── waypoints_track.yaml         # 2026 로보월드 대회 트랙(8m x 6m) 웨이포인트 및 대기 시간 설정
 │   └── targets.json                 # 저장된 웨이포인트 좌표 데이터
 ├── docs/
 │   ├── GITHUB_RULES.md              # 팀 GitHub 브랜치·커밋·디렉토리 분리 규칙
@@ -85,7 +82,6 @@ ROLAB-QUAD-2026/
 ├── scripts/
 │   ├── go2_odom_run.sh              # [2단계] 오도메트리 및 기구학 브릿지 단독 실행 스크립트
 │   ├── go2_nav_run.sh               # [통합] 브릿지 + AMCL + Nav2 자율주행 실행 스크립트
-│   ├── go2_mission_run.sh           # [대회 미션] 비전 인식 + 7단계 미션 FSM 통합 실행 스크립트
 │   ├── go2_odom_nav.py              # C++ odom_nav_node 실행용 경량 CLI 런처 (os.execvp)
 │   ├── go2_goto.py                  # Nav2 목표 좌표 전송 및 웨이포인트 관리 CLI
 │   └── sim_nav_test.py              # 오프라인 검증용 사족보행 기구학/라이다 시뮬레이터
@@ -96,7 +92,6 @@ ROLAB-QUAD-2026/
     │   └── go2_navigation/          # Nav2 RPP 컨트롤러 및 플래너 설정 패키지
     ├── missions/                    # [대회 미션 제어 도메인 (C++)]
     │   ├── mission_vision/          # 라바콘 LiDAR 위치 확정 (cone_tracker_node)
-    │   └── mission_runner/          # 7단계 대회 시퀀스 상태 머신 (mission_fsm_node)
     └── interfaces/                  # [공통 메시지 인터페이스]
         ├── unitree_api/             # Unitree Sport API 메시지 패키지
         └── unitree_go/              # Unitree LowState 메시지 패키지
@@ -141,10 +136,6 @@ python3 scripts/go2_odom_nav.py go wp_center
 # 1) Nav2 기반 자유 목표 주행
 ./scripts/go2_nav_run.sh --map ./maps/roboworld_2026.yaml
 python3 scripts/go2_goto.py --x 3.6 --y 3.0 --yaw -140
-
-# 2) 2026 로보월드 7단계 전체 미션(신호등 2초 정지, 슬라럼, 주차 5초 SIT, 완주) 자동 수행
-./scripts/go2_mission_run.sh          # 실물 로봇 모드
-./scripts/go2_mission_run.sh --sim    # 시뮬레이션 검증 모드
 ```
 
 ### D. SLAM (FAST-LIO) — 외부 빌드본 참조
@@ -210,19 +201,3 @@ ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
 | **주행 제어** | `obstacle_stop_dist_m` | `0.35` | 오도메트리 직결 주행 시 전방 비상 정지 거리 (m) |
 
 
-### G. 경로 순차 주행 (`route_runner_node`)
-- 지점은 현장에서 조종기로 세운 뒤 저장한다. 좌표는 AMCL map (FAST-LIO 아님 — 발산 시 수 km 로 튐).
-  `python3 scripts/go2_route.py save <이름> --route maps/route_arena.yaml` 은 1.5초 정지(3 cm·2°), AMCL 표준편차
-  (x·y 0.15 m, 방향 8°), 지도의 빈 칸·벽 0.10 m 이격을 모두 통과해야 저장하고, 아니면 이유를 출력한다.
-- 순서는 파일의 `sequence` 를 직접 편집: `"<지점> [stopline|parking|finish] [tol=m] [vmax=m/s]"`. 같은 지점을 여러 번 써도 됨.
-  예: `maps/route_example.yaml`. `go2_route.py list` 로 빠진 지점 확인.
-- 실행: `go2_run.sh --map ... --route maps/route_arena.yaml` → 노드는 대기, `go2_route.py start [단계]` 로 출발.
-  `stop` = 모터 브리지 비활성(StopMove), `resume` = 현재 단계를 처음부터 다시(정지선은 다시 정지, 주차는 다시 앉음).
-  정비 시간 후에는 `start <단계>` 로 그 단계부터 (규정 2.5: 요청한 위치에서 재개).
-- 단계마다 EGO 의 `goal_tol`·`max_vel` 을 먼저 바꾸고 목표를 보낸다. 통과 지점은 0.5 m 안에 들면 다음 목표(멈추지 않음).
-- 정지선: 도착 → 정지 2.3초 → 1초 이내의 GREEN 에만 출발, 15초 동안 GREEN 이 없으면 진행(50점 포기, 완주 200점 유지).
-- 주차: 도착·정지 → Sit(1009) 5.5초 → RiseSit(1010) 3초 → 다음 단계.
-- FAST-LIO 감시: `/Odometry` 가 한 번에 0.5 m 넘게 튀거나 3 m/s 를 0.3초 넘게 보이면 정지(`lio.mode: stop|log|off`).
-  계단 충격에도 튈 수 있으니 실기에서 기준을 정할 것.
-- 상태: `/route/status` (2 Hz) 또는 `go2_route.py status`.
-- 시험: `ros2 run mission_runner test_route_logic` (판단 로직, 모의 로봇). ROS 통합 시험(가짜 로봇)은 저장소 밖 시험 도구.

@@ -10,7 +10,7 @@ Occupied blobs (8-connected) whose footprint fits in --max-size (default 0.30 m:
 floor. Walls, the traffic-light stand and anything larger stay. --keep x,y keeps the blob at that map point
 (a thin pole you want in the map), --erase x,y,r frees all occupied cells within r of x,y (a cone that sits
 against a wall merges with it, so the size test cannot take it). Points are in map coordinates (metres,
-same as RViz / go2_route.py).
+same as RViz).
 
 Always writes <name>_clean_preview.png: removed blobs circled red, kept small blobs blue, with their
 centres and sizes printed. The original map is never changed. EGO-Planner still sees the cones in the live

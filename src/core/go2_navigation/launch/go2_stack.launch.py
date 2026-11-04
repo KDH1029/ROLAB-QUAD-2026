@@ -4,8 +4,6 @@ mode:=nav     bridges + FAST-LIO + map_server/AMCL + EGO-Planner (+ motor bridge
 mode:=patrol  bridges + RANSAC wall runner (+ motor bridge)   -- fallback when SLAM/AMCL fail
 motor:=false  never starts cmd_vel_to_sport: nothing can move the robot
 cones:=true   + cone_tracker_node (LiDAR only); cone_regions:="x0 y0 x1 y1 ..."
-route:=<file> + route_runner_node (saved points -> EGO goals, stop line / parking); idle until
-              START on /route/cmd (scripts/go2_route.py start)
 
 Frames (nav): map -AMCL-> odom -leg odom-> base_link -imu_bridge-> base_stab
 FAST-LIO keeps its own camera_init tree on /tf_lio; EGO-Planner reads its /Odometry and maps
@@ -47,7 +45,7 @@ def stack(context):
             raise RuntimeError('mode:=nav needs map:=<map.yaml>')
         # AMCL odometry = FAST-LIO (/Odometry), not the leg odometry: 11-05 replays (3 arena bags) AMCL median
         # 9-14 cm -> 3-3.6 cm, scan match 92-96 -> 97-99 %. EGO already drives on FAST-LIO, so leg-odom AMCL
-        # bought no real independence; a FAST-LIO jump stops the route (route_runner). bridge_params keeps the
+        # bought no real independence. bridge_params keeps the
         # leg odometry for launches without FAST-LIO (bridge.launch / bringup.launch).
         nodes.append(lc('go2_bridge', 'odom_tf_node', 'go2_odom_tf',
                         [bridge_params, {'odom_topic': LaunchConfiguration('amcl_odom').perform(context)}]))
@@ -77,12 +75,6 @@ def stack(context):
                             [share('mission_vision', 'config', 'cone_tracker_params.yaml'),
                              over]))
             managed.append('cone_tracker_node')
-        route = LaunchConfiguration('route').perform(context)
-        if route:
-            if not os.path.isfile(route):
-                raise RuntimeError(f'route file not found: {route}')
-            nodes.append(lc('mission_runner', 'route_runner_node', 'route_runner_node', [route]))
-            managed.append('route_runner_node')
     elif mode == 'patrol':
         nodes.append(lc('go2_wall_patrol', 'wall_runner_node', 'wall_runner_node',
                         [share('go2_wall_patrol', 'config', 'patrol_params.yaml')]))
@@ -116,7 +108,6 @@ def generate_launch_description():
                               description='odometry under AMCL: /Odometry (FAST-LIO, default) | /utlidar/robot_odom (legs)'),
         DeclareLaunchArgument('cone_regions', default_value='',
                               description='LiDAR-only cone rectangles "x0 y0 x1 y1 ..." (map frame)'),
-        DeclareLaunchArgument('route', default_value='', description='route file: route_runner_node (mode:=nav)'),
         DeclareLaunchArgument('fastlio_config', default_value='',
                               description='FAST-LIO parameter file (mode:=nav)'),
         OpaqueFunction(function=stack),
