@@ -108,7 +108,7 @@ def generate_launch_description():
         DeclareLaunchArgument('motor', default_value='true', description='false: no cmd_vel_to_sport'),
         DeclareLaunchArgument('map', default_value='', description='map yaml (mode:=nav)'),
         DeclareLaunchArgument('cones', default_value='false', description='true: cone_tracker_node'),
-        DeclareLaunchArgument('cone_mode', default_value='auto', description='auto | fusion | lidar_only'),
+        DeclareLaunchArgument('cone_mode', default_value='lidar_only', description='lidar_only (default) | auto | fusion'),
         DeclareLaunchArgument('cone_regions', default_value='',
                               description='LiDAR-only cone rectangles "x0 y0 x1 y1 ..." (map frame)'),
         DeclareLaunchArgument('route', default_value='', description='route file: route_runner_node (mode:=nav)'),
