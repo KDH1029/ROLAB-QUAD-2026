@@ -2,7 +2,7 @@
 """Straight-walk yaw drift: measure it, get the cmd_vel_to_sport yaw trim.
 
     python3 scripts/go2_yaw_drift.py bag ~/bags/<bag> [--trim A,B]
-    python3 scripts/go2_yaw_drift.py live --vx 0.3 --secs 6 [--trim A,B]     # MOVES THE ROBOT
+    python3 scripts/go2_yaw_drift.py live --vx 0.3 --secs 6 [--trim A,B]     # MOVES THE ROBOT (--vx -0.3: backwards)
 
 bag:  takes the stretches where the robot walked forward (>= 0.15 m/s) on a straight command -
       autonomous Move with yaw 0 for >= 1 s (or = the trim given with --trim, if the bag was made with
@@ -11,7 +11,9 @@ bag:  takes the stretches where the robot walked forward (>= 0.15 m/s) on a stra
 live: run it in your own terminal, remote in hand, 2+ m clear in front. Needs the motor bridge
       (go2_cmd_vel_to_sport) active and nothing else publishing /cmd_vel. Sends /cmd_vel vx for
       --secs, measures /sportmodestate yaw_speed and forward speed, stops (zero + bridge StopMove),
-      prints the trim. Ctrl+C stops at once.
+      prints the residual turn against the COMMANDED vx (what the bridge trim multiplies) and whether
+      it is within 1 deg/m. (The bag mode still fits against the actual speed - do not use its numbers
+      as the trim: 11-04 that over-corrected by 2 deg/m.) Ctrl+C stops at once.
 Trim: bridge_params.yaml go2_cmd_vel_to_sport yaw_trim_per_vx (rad/s per m/s) and yaw_trim_bias (rad/s):
       wz_out = wz - (per_vx * vx + bias) while walking. One speed -> per_vx only; two or more speeds
       -> both from a line fit. --trim A,B = the trim that was active (results become corrections to it).
@@ -134,13 +136,31 @@ def live(vx, secs, trim):
             pub.publish(Twist())
             time.sleep(0.05)
         print('stopped')
-    samples = [(v, w) for t, v, w in got if t > t0 + 1.5 and t <= t0 + secs and v > 0.15]   # skip the start-up
+    sgn = 1.0 if vx > 0 else -1.0
+    samples = [(v, w) for t, v, w in got if t > t0 + 1.5 and t <= t0 + secs and sgn * v > 0.15]   # skip the start-up
     n.destroy_node()
     rclpy.shutdown()
     if len(samples) < 20:
         print(f'only {len(samples)} samples while walking - did it walk?')
         return None
-    return suggest(samples, trim)
+    return live_report(vx, samples, trim)
+
+
+def live_report(vx_cmd, samples, trim):
+    """Fit against the COMMANDED vx (the bridge multiplies the commanded vx, not the actual speed)."""
+    a0, b0 = trim
+    v = np.array([s[0] for s in samples])
+    w = np.array([s[1] for s in samples])
+    wm = w.mean()
+    deg_m = math.degrees(wm / abs(v.mean()))
+    print(f'  commanded vx {vx_cmd:+.2f} m/s, actual {v.mean():+.2f} m/s, {len(w)} samples')
+    print(f'  residual yaw {math.degrees(wm):+.2f} deg/s (median {math.degrees(np.median(w)):+.2f}) = {deg_m:+.1f} deg per metre  '
+          f'[+ = left; trim active {a0:.3f} / {b0:.3f}]')
+    ok = abs(deg_m) <= 1.0
+    print('  -> OK (|residual| <= 1 deg/m), keep the trim' if ok else
+          f'  -> this speed alone asks for yaw_trim_per_vx {a0 + wm / vx_cmd:.3f} (bias {b0:.3f} kept); '
+          'fit per_vx and bias from two commanded speeds before changing it')
+    return wm
 
 
 def main():
@@ -158,8 +178,8 @@ def main():
     if a.cmd == 'bag':
         from_bag(a.path, trim)
     else:
-        if not 0.1 <= a.vx <= 0.6 or not 2 <= a.secs <= 15:
-            sys.exit('keep --vx 0.1..0.6 and --secs 2..15')
+        if not 0.1 <= abs(a.vx) <= 0.6 or not 2 <= a.secs <= 15:
+            sys.exit('keep |--vx| 0.1..0.6 (negative = backwards) and --secs 2..15')
         live(a.vx, a.secs, trim)
     return 0
 
