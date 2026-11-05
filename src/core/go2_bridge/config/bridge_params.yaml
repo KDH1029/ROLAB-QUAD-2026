@@ -79,8 +79,8 @@ go2_cmd_vel_to_sport:
     # refit on commanded vx -> 0.110/-0.002, check at cmd 0.5: +0.06 deg/s (+0.1 deg/m).
     # Not re-tested at cmd 0.3 with these values. Reverse (vx < 0) uses the mirrored trim - unverified.
     # The remote does not go through this bridge. 0 / 0 = off.
-    # NOTE: go2_yaw_drift.py fits against the ACTUAL speed and includes accel/decel - its suggestions
-    # are not directly usable for this trim (should fit against commanded vx; not changed yet).
+    # Check: go2_yaw_drift.py live --vx 0.3 / 0.5 / -0.3 --trim 0.110,-0.002 (residual vs the commanded vx,
+    # OK within 1 deg/m). Its bag mode still fits the actual speed - do not take those numbers as the trim.
     yaw_trim_per_vx: 0.110
     yaw_trim_bias: -0.002
     max_ax: 1.0
