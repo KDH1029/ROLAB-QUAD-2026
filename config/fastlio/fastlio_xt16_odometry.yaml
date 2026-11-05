@@ -1,68 +1,98 @@
-# FORK of ~/ws/lab/go2_ws/config/odometry.yaml (원본 수정 금지, 09-09 판)
-# 바꾼 것은 "FORK:" 표시 3곳뿐 — 값은 팀이 검증한 ~/ws/gosu_slam/config/go2_slam_odometry.yaml 과 같다.
-# 실행 파일: src/external/fast_lio (팀 포크를 저장소 안으로 포함, 소스 무수정).
-# ==============================================================================
-# Go2 FAST-LIO 실시간 오도메트리(Odometry) 설정 (빌드 불필요 - 즉시 반영)
-# 위치: ~/go2_ws/config/odometry.yaml
-# ==============================================================================
+# FAST-LIO for the go2_stack (11-05): = the team's tuned config (~/ws/junsu/config/fastlio_leg_nurigwan_derange30.yaml,
+# copied in so the repo does not depend on another workspace) for src/external/fast_lio, which now carries the team's
+# leg-velocity fusion (leg.*), motion gating and jump cap (from ~/ws/junsu/ws_fastlio_tunable, superset of the old copy).
+# 11-05 arena4 replay, AMCL (FAST-LIO odometry) scan vs map: old repo config 89.6 % mean / 29 % worst (X-centre
+# platform) -> this config 97.4 % / 79 %. The previous file (det_range 15, no max_range, no leg) is in git history.
+# v_gosu 실험 사본: gosu_slam/config/go2_slam_odometry.yaml + 다리 속도 결합(leg.*) 잡음 0.10 m/s
+# go2_slam_odometry.yaml — 통째 SLAM 주행용 FAST-LIO 설정
+#
+# 원본: ~/ws/lab/.../config/go2_xt16_odometry.yaml  (팀 공용, 불변)
+# 바뀐 것은 det_range 한 줄뿐이다:  60.0 -> 15.0
+#
+# 【왜 바꿨나 — 2026-09-30 실측】
+#   원본(det_range 60)은 arena_0921 재생에서 7x6 m 경기장을 25 m 벗어나 미끄러졌다.
+#   속도는 한 번도 2 m/s 를 안 넘어 어떤 가드에도 안 걸린다. 조용히 틀린다.
+#
+#     바꾼 것                     궤적 x        궤적 y       경로      판정
+#     det_range   60 -> 15       -2.2~ 3.8    -0.4~ 6.3    78.3 m   정상
+#     filter_size 0.15 -> 0.05  -17.1~ 4.0   -13.2~21.1   136.3 m   미끄러짐
+#     extrinsic z 0.1588 -> 0.0 -25.6~ 0.1    -0.2~28.2   113.9 m   미끄러짐
+#     (원본 그대로)             -24.4~ 0.3    -0.4~24.9   109.3 m   미끄러짐
+#
+#   det_range 는 ikd-tree 지역 지도의 유지 범위다. 7 m 방에서 60 m 를 잡으면
+#   지도가 한 번도 잘려나가지 않아, 오래된 점과 문·창 너머 먼 점이 계속 쌓이고
+#   정합이 그 일관성 없는 먼 구조에 끌려간다.
+#
+#   결과는 매핑 설정보다도 낫다:
+#     이 설정        경로 78.3 m = 다리오도 66.4 m 의 1.18배   <- 최고
+#     xt16_arena     경로 86.6 m = 1.30배
+#
+# 【판정법】 궤적 xy 범위가 경기장(7x6 m)을 벗어나면 미끄러진 것이다. 속도로는 못 잡는다.
 /**:
     ros__parameters:
         feature_extract_enable: false
-        point_filter_num: 2          # 20Hz 스캔: 32000 점 -> 1/2 다운샘플링으로 밀도 유지
+        point_filter_num: 2          # 20Hz scan: 32000 pts/scan, 1/2 downsample
         max_iteration: 4
-
-        # [밀도 및 해상도 설정] mapping.yaml과 완벽 일치 (10cm 복셀)
-        filter_size_surf: 0.10
-        filter_size_map: 0.10
-        cube_side_length: 1000.0     # 맵 삭제 오작동 방지 (cube_side_length > 3*det_range 필수)
+        filter_size_surf: 0.15
+        filter_size_map: 0.15
+        cube_side_length: 100.0      # Compact local map for real-time navigation (~150MB RAM)
         runtime_pos_log_enable: false
         map_file_path: ""
 
         common:
-            lid_topic:  "/velodyne_points"   # go2_bridge cloud_bridge 출력
-            imu_topic:  "/imu/body"          # go2_bridge imu_bridge 출력 (/lowstate 500Hz)
+            lid_topic:  "/velodyne_points"   # Output from go2_bridge cloud_bridge
+            imu_topic:  "/imu/body"          # Output from go2_bridge imu_bridge (/lowstate 500Hz)
             time_sync_en: false
             time_offset_lidar_to_imu: 0.0
 
         preprocess:
-            lidar_type: 2                # 2 = Velodyne 형식 (x,y,z,intensity,ring,time)
-            scan_line: 16                # Hesai XT16 = 16채널
-            timestamp_unit: 0            # time 필드 단위: 초(seconds)
-            blind: 0.5                   # 로봇 몸통 반경 블라인드(m)
+            lidar_type: 2                # 2 = Velodyne format (x,y,z,intensity,ring,time)
+            scan_line: 16                # Hesai XT16 = 16 channels
+            timestamp_unit: 0            # time field is in seconds
+            blind: 0.5                   # robot body blind radius (meters)
+            max_range: 15.0              # ★ 11-05: 15 m 넘는 점(전시장 구조물·관중)이 자세를 흔든다(A/B: 출렁임 중앙 2.74→0.49 cm, p99 13.5→2.0 cm). det_range 는 입력을 안 자름(기본 300 m)
             scan_rate: 20
 
         mapping:
-            acc_cov: 0.5                 # 4족 보행 발걸음 충격 허용치
-            gyr_cov: 0.3                 # 보행 시 몸통 흔들림 허용치 (mapping.yaml과 일치)
+            acc_cov: 0.5                 # Quadruped footstep impact allowance
+            gyr_cov: 0.2                 # Quadruped body sway allowance
             b_acc_cov: 0.0001
             b_gyr_cov: 0.0001
-            fov_degree: 360.0
-            det_range: 15.0              # FORK: 60 -> 15. 60 은 지도가 안 잘려 미끄러짐 (gosu_slam 검증)
-
-            # [외부 파라미터(Extrinsic)] mapping.yaml과 100% 일치
-            extrinsic_est_en: false      # 고정 파라미터 (온라인 추정 시 보행 충격 드리프트 방지)
-            extrinsic_T: [ 0.25, 0.0, 0.1588 ]   # FORK: 라이다 높이 15.88cm 반영 (gosu_slam 과 동일)
-            extrinsic_R: [ -0.0001707, -0.9999240,  0.0123287,   # FORK: 실측 기울기 반영 (gosu_slam 과 동일)
+            fov_degree:    360.0
+            det_range:     30.0
+            extrinsic_est_en:  false     # Fixed extrinsic calibration
+            extrinsic_T: [ 0.25, 0.0, 0.1588 ] # Accurate lever arm: LiDAR is 15.88cm above body IMU
+            extrinsic_R: [ -0.0001707, -0.9999240,  0.0123287,
                             0.9999844, -0.0001019,  0.0055807,
                            -0.0055790,  0.0123295,  0.9999084 ]
 
         publish:
-            path_en: true                # RViz 궤적 시각화를 위해 활성화 (/path)
+            path_en: false
             effect_map_en: false
-            map_en: false                # 주행 중 실시간 메모리 보존을 위해 글로벌 맵 누적 비활성화
-            scan_publish_en: true        # EGO-Planner 장애물 회피용 점군 (/cloud_registered)
-            dense_publish_en: true       # 장애물 감지를 위해 전밀도 점군(32000점) 발행
-            scan_bodyframe_pub_en: true  # 로봇 바디 프레임 점군 (/cloud_registered_body)
+            map_en: false                # Disable Laser_map accumulation to preserve memory
+            scan_publish_en: true        # Publishes /cloud_registered for obstacle avoidance
+            dense_publish_en: false
+            scan_bodyframe_pub_en: true  # Publishes /cloud_registered_body
 
         pcd_save:
-            pcd_save_en: false           # 주행 중 불필요한 파일 I/O 차단
+            pcd_save_en: false           # Do NOT accumulate or save PCD during navigation
             interval: -1
+        leg:
+            vel_en: true
+            topic: "/utlidar/robot_odom"
+            vel_noise: 0.10
+            gate_chi2: 9.21
+            window: 0.10
 
-        # [모션 게이팅] 실시간 오도메트리는 로컬 맵의 연속적인 누적이 필수이므로 false 유지
+        # 2026-11-02 누리관 발산 수정: 코드엔 이미 있었지만 기본 꺼짐 상태였던
+        # 안전장치. 급회전/고속/높은 잔차/유효점<20일 때 "지도 누적"만 일시정지
+        # (오도메트리 자체는 계속 나옴) — 우리가 본 "No Effective Points!"
+        # 증상과 정확히 겹친다. leg_velocity_update()의 위치점프 상한(0.3m,
+        # 코드에 하드코딩)과 같이 적용.
         motion_gating:
-            enable: false
-            max_angular_rate: 45.0       # deg/s: 3차원 보행 흔들림 각속도 제한
-            max_yaw_rate: 28.0           # deg/s: 급회전 시 로컬 맵 누적 일시정지 (드리프트 원천 차단)
-            max_linear_vel: 1.2          # m/s: 정상 보행 속도 허용
-            max_residual: 0.06           # m: 정합 오차 6cm 초과 시 즉시 차단
-            cooldown_time: 0.2           # 초: 회전 종료 후 안정화 대기
+            enable: true
+            max_angular_rate: 50.0
+            max_yaw_rate: 35.0
+            max_linear_vel: 1.5
+            max_residual: 0.10
+            cooldown_time: 0.1

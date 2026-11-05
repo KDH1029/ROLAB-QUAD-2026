@@ -53,6 +53,10 @@ class ImuProcess
   V3D cov_acc;
   V3D cov_gyr;
   V3D cov_acc_scale;
+  // v_gosu: 충격 순간만 가속도 잡음을 키운다 (발 디딤 충격 대응). impact_thr<=0 이면 꺼짐
+  double impact_thr = 0.0;       // |a|-g 이탈 문턱 (m/s^2)
+  double impact_q_scale = 1.0;   // 문턱 넘을 때 가속도 잡음 배수
+  long   impact_count = 0, imu_count = 0;
   V3D cov_gyr_scale;
   V3D cov_bias_gyr;
   V3D cov_bias_acc;
@@ -272,7 +276,11 @@ void ImuProcess::UndistortPcl(const MeasureGroup &meas, esekfom::esekf<state_ikf
     in.acc = acc_avr;
     in.gyro = angvel_avr;
     Q.block<3, 3>(0, 0).diagonal() = cov_gyr;
-    Q.block<3, 3>(3, 3).diagonal() = cov_acc;
+    {   // v_gosu: 충격 적응 가속도 잡음
+      const bool impact = impact_thr > 0.0 && std::fabs(acc_avr.norm() - G_m_s2) > impact_thr;
+      Q.block<3, 3>(3, 3).diagonal() = impact ? V3D(cov_acc * impact_q_scale) : cov_acc;
+      imu_count++; if (impact) impact_count++;
+    }
     Q.block<3, 3>(6, 6).diagonal() = cov_bias_gyr;
     Q.block<3, 3>(9, 9).diagonal() = cov_bias_acc;
     kf_state.predict(dt, Q, in);

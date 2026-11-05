@@ -146,6 +146,101 @@ vect3 pos_lid;
 
 nav_msgs::msg::Path path;
 nav_msgs::msg::Odometry odomAftMapped;
+
+// ===== v_gosu: 다리 기구학 속도 결합 (Leg velocity update) =====
+extern shared_ptr<ImuProcess> p_imu;   // 아래(정의는 뒤)에서 충격 통계를 찍으려고
+// /utlidar/robot_odom(관절각 기반 다리 오도)의 수평 속도를 라이다 갱신 직후 측정값으로 넣는다.
+// 시각은 수신 시각(시스템 시계)으로 찍는다 — cloud_bridge/imu_bridge 와 같은 기준.
+struct LegSample { double t; V3D p; Eigen::Quaterniond q; };
+std::deque<LegSample> leg_buf;
+std::mutex mtx_leg;
+bool   leg_vel_en = false;
+double leg_vel_noise = 0.10;   // m/s (1σ)
+double leg_gate_chi2 = 9.21;   // 자유도 2, 99%
+double leg_window = 0.10;      // s, 속도 계산 창
+long   leg_used = 0, leg_rejected = 0, leg_nodata = 0, leg_rejected_bigjump = 0;
+double leg_max_pos_jump = 0.3;   // m, 한 번의 보정으로 허용하는 최대 위치 변화 (2026-11-02, 누리관 발산 수정)
+long   lidar_rejected_bigjump = 0;
+double lidar_max_pos_jump = 0.5;   // m, 라이다 코어 업데이트 한 번이 허용하는 최대 위치 변화
+                                     // (2026-11-02, 누리관 2차 발산: 리그퓨전 큰점프거부는 0인데
+                                     //  회전 중 코어 스캔매칭 자체가 튀어 700m+ 발산함. X자 교차로
+                                     //  처럼 대칭적인 구조에서 빠른 회전 중 ICP가 "잔차는 낮지만
+                                     //  틀린" 대칭 위치로 수렴한 것으로 추정 — 그 보정 자체를 버림.
+
+void leg_cbk(const nav_msgs::msg::Odometry::UniquePtr msg)
+{
+    LegSample s;
+    s.t = rclcpp::Clock(RCL_SYSTEM_TIME).now().seconds();
+    s.p = V3D(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z);
+    s.q = Eigen::Quaterniond(msg->pose.pose.orientation.w, msg->pose.pose.orientation.x,
+                             msg->pose.pose.orientation.y, msg->pose.pose.orientation.z);
+    std::lock_guard<std::mutex> lk(mtx_leg);
+    leg_buf.push_back(s);
+    while (!leg_buf.empty() && leg_buf.front().t < s.t - 2.0) leg_buf.pop_front();
+}
+
+// t 까지의 leg_window 창에서 몸통 좌표계 속도를 구한다
+bool leg_velocity_body(double t, V3D &v_body)
+{
+    std::lock_guard<std::mutex> lk(mtx_leg);
+    const LegSample *a = nullptr, *b = nullptr;
+    for (auto &s : leg_buf) {
+        if (s.t > t + 0.02) break;
+        if (s.t >= t - leg_window - 0.02 && a == nullptr) a = &s;
+        b = &s;
+    }
+    if (!a || !b || b->t - a->t < 0.5 * leg_window) return false;
+    V3D v_odom = (b->p - a->p) / (b->t - a->t);
+    Eigen::Quaterniond qm = a->q.slerp(0.5, b->q);
+    v_body = qm.conjugate() * v_odom;
+    return v_body.norm() < 3.0;   // 비정상 값 거부
+}
+
+// 라이다 갱신 직후 수평 속도 측정 갱신 (vel 은 상태 접선공간 12~14)
+void leg_velocity_update(double t)
+{
+    V3D v_body;
+    if (!leg_velocity_body(t, v_body)) { leg_nodata++; return; }
+    state_ikfom x = kf.get_x();
+    auto P = kf.get_P();
+    V3D vw = x.rot.toRotationMatrix() * v_body;
+    Eigen::Matrix<double, 2, 23> H = Eigen::Matrix<double, 2, 23>::Zero();
+    H(0, 12) = 1.0; H(1, 13) = 1.0;
+    Eigen::Vector2d r(vw.x() - x.vel.x(), vw.y() - x.vel.y());
+    Eigen::Matrix2d S = H * P * H.transpose() + Eigen::Matrix2d::Identity() * leg_vel_noise * leg_vel_noise;
+    double chi2 = r.transpose() * S.inverse() * r;
+    if (chi2 > leg_gate_chi2) { leg_rejected++; return; }
+    Eigen::Matrix<double, 23, 2> K = P * H.transpose() * S.inverse();
+    Eigen::Matrix<double, 23, 1> dx = K * r;
+    // v_gosu (2026-11-02): chi2 게이트는 "측정값"만 보고, P의 pos-vel 상관관계를 타고
+    // 나오는 "실제 보정량"엔 상한이 없었다 — 누리관 실측에서 속도 측정 하나가 통과한
+    // 직후 위치가 km 단위로 튀는 발산이 재현됨. 라이다 정합이 그 틀어진 위치에 끌려가며
+    // "No Effective Points!"가 뜨고 이후 전혀 제약 없이 계속 적분되어 더 벌어졌다.
+    // 한 번의 다리속도 보정으로 위치가 leg_max_pos_jump(기본 0.3m, 창 0.1s 기준 3m/s
+    // 한계와 동일한 스케일)보다 더 틀어지려 하면 이 보정 자체를 버린다.
+    if (dx.segment<3>(0).norm() > leg_max_pos_jump) {
+        leg_rejected_bigjump++;
+        RCLCPP_WARN(rclcpp::get_logger("v_gosu_leg"),
+                    "다리속도 보정의 위치점프 %.3fm > 한계 %.3fm -> 거부 (누적 %ld)",
+                    dx.segment<3>(0).norm(), leg_max_pos_jump, leg_rejected_bigjump);
+        return;
+    }
+    x.pos += dx.segment<3>(0);
+    Eigen::Matrix<double, 3, 1> dth = dx.segment<3>(3);
+    x.rot = Eigen::Quaterniond(x.rot.toRotationMatrix() * Exp(dth(0), dth(1), dth(2))).normalized();
+    x.vel += dx.segment<3>(12);
+    x.bg  += dx.segment<3>(15);
+    x.ba  += dx.segment<3>(18);
+    auto Pn = P;
+    Pn = (Eigen::Matrix<double, 23, 23>::Identity() - K * H) * P;
+    kf.change_x(x);
+    kf.change_P(Pn);
+    leg_used++;
+    if ((leg_used + leg_rejected) % 400 == 0)
+        RCLCPP_INFO(rclcpp::get_logger("v_gosu_leg"), "다리 속도 갱신: 사용 %ld  거부 %ld  자료없음 %ld  큰점프거부 %ld | 충격 IMU %ld/%ld",
+                    leg_used, leg_rejected, leg_nodata, leg_rejected_bigjump, p_imu ? p_imu->impact_count : 0L, p_imu ? p_imu->imu_count : 0L);
+}
+// ===== v_gosu 끝 =====
 geometry_msgs::msg::Quaternion geoQuat;
 geometry_msgs::msg::PoseStamped msg_body_pose;
 
@@ -912,6 +1007,13 @@ public:
         this->declare_parameter<double>("cube_side_length", 200.);
         this->declare_parameter<float>("mapping.det_range", 300.);
         this->declare_parameter<double>("mapping.fov_degree", 180.);
+        this->declare_parameter<bool>("leg.vel_en", false);              // v_gosu
+        this->declare_parameter<std::string>("leg.topic", "/utlidar/robot_odom");
+        this->declare_parameter<double>("leg.vel_noise", 0.10);
+        this->declare_parameter<double>("leg.gate_chi2", 9.21);
+        this->declare_parameter<double>("leg.window", 0.10);
+        this->declare_parameter<double>("leg.impact_thr", 0.0);
+        this->declare_parameter<double>("leg.impact_q_scale", 1.0);
         this->declare_parameter<double>("mapping.gyr_cov", 0.1);
         this->declare_parameter<double>("mapping.acc_cov", 0.1);
         this->declare_parameter<double>("mapping.b_gyr_cov", 0.0001);
@@ -957,6 +1059,11 @@ public:
         p_pre->max_range = static_cast<double>(DET_RANGE);
         this->get_parameter_or<double>("preprocess.max_range", p_pre->max_range, static_cast<double>(DET_RANGE));
         this->get_parameter_or<double>("mapping.fov_degree",fov_deg,180.f);
+        this->get_parameter_or<bool>("leg.vel_en", leg_vel_en, false);   // v_gosu
+        this->get_parameter_or<std::string>("leg.topic", leg_topic_, "/utlidar/robot_odom");
+        this->get_parameter_or<double>("leg.vel_noise", leg_vel_noise, 0.10);
+        this->get_parameter_or<double>("leg.gate_chi2", leg_gate_chi2, 9.21);
+        this->get_parameter_or<double>("leg.window", leg_window, 0.10);
         this->get_parameter_or<double>("mapping.gyr_cov",gyr_cov,0.1);
         this->get_parameter_or<double>("mapping.acc_cov",acc_cov,0.1);
         this->get_parameter_or<double>("mapping.b_gyr_cov",b_gyr_cov,0.0001);
@@ -1008,6 +1115,13 @@ public:
         p_imu->set_extrinsic(Lidar_T_wrt_IMU, Lidar_R_wrt_IMU);
         p_imu->set_gyr_cov(V3D(gyr_cov, gyr_cov, gyr_cov));
         p_imu->set_acc_cov(V3D(acc_cov, acc_cov, acc_cov));
+        {   // v_gosu: 충격 적응 가속도 잡음
+            double thr = 0.0, sc = 1.0;
+            this->get_parameter_or<double>("leg.impact_thr", thr, 0.0);
+            this->get_parameter_or<double>("leg.impact_q_scale", sc, 1.0);
+            p_imu->impact_thr = thr; p_imu->impact_q_scale = sc;
+            if (thr > 0.0) RCLCPP_INFO(this->get_logger(), "v_gosu 충격 적응 잡음 켬: |a|-g > %.2f m/s^2 이면 가속도 잡음 x%.1f", thr, sc);
+        }
         p_imu->set_gyr_bias_cov(V3D(b_gyr_cov, b_gyr_cov, b_gyr_cov));
         p_imu->set_acc_bias_cov(V3D(b_acc_cov, b_acc_cov, b_acc_cov));
 
@@ -1038,6 +1152,11 @@ public:
             sub_pcl_pc_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(lid_topic, rclcpp::SensorDataQoS(), standard_pcl_cbk);
         }
         sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(imu_topic, 10, imu_cbk);
+        if (leg_vel_en) {                                                    // v_gosu
+            sub_leg_ = this->create_subscription<nav_msgs::msg::Odometry>(leg_topic_, rclcpp::SensorDataQoS(), leg_cbk);
+            RCLCPP_INFO(this->get_logger(), "v_gosu 다리 속도 결합 켬: %s  잡음 %.3f m/s  게이트 %.2f  창 %.2f s",
+                        leg_topic_.c_str(), leg_vel_noise, leg_gate_chi2, leg_window);
+        }
         pubLaserCloudFull_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered", 20);
         pubLaserCloudFull_body_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered_body", 20);
         pubLaserCloudEffect_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_effected", 20);
@@ -1067,7 +1186,7 @@ public:
         auto map_period_ms = std::chrono::milliseconds(static_cast<int64_t>(1000.0));
         map_pub_timer_ = rclcpp::create_timer(this, this->get_clock(), map_period_ms, std::bind(&LaserMappingNode::map_publish_callback, this));
 
-        map_save_srv_ = this->create_service<std_srvs::srv::Trigger>("/map_save", std::bind(&LaserMappingNode::map_save_callback, this, std::placeholders::_1, std::placeholders::_2));
+        map_save_srv_ = this->create_service<std_srvs::srv::Trigger>("/map_save", [this](std::shared_ptr<std_srvs::srv::Trigger::Request> req, std::shared_ptr<std_srvs::srv::Trigger::Response> res) { this->map_save_callback(req, res); });
 
         RCLCPP_INFO(this->get_logger(), "Node init finished.");
     }
@@ -1178,7 +1297,24 @@ private:
             /*** iterated state estimation ***/
             double t_update_start = omp_get_wtime();
             double solve_H_time = 0;
+            // v_gosu (2026-11-02): 코어 업데이트 전체(x,P)를 스냅샷해두고, 위치가
+            // lidar_max_pos_jump 보다 더 틀어지면 이 스캔의 보정을 통째로 버린다
+            // (스냅샷으로 완전히 되돌림 = IMU/다리속도 전파만 남은 상태).
+            // effct_feat_num==0일 때 이미 안 하던 보정을, "점은 찾았지만 결과가
+            // 터무니없는"(대칭 구조에서 회전 중 ICP가 틀린 대응으로 수렴하는 등) 경우까지 넓힌 것.
+            state_ikfom x_before_update = kf.get_x();
+            auto P_before_update = kf.get_P();
             kf.update_iterated_dyn_share_modified(LASER_POINT_COV, solve_H_time);
+            double lidar_pos_jump = (kf.get_x().pos - x_before_update.pos).norm();
+            if (lidar_pos_jump > lidar_max_pos_jump) {
+                lidar_rejected_bigjump++;
+                RCLCPP_WARN(this->get_logger(),
+                            "라이다 코어 보정의 위치점프 %.3fm > 한계 %.3fm -> 거부 (누적 %ld)",
+                            lidar_pos_jump, lidar_max_pos_jump, lidar_rejected_bigjump);
+                kf.change_x(x_before_update);
+                kf.change_P(P_before_update);
+            }
+            if (leg_vel_en) leg_velocity_update(lidar_end_time);   // v_gosu
             state_point = kf.get_x();
             euler_cur = SO3ToEuler(state_point.rot);
             pos_lid = state_point.pos + state_point.rot * state_point.offset_T_L_I;
@@ -1341,6 +1477,8 @@ private:
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pubOdomAftMapped_;
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pubPath_;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu_;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_leg_;   // v_gosu
+    std::string leg_topic_;
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_pcl_pc_;
     rclcpp::Subscription<livox_ros_driver2::msg::CustomMsg>::SharedPtr sub_pcl_livox_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_mapping_gated_;
