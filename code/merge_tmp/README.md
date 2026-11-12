@@ -171,41 +171,19 @@ Apache-2.0. 단, `src/interfaces`(Unitree, BSD 3-Clause)와 `src/external`(FAST-
 5. 경로를 주차장 안까지 한번에 가려고 하니 꼬깔을 쳐바림 꼬깔 앞뒤로 핀을 찍어 그 부분만 regression 기반 알고리즘으로 주행
 6. 슬라럼 주행중 길이 막혔다고 판단될 때 매번 4초 기다릴 필요 있을까? 그리고 경로 생성 알고리즘 조금 손봐야 할듯. 너무 쉽게 막힘.
 7. 벽에 페널티 강화하기. 자꾸 부딛힘
----
 
-## 재사용 가이드
+## Reuse notes
 
-### 떼어 쓰기 좋은 부품
-| 부품 | 위치 | 입력 → 출력 | 다른 곳에서 쓰려면 |
-|---|---|---|---|
-| IMU 브리지 | `src/core/go2_bridge/src/imu_bridge_node.cpp` | `/lowstate` → `/imu/body`(500 Hz, `imu_link`) | Unitree 메시지(`src/interfaces`)만 있으면 됨 |
-| 점구름 브리지 + 수직성 스캔 | `src/core/go2_bridge/src/cloud_bridge_node.cpp` | `/lidar_points` → `/velodyne_points`(왜곡보정), `/scan`(`base_stab` 기준) | `scan_mode: vertical` 은 링 번호가 있는 회전형 라이다 전제. 장착 위치는 TF 로 |
-| 다리 odom TF | `src/core/go2_bridge/src/odom_tf_node.cpp` | `/utlidar/robot_odom` → TF `odom→base_link` | — |
-| 모터 브리지 | `src/core/go2_bridge/src/cmd_vel_to_sport_node.cpp` | `/cmd_vel` → `/api/sport/request` | `max_vx/vy`, 최소 유효 명령, `yaw_trim_*`(직진 쏠림 보정)은 로봇·걸음새마다 다시 잴 것 |
-| AMCL 설정 | `src/core/go2_localization/config/amcl_params.yaml` | `/scan` + 2D 지도 → `map→odom` | Omni 이동모델은 옆걸음하는 로봇이면 유지 |
-| 출발 정렬 | `scripts/start_align_core.py`(ROS 무관 핵심) + `go2_start_align.py` | 기립 직후 3초 스캔 + 2D 지도 → 경로점 파일을 오늘 좌표로 변환 | 거부 범위(±0.3 m / ±10°)는 경기장 대칭성에 맞춰 조정 |
-| AMCL 출발 초기화 | `scripts/go2_amcl_init.py` | 공분산 넣은 `/initialpose` + 정지 갱신 반복 | 그대로 |
-| LiDAR 콘 추적기 | `src/missions/mission_vision/src/cone_tracker_node.cpp` | 점구름 → `/mission/cones`, `/mission/cone_obstacles` | 콘 크기 띠(z·폭·위 빈칸)와 `regions`(지도 좌표)를 대상 물체·지도에 맞춰 다시 정할 것 |
-| 직진 쏠림 측정 | `scripts/go2_yaw_drift.py` | 실주행 → `yaw_trim_per_vx`, `yaw_trim_bias` 제안 | **명령** 속도 기준으로 맞출 것(실제 속도 기준이면 과보정) |
-| EGO-Planner 오프라인 시험 | `src/core/ego_planner` 의 `test_plan_on_map` | 저장 지도 위 계획 성공률·벽 간격 | 로봇 없이 파라미터 비교 |
+- 부품별 입출력
 
-### 기동 순서 (lifecycle)
-런타임 노드는 모두 lifecycle 노드다. `configure → activate` 를 하지 않으면 라이다·IMU·모터 명령이 나오지 않는다.
-`scripts/go2_run.sh` 가 순서대로 처리하며, 모터 브리지는 마지막에 켠다. 소프트웨어 정지는 모터 브리지 `deactivate` 다.
+| 노드 | 입력 | 출력 |
+|---|---|---|
+| `imu_bridge_node` | `/lowstate` | `/imu/body` |
+| `cloud_bridge_node` | `/lidar_points` | `/velodyne_points`, `/scan` |
+| `odom_tf_node` | `/utlidar/robot_odom` | TF `odom → base_link` |
+| `cmd_vel_to_sport_node` | `/cmd_vel` | `/api/sport/request` |
+| `cone_tracker_node` | 점구름 | `/mission/cones`, `/mission/cone_obstacles` |
 
-### 다른 로봇·경기장으로 옮길 때 바꿀 것
-1. **라이다 장착 TF**(브리지 설정·런치)와 FAST-LIO `extrinsic_T/R`(`config/fastlio/`). 자가추정(`extrinsic_est_en`)은 켜지 말 것 — 정지 중 흔들림이 생기고, 공분산이 무너지면 틀린 값에서 멈춘다
-2. **FAST-LIO `det_range`(방 크기 + 여유)와 `preprocess.max_range`**(넓은 실내라면 15 m 정도). 크게 잡으면 궤적이 경보 없이 미끄러진다
-3. **지도**: 로봇이 완전히 선 뒤 매핑 시작, 사람 없이. 2D 변환은 바닥 평면 기준으로 자를 것
-4. **콘 추적기 `regions`**(지도 좌표) — 지도가 바뀌면 다시 정한다
-5. **모터 제한·최소 명령·쏠림 보정** — 로봇과 걸음새마다 다시 잰다
-6. **DDS**: CycloneDDS, 커널 `rmem_max/wmem_max` 128 MB, 멀티캐스트는 디스커버리에만
-
-### 경로가 박혀 있는 곳
-- `src/external/fast_lio/config/go2_xt16_mapping.yaml` 의 `map_file_path` 가 `/home/ilovehan9283/go2_ws/maps/...` 다. 자기 경로로 바꿀 것
-- `config/system_params.yaml` 의 주석에 개발 PC 경로가 있다(동작과 무관)
-
-### 로봇 없이 시험
-- `GO2_RUN_TEST_LO=<도메인>` 으로 루프백 전용 재생(로봇과 섞이지 않음)
-- `scripts/sim_nav_test.py`, EGO `test_plan_on_map`, 콘 판정 합성 시험(`mission_vision`)
-- 재생은 반드시 CycloneDDS 로 한다. FastDDS 로는 FAST-LIO 가 비결정적으로 발산했다
+- 런타임 노드는 lifecycle. `configure → activate` 후 동작, 모터 브리지는 마지막에 활성화
+- 다른 환경에서 바꿀 값: 라이다 장착 TF와 FAST-LIO `extrinsic_T/R`, `det_range`·`max_range`, 콘 추적기 `regions`, 모터 제한·`yaw_trim_*`
+- 하드코딩 경로: `src/external/fast_lio/config/go2_xt16_mapping.yaml`의 `map_file_path`
