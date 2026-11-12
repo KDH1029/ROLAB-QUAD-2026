@@ -1,0 +1,183 @@
+--- a/src/real_course_runner.py
++++ b/src/real_course_runner.py
+@@ -507,9 +507,10 @@
+ 
+     def cb_loc(self, msg):
+         try:
+-            self.loc_state = json.loads(msg.data).get('state')
+-        except ValueError:
++            d = json.loads(msg.data); self.loc_state = d.get('state')
++        except (ValueError, AttributeError):
+             return
++        self.loc_aligned = bool(d.get('aligned')); self.loc_t = time.monotonic()   # ★ review: 위치 노드가 정렬 안 됨이면 재정렬 요청을 무시한다 → 기다릴 필요 없음
+         if self.loc_state == 'STOP' and self.idx in self.cone_zone_idx:
+             return   # ★ 11-05: 콘 구간은 콘이 매번 다른 자리 — 지도(AMCL)와 어긋나 보일 수 있어 위치 감시로 서지 않음
+         if self.loc_state == 'STOP' and self.state in ('TO_GOAL', 'EXIT_PUSH', 'BACKOFF') and time.monotonic() > self.loc_ignore_until:
+@@ -535,7 +536,9 @@
+             mx, my = self.to_map(*xy)                       # 옛 T 로 지도 좌표
+             dx, dy = mx - Tn[0], my - Tn[1]                 # 새 T 의 역변환
+             return (cn * dx + sn * dy, -sn * dx + cn * dy)
+-        self.goals = [(lab, redo(xy)) if i >= self.idx else (lab, xy) for i, (lab, xy) in enumerate(self.goals)]
++        self.goals = [(lab, redo(xy)) if i >= self.idx - 1 else (lab, xy) for i, (lab, xy) in enumerate(self.goals)]   # ★ review: 지금 구간 앞 점(idx-1)도 — 경로 이탈 판정·핀·벽 구간 시작이 옛 좌표로 남지 않게
++        if self.state == 'PIN_TRACK' and getattr(self, 'pin_path', None) is not None:   # ★ review: 따라가던 곡선도 새 좌표로
++            self.pin_path = np.array([redo(q) for q in self.pin_path])
+         ALIGN_T = Tn
+         if not str(d.get('reason', '')).startswith('realign'):
+             self.align_ver += 1
+@@ -631,6 +634,13 @@
+         T = self._tree() if (GOAL_SNAP and self.idx not in self.cone_zone_idx) else None   # ★ 11-06: 콘 구간은 보정 안 함(촘촘한 슬라럼 점이 콘 건너편으로 옮겨질 수 있음)
+         if T is None:
+             return x, y
++        key = (self.idx, x, y, self.wall_tree_t, T.n)               # ★ review: 한 틱에 4~5번 불림 — 같은 목표·같은 벽이면 다시 안 셈(CPU)
++        if getattr(self, '_snap_key', None) == key:
++            return self._snap_val
++        self._snap_key, self._snap_val = key, self._target_calc(label, x, y, T)
++        return self._snap_val
++
++    def _target_calc(self, label, x, y, T):
+         c0 = T.query([x, y])[0]
+         if c0 >= SNAP_CLEARANCE:
+             self.snapped.pop(self.idx, None); return x, y
+@@ -638,8 +648,15 @@
+         g = np.arange(-rmax, rmax + 1e-9, 0.05); gx, gy = np.meshgrid(g, g); m = np.hypot(gx, gy) <= rmax
+         cand = np.c_[x + gx[m], y + gy[m]]; c = T.query(cand)[0]; off = np.hypot(cand[:, 0] - x, cand[:, 1] - y)
+         # ★ 11-06 시뮬: 원래 점에서 후보까지 직선이 벽을 건너면(얇은 벽 너머 다른 통로) 후보에서 뺌
+-        sees = np.array([T.query(np.c_[np.linspace(x, cx_, 8), np.linspace(y, cy_, 8)])[0].min() >= 0.08 for cx_, cy_ in cand])
+-        c = np.where(sees, c, -1.0)
++        # ★ review: 문턱 0.08 고정이면 원래 점이 벽 0.08 m 안일 때 모든 직선이 '벽을 건넘'으로 나와 보정이 아예 꺼졌다(16:54 보다 나빠짐).
++        #   원래 점 바로 옆 샘플은 빼고, 문턱을 원래 거리보다 조금 낮게(최소 0.03 = 5 cm 칸 벽을 건너는 선이 반드시 들어오는 거리).
++        #   원래 점이 벽 칸 안(0.035 m 미만)이면 예전(16:54)처럼 거르지 않음. 한 번에 질의(예전: 후보마다 파이썬 반복).
++        if c0 >= 0.035:
++            thr = min(0.08, max(0.03, c0 - 0.01))
++            S_ = np.linspace(0.0, 1.0, 16)[1:]
++            Lp = (np.array([x, y])[None, None, :] * (1.0 - S_)[None, :, None] + cand[:, None, :] * S_[None, :, None]).reshape(-1, 2)
++            sees = T.query(Lp)[0].reshape(len(cand), -1).min(1) >= thr
++            c = np.where(sees, c, -1.0)
+         ok = c >= SNAP_CLEARANCE
+         i = int(np.argmin(np.where(ok, off, np.inf))) if ok.any() else int(np.argmax(c))
+         if not ok.any() and c[i] <= c0:
+@@ -805,7 +822,7 @@
+             return False
+         if PARK_MODE == 'sit' and self.state in ('PARK_SIT_WAIT', 'PARK_HOLD'):
+             return False
+-        self.fall_prev = self.state; self.fall_t = now; self.fall_ok_since = None
++        self.fall_prev = self.state; self.fall_t = now; self.fall_ok_since = None; self.pin_mode = None
+         self.hold_here(); self.state = 'FALLEN'
+         self.get_logger().error(f'[{self.cur()[0]}] 넘어짐 감지(기울기 {math.degrees(self.tilt()):.0f}°, {self.fall_prev} 중) — 멈춤. '
+                                 f'다시 서면(자동 복구·리모컨) 넓은 재정렬 후 이어감')
+@@ -892,12 +909,14 @@
+             self.off_since = now; return False
+         if now - self.off_since < OFF_ROUTE_S:
+             return False
+-        back = []
++        back = []; anchored = False
+         for x_, y_, d_ in reversed(self.trail):
+             back.append((x_, y_))
+             if d_ < 0.4:
+-                break
++                anchored = True; break
+         self.off_since = None
++        if not anchored:   # ★ review: trail 에 '경로 위 자리'가 없음(되짚기 6초 포기 직후 trail 이 비워짐) → 되짚으면 포기한 자리로 돌아갈 뿐 — ego 에 맡김
++            return False
+         return self.start_track([tuple(self.pos)] + back, 'rejoin', self.idx, f'경로에서 {d:.2f} m 벗어남(다른 통로)')
+ 
+     def start_pin_chain(self):
+@@ -917,7 +936,7 @@
+             if dc < PIN_WALL_MIN and dc < dp - 0.02:
+                 self.get_logger().warn(f'핀 회귀 곡선이 벽 {dc:.2f} m 까지 붙음(꺾은선 {dp:.2f} m) → 꺾은선으로')
+                 self.pin_path, self.pin_s = poly, poly_s
+-        self.pin_last = j - 1; self.pin_ci = 0; self.pin_from = tuple(start)
++        self.pin_last = j - 1; self.pin_ci = 0; self.pin_from = tuple(start); self.pin_mode = None   # ★ review: 넘어짐 등으로 끊긴 대체 길·되짚기의 pin_mode 가 남아 있으면 핀 구간이 되짚기로 오인(옛 track_prog_ci → IndexError)
+         self.hold_here(); self.state = 'PIN_TRACK'
+         self.get_logger().warn(f'[{self.cur()[0]}] 핀 구간 {j - self.idx}개 — ego 세우고 회귀 곡선 추종(길이 {self.pin_s[-1]:.2f} m)')
+ 
+@@ -925,6 +944,10 @@
+         """벽 추종 구간 준비: 앞 점 S → 벽 점 E. 지도 벽 칸으로 옆벽 쪽·목표 거리, E 앞 벽(멈춤 거리)을 정한다."""
+         S = np.array(self.goals[self.idx - 1][1] if self.idx > 0 else self.pos, float); E = np.array(self.cur()[1], float)
+         L = float(np.hypot(*(E - S))) or 1e-6; u = (E - S) / L; nl = np.array([-u[1], u[0]])   # nl = 왼쪽
++        if L < 0.30:   # ★ review: 앞 점과 거의 같은 자리(경로 파일 parking→wall1 이 1~2 cm)면 구간 방향 u 가 잡음 — 몸 방향과 무관한 u 로
++            #   '구간 끝'을 재서, 주차가 wall1 의 -u 쪽 0.2 m 밖에서 끝나면 앞벽이 나올 때까지 ego 없이 앞으로 걸었다 → 건너뜀
++            self.get_logger().warn(f'[{self.cur()[0]}] 벽 추종 구간이 {L:.2f} m 뿐(앞 점과 같은 자리) — 건너뜀')
++            self.advance(); return
+         side, target, trig = None, None, None
+         T = self._tree()
+         if T is not None:
+@@ -944,7 +967,7 @@
+             if idx:
+                 W = T.data[idx] - E; along = W @ u; lat = np.abs(W @ nl); m = (along > 0) & (lat < 0.20)
+                 if m.any(): trig = float(np.min(along[m]))
+-        self.wseg = dict(S=S, E=E, u=u, L=L, side=side, target=target, trig=trig, lost=0)
++        self.wseg = dict(S=S, E=E, u=u, L=L, side=side, target=target, trig=trig, lost=0, t0=time.monotonic())
+         self.hold_here(); self.state = 'WALL_TRACK'
+         self.get_logger().warn(f'[{self.cur()[0]}] 벽 추종 구간 {L:.2f} m — '
+                                + (f"{'왼' if side == 1 else '오른'}쪽 벽 {target:.2f} m 유지" if side else '옆벽 없음(점 쪽으로)')
+@@ -956,8 +979,9 @@
+         done_along = float((np.array(self.pos) - g['S']) @ g['u']) >= g['L'] - 0.05
+         P = self.scan_xy if (self.scan_xy is not None and time.monotonic() - self.scan_t < 0.5) else np.zeros((0, 2))
+         front = ransac_wall(P[(P[:, 0] > 0.25) & (P[:, 0] <= 6.0) & (np.abs(P[:, 1]) <= 0.25)], True) if len(P) else None
+-        if done_along or self.dist(*E) < 0.20 or (front is not None and g['trig'] is not None and front['dist'] <= g['trig'] + 0.02):
+-            why = '앞벽' if (front is not None and g['trig'] is not None and front['dist'] <= g['trig'] + 0.02) else ('구간 끝' if done_along else '점 도착')
++        overtime = now - g.get('t0', now) > g['L'] / WALL_V * 2.0 + 3.0   # ★ review: 구간 길이로 본 시간의 2배 + 3초 넘으면 끝(끝 판정이 안 걸려도 무한히 걷지 않게)
++        if done_along or overtime or self.dist(*E) < 0.20 or (front is not None and g['trig'] is not None and front['dist'] <= g['trig'] + 0.02):
++            why = '앞벽' if (front is not None and g['trig'] is not None and front['dist'] <= g['trig'] + 0.02) else ('구간 끝' if done_along else ('시간 초과' if overtime else '점 도착'))
+             self.get_logger().warn(f'[{self.cur()[0]}] 벽 추종 끝({why})')
+             self.pub_cmd_vel.publish(Twist()); self.advance(); return
+         side = g['side']; line = None
+@@ -1018,12 +1042,21 @@
+         wx, wy = gx - self.pos[0], gy - self.pos[1]; n = math.hypot(wx, wy) or 1.0; wx, wy = wx / n, wy / n
+         T = self._tree()
+         if T is not None:
+-            idx = T.query_ball_point(self.pos, 0.45)
++            idx = T.query_ball_point(self.pos, 0.60)
+             if idx:
+-                P = T.data[idx] - np.array(self.pos); r = np.hypot(P[:, 0], P[:, 1]) + 1e-6
+-                ahead = (P @ np.array([wx, wy])) / r
+-                if np.any((ahead > 0.7) & (r < 0.15 + 0.35 * max(0.0, abs(math.cos(math.atan2(wy, wx) - yaw))))):
+-                    wx, wy = -wy * 0.3, wx * 0.3        # 앞(가는 쪽)이 막히면 옆으로 조금
++                # ★ review: 예전 판정(±45° 부채꼴 0.45 m)은 폭 0.64 m 보다 좁은 통로에서 옆벽을 '앞'으로 봐 매번 막힘 →
++                #   옆으로 0.06 m/s(브리지 0.08 로 올림, 발 떼기 문턱 아래) → 제자리 → 6초 포기. 몸 폭 띠(가는 방향에 수직 몸 반폭) 안만 '앞'으로.
++                P = T.data[idx] - np.array(self.pos)
++                rel = math.atan2(wy, wx) - yaw; ca, sa_ = abs(math.cos(rel)), abs(math.sin(rel))
++                along_lim = 0.12 + 0.35 * ca + 0.18 * sa_          # 가는 쪽 몸 반길이 + 12 cm
++                lat_lim = 0.17 * ca + 0.34 * sa_                    # 가는 방향에 수직인 몸 반폭
++                al = P @ np.array([wx, wy]); lt = P @ np.array([-wy, wx])
++                if np.any((al > 0) & (al < along_lim) & (np.abs(lt) < lat_lim)):
++                    band = np.abs(al) < along_lim                    # 앞이 막힘 → 더 넓은 옆으로, 발 떼기 문턱 위 속도(0.6 × v)
++                    left = lt[band & (lt > 0)].min() if np.any(band & (lt > 0)) else 9.0
++                    right = -lt[band & (lt < 0)].max() if np.any(band & (lt < 0)) else 9.0
++                    sg = 1.0 if left >= right else -1.0
++                    wx, wy = -wy * 0.6 * sg, wx * 0.6 * sg
+         vxw, vyw = v * wx, v * wy
+         cmd = Twist(); cmd.linear.x = float(c * vxw + s_ * vyw); cmd.linear.y = float(-s_ * vxw + c * vyw)
+         cmd.linear.y = float(np.clip(cmd.linear.y, -0.2, 0.2)); cmd.angular.z = 0.0
+@@ -1271,7 +1304,8 @@
+                 self.request_realign(now, *FALL_REALIGN, why='fall', state='FALL_REALIGN')
+             return
+         if self.state == 'FALL_REALIGN':
+-            if self.align_ver != self.realign_ver or now - self.realign_t > FALL_REALIGN_WAIT_S:
++            loc_cant = now - getattr(self, 'loc_t', -1e9) < 2.0 and not getattr(self, 'loc_aligned', True) and now - self.realign_t > 0.6
++            if self.align_ver != self.realign_ver or now - self.realign_t > FALL_REALIGN_WAIT_S or loc_cant:
+                 done_park = self.fall_prev in ('PARK_RISE_WAIT', 'PARK_REALIGN')
+                 self.get_logger().warn('넘어진 뒤 재정렬 ' + ('반영됨' if self.align_ver != self.realign_ver else '응답 없음')
+                                        + (' → 주차는 한 것으로 보고 다음 점 쪽으로 회전' if done_park else f' → [{self.cur()[0]}] 다시'))
+@@ -1353,8 +1387,9 @@
+             # 넓은 범위 ICP 결과(새 T → cb_align_T 가 남은 목표 다시 계산)를 기다렸다가, 다음 점 쪽으로 회전 후 진행
+             if now - self.realign_t > 0.5:
+                 self.set_gait(False)   # ★ 11-06: BalanceStand 0.5초 뒤 주행 걸음새 — 재정렬 기다리는 동안 자리 잡게(회전 직전 대기와 겹침)
+-            if self.align_ver != self.realign_ver or now - self.realign_t > PARK_REALIGN_WAIT_S:
+-                self.get_logger().warn('주차 뒤 재정렬 ' + ('반영됨' if self.align_ver != self.realign_ver else f'응답 없음({PARK_REALIGN_WAIT_S:.0f}초)') + ' → 다음 점 쪽으로 회전')
++            loc_cant = now - getattr(self, 'loc_t', -1e9) < 2.0 and not getattr(self, 'loc_aligned', True) and now - self.realign_t > 0.6
++            if self.align_ver != self.realign_ver or now - self.realign_t > PARK_REALIGN_WAIT_S or loc_cant:
++                self.get_logger().warn('주차 뒤 재정렬 ' + ('반영됨' if self.align_ver != self.realign_ver else ('위치 노드 정렬 안 됨(요청 무시됨) — 안 기다림' if loc_cant else f'응답 없음({PARK_REALIGN_WAIT_S:.0f}초)')) + ' → 다음 점 쪽으로 회전')
+                 self.post_park = True
+                 self.start_rotate()
+         elif self.state == 'PIN_TRACK':
+@@ -1435,6 +1470,8 @@
+                 self.pub_cmd_vel.publish(Twist()); self.rotate_start_t = now; return
+             err = ang_diff(self.rotate_target_yaw, self.yaw)
+             near = abs(err) < math.radians(ROTATE_NEAR_DEG)
++            if not near:
++                self.rotate_near_t = None          # ★ review: 15° 밖으로 다시 나가면 시계·부호 다시(예전: 옛 시각이 남아 다시 들어오자마자 '완료')
+             if near and self.rotate_near_t is None:
+                 self.rotate_near_t = now; self.rotate_near_sign = 1 if err >= 0 else -1
+             crossed = near and self.rotate_near_t is not None and (1 if err >= 0 else -1) != self.rotate_near_sign

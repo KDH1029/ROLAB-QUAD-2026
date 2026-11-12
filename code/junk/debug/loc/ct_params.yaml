@@ -1,0 +1,104 @@
+/cone_def:
+  ros__parameters:
+    base_frame: base_link
+    base_to_lidar:
+      q_xyzw:
+      - 0.0024
+      - 0.0063
+      - 0.7071
+      - 0.707
+      xyz:
+      - 0.25
+      - 0.0
+      - 0.1588
+    cloud_topic: /velodyne_points
+    lidar_cone:
+      clear_gap: 0.08
+      clear_height: 0.6
+      cluster_tol: 0.1
+      fine_cover: false
+      floor_gap: 0.03
+      floor_radius: 0.4
+      max_range: 6.0
+      max_width: 0.3
+      min_points: 3
+      surface_to_center: 0.05
+      tall_cell: 0.04
+      tall_dilate: 1
+      z_max: -0.086
+      z_min: -0.306
+    lidar_only:
+      assoc: 0.15
+      confirm_hits: 5
+      map_topic: /map
+      max_spread: 0.08
+      min_ratio: 0.7
+      min_scans: 20
+      regions:
+      - 5.95
+      - -1.15
+      - 7.3
+      - 3.4
+      wall_clearance: 0.0
+    output:
+      load_saved: false
+      obstacle_radius: 0.08
+      save_path: ''
+    sync:
+      buffer_s: 1.0
+    tracking:
+      alpha_lidar_only: 0.2
+    world_frame: map
+    use_sim_time: true
+/cone_big:
+  ros__parameters:
+    base_frame: base_link
+    base_to_lidar:
+      q_xyzw:
+      - 0.0024
+      - 0.0063
+      - 0.7071
+      - 0.707
+      xyz:
+      - 0.25
+      - 0.0
+      - 0.1588
+    cloud_topic: /velodyne_points
+    lidar_cone:
+      clear_gap: 0.3
+      clear_height: 0.6
+      cluster_tol: 0.1
+      fine_cover: false
+      floor_gap: 0.03
+      floor_radius: 0.4
+      max_range: 6.0
+      max_width: 0.5
+      min_points: 5
+      surface_to_center: 0.05
+      tall_cell: 0.04
+      tall_dilate: 1
+      z_max: 0.25
+      z_min: -0.25
+    lidar_only:
+      assoc: 0.15
+      confirm_hits: 5
+      map_topic: /map
+      max_spread: 0.08
+      min_ratio: 0.7
+      min_scans: 20
+      regions:
+      - 5.95
+      - -1.15
+      - 7.3
+      - 3.4
+      wall_clearance: 0.0
+    output:
+      load_saved: false
+      obstacle_radius: 0.08
+      save_path: ''
+    sync:
+      buffer_s: 1.0
+    tracking:
+      alpha_lidar_only: 0.2
+    use_sim_time: true
+    world_frame: map

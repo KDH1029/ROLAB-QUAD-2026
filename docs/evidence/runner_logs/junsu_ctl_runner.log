@@ -1,0 +1,1435 @@
+[INFO] [1793845866.986356252] [real_course_runner]: 실측 코스 러너 시작 — 14개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'line7', 'line8', 'exit']
+[WARN] [1793845867.176189234] [real_course_runner]: 자가진단 OK — 현재 (0.00,0.00), start와 0.13m 차이. 코스 시작.
+[WARN] [1793845867.376602420] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0}
+[WARN] [1793845867.376979375] [real_course_runner]: 명령 전송: TROTRUN(1062)
+[WARN] [1793845867.425055705] [real_course_runner]: [line1] 목표 발행 -> (2.11, -0.05)
+[WARN] [1793845868.576596380] [real_course_runner]: [line1] 목표 발행 -> (2.11, -0.05)
+[WARN] [1793845869.776761761] [real_course_runner]: [line1] 목표 발행 -> (2.11, -0.05)
+[WARN] [1793845870.976827892] [real_course_runner]: [line1] 목표 발행 -> (2.11, -0.05)
+[WARN] [1793845872.176462319] [real_course_runner]: [line1] 목표 발행 -> (2.11, -0.05)
+[WARN] [1793845873.376474167] [real_course_runner]: [line1] 목표 발행 -> (2.11, -0.05)
+[WARN] [1793845873.776925416] [real_course_runner]: [line1] 목표 보정: 벽까지 0.38 m → (2.11,-0.00) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793845873.976793782] [real_course_runner]: [line1] 도착
+[WARN] [1793845874.176544128] [real_course_runner]: 명령 전송: STATICWALK(1061)
+[WARN] [1793845874.177127107] [real_course_runner]: [stopline1] 목표 발행 -> (4.08, 1.83)
+[WARN] [1793845875.376555570] [real_course_runner]: [stopline1] 목표 발행 -> (4.08, 1.83)
+[WARN] [1793845876.576723370] [real_course_runner]: [stopline1] 목표 발행 -> (4.08, 1.83)
+[WARN] [1793845877.777458343] [real_course_runner]: [stopline1] 목표 발행 -> (4.08, 1.83)
+[WARN] [1793845878.976481141] [real_course_runner]: [stopline1] 목표 발행 -> (4.08, 1.83)
+[WARN] [1793845880.176505694] [real_course_runner]: [stopline1] 목표 발행 -> (4.08, 1.83)
+[WARN] [1793845881.176589839] [real_course_runner]: [stopline1] 도착
+[WARN] [1793845881.177070582] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793845883.776407180] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793845885.576311311] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793845885.776724791] [real_course_runner]: 명령 전송: TROTRUN(1062)
+[WARN] [1793845885.779271085] [real_course_runner]: [line2] 목표 보정: 벽까지 0.32 m → (6.08,3.48) 로 0.11 m 옮김 (벽까지 0.40 m)
+[WARN] [1793845885.779794163] [real_course_runner]: [line2] 목표 발행 -> (6.08, 3.48)
+[WARN] [1793845886.977730779] [real_course_runner]: [line2] 목표 발행 -> (6.08, 3.48)
+[WARN] [1793845888.176867732] [real_course_runner]: [line2] 목표 발행 -> (6.08, 3.48)
+[WARN] [1793845889.376689943] [real_course_runner]: [line2] 목표 발행 -> (6.08, 3.48)
+[WARN] [1793845890.577124074] [real_course_runner]: [line2] 목표 발행 -> (6.08, 3.48)
+[WARN] [1793845891.776774274] [real_course_runner]: [line2] 목표 발행 -> (6.08, 3.48)
+[WARN] [1793845892.177028481] [real_course_runner]: [line2] 도착
+[WARN] [1793845892.376658518] [real_course_runner]: [rabain] 목표 보정: 벽까지 0.29 m → (6.92,3.34) 로 0.15 m 옮김 (벽까지 0.44 m)
+[WARN] [1793845892.377220994] [real_course_runner]: [rabain] 목표 발행 -> (6.92, 3.34)
+[WARN] [1793845893.576808608] [real_course_runner]: [rabain] 목표 발행 -> (6.92, 3.34)
+[WARN] [1793845894.776742715] [real_course_runner]: [rabain] 목표 발행 -> (6.92, 3.34)
+[WARN] [1793845895.777064909] [real_course_runner]: [rabain] 도착
+[WARN] [1793845895.777501925] [real_course_runner]: [rabain] 도착 -> 제자리 회전 시작 (목표 -90도)
+[WARN] [1793845900.976700176] [real_course_runner]: [rabain] 회전 완료 -> 다음 동작
+[WARN] [1793845900.977166909] [real_course_runner]: [rabain] 라바콘 슬라럼 진입 -> cone_zone_active ON
+[WARN] [1793845901.176580605] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845902.376545644] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845903.576632568] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845904.776575323] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845905.976665286] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845907.178441368] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845908.376672967] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845909.576214169] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845910.576453416] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845911.776652514] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845912.976570094] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845914.177021610] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845915.376499708] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845915.976468446] [real_course_runner]: [rabaout] 4초간 제자리 + 장애물 0.45 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.08 vy -0.13, 1번째)
+[WARN] [1793845917.576661694] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845918.776408248] [real_course_runner]: [rabaout] 목표 발행 -> (6.62, -0.40)
+[WARN] [1793845918.980369286] [real_course_runner]: [rabaout] 목표 보정: 벽까지 0.36 m → (6.57,-0.40) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793845919.976765242] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845921.179787741] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845922.376790299] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845923.576973323] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845924.776786922] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845925.976762426] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845927.176954800] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845928.376771204] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845929.578763562] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845930.776782852] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845931.177260125] [real_course_runner]: [rabaout] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.05 vy -0.14, 2번째)
+[WARN] [1793845932.776791884] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845933.976644183] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845935.179804956] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845936.377036281] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845937.576642966] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845938.776858293] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845939.976759410] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845941.176730684] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845942.377070063] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845943.576844559] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845944.776799423] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845945.976956376] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845947.176772319] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845948.376589664] [real_course_runner]: [rabaout] 목표 발행 -> (6.57, -0.40)
+[WARN] [1793845948.777498965] [real_course_runner]: [rabaout] 도착
+[WARN] [1793845948.777984367] [real_course_runner]: [rabaout] 도착 -> 제자리 회전 시작 (목표 165도)
+[ERROR] [1793845958.976578177] [real_course_runner]: [rabaout] 회전 타임아웃(10.0초, 남은 오차 -10도) -> 포기하고 계속 진행
+[WARN] [1793845958.977063888] [real_course_runner]: [rabaout] 라바콘 슬라럼 탈출 -> cone_zone_active OFF
+[WARN] [1793845958.978212342] [real_course_runner]: [line3] 목표 보정: 벽까지 0.32 m → (5.95,-0.39) 로 0.10 m 옮김 (벽까지 0.42 m)
+[WARN] [1793845959.176734744] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.39)
+[WARN] [1793845960.377038828] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.39)
+[WARN] [1793845961.576945762] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.39)
+[WARN] [1793845962.780309082] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.39)
+[WARN] [1793845963.377002418] [real_course_runner]: [line3] 4초간 제자리 + 장애물 0.26 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.08 vy -0.12, 1번째)
+[WARN] [1793845964.977147301] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.39)
+[WARN] [1793845966.180475726] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.39)
+[WARN] [1793845967.376788480] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.39)
+[WARN] [1793845968.576527216] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.39)
+[WARN] [1793845969.177234153] [real_course_runner]: [line3] 4초간 제자리 + 장애물 0.31 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.06 vy -0.14, 2번째)
+[WARN] [1793845969.479300859] [real_course_runner]: [line3] 목표 보정: 벽까지 0.32 m → (5.70,-0.29) 로 0.25 m 옮김 (벽까지 0.40 m)
+[WARN] [1793845970.481101307] [real_course_runner]: [line3] 목표 보정: 벽까지 0.09 m → (5.65,-0.14) 로 0.34 m 옮김 (벽까지 0.28 m)
+[WARN] [1793845970.776943093] [real_course_runner]: [line3] 목표 발행 -> (5.65, -0.14)
+[WARN] [1793845971.976561365] [real_course_runner]: [line3] 목표 발행 -> (5.65, -0.14)
+[WARN] [1793845973.176486507] [real_course_runner]: [line3] 목표 발행 -> (5.65, -0.14)
+[WARN] [1793845974.176899402] [real_course_runner]: [line3] 도착
+[WARN] [1793845974.376549144] [real_course_runner]: 명령 전송: STATICWALK(1061)
+[WARN] [1793845974.377277277] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845975.576641293] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845976.776664739] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845977.976703446] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845979.176585070] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845980.380921420] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845980.576522802] [real_course_runner]: [stopline2] 도착
+[WARN] [1793845980.576829843] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793845983.176407725] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793845984.776669632] [real_course_runner]: 신호 대기 중 이동 감지 -> 다시 접근 단계로
+[WARN] [1793845984.976972727] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845985.176651806] [real_course_runner]: [stopline2] 도착
+[WARN] [1793845985.177201506] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[WARN] [1793845985.976509961] [real_course_runner]: 정지 유지 중 이동 감지 -> 다시 접근 단계로
+[WARN] [1793845986.182176516] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845986.376658644] [real_course_runner]: [stopline2] 도착
+[WARN] [1793845986.377143179] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[WARN] [1793845986.976466460] [real_course_runner]: 정지 유지 중 이동 감지 -> 다시 접근 단계로
+[WARN] [1793845987.182025871] [real_course_runner]: [stopline2] 목표 발행 -> (4.07, 1.79)
+[WARN] [1793845987.182680897] [real_course_runner]: [stopline2] 도착
+[WARN] [1793845987.183060361] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793845989.776390501] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[ERROR] [1793845999.776802275] [real_course_runner]: 신호 확인 10.0초 안에 GREEN 미확정(현재 UNKNOWN) -> 타임아웃, 신호 무관하게 출발
+[WARN] [1793845999.976618055] [real_course_runner]: 명령 전송: TROTRUN(1062)
+[WARN] [1793845999.982334743] [real_course_runner]: [line4] 목표 발행 -> (2.13, 3.71)
+[WARN] [1793846001.181480558] [real_course_runner]: [line4] 목표 발행 -> (2.13, 3.71)
+[WARN] [1793846002.381596650] [real_course_runner]: [line4] 목표 발행 -> (2.13, 3.71)
+[WARN] [1793846003.576461392] [real_course_runner]: [line4] 목표 발행 -> (2.13, 3.71)
+[WARN] [1793846004.776630261] [real_course_runner]: [line4] 목표 발행 -> (2.13, 3.71)
+[WARN] [1793846005.976517014] [real_course_runner]: [line4] 목표 발행 -> (2.13, 3.71)
+[WARN] [1793846007.176866911] [real_course_runner]: [line4] 목표 발행 -> (2.13, 3.71)
+[WARN] [1793846008.376650120] [real_course_runner]: [line4] 목표 발행 -> (2.13, 3.71)
+[WARN] [1793846008.582539074] [real_course_runner]: [line4] 도착
+[WARN] [1793846008.777056921] [real_course_runner]: [line5] 목표 보정: 벽까지 0.36 m → (1.38,3.77) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793846008.777692023] [real_course_runner]: [line5] 목표 발행 -> (1.38, 3.77)
+[WARN] [1793846009.976613949] [real_course_runner]: [line5] 목표 발행 -> (1.38, 3.77)
+[WARN] [1793846010.176754672] [real_course_runner]: [line5] 도착
+[WARN] [1793846010.376397613] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846011.576506348] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846012.776681867] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846013.976480358] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846015.182025871] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846016.376556785] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846017.576548348] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846018.776510503] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846019.976573098] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846021.176486423] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846022.376310839] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846023.576537337] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846024.776562388] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846025.976807714] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846027.176620795] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846028.376563145] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846029.576298280] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846030.782536150] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846031.976488922] [real_course_runner]: [line6] 목표 발행 -> (1.16, 1.97)
+[WARN] [1793846031.977025970] [real_course_runner]: [line6] 도착
+[WARN] [1793846031.977340549] [real_course_runner]: [line6] 도착 -> 제자리 회전 시작 (목표 179도)
+[WARN] [1793846039.984598671] [real_course_runner]: [line6] 목표 보정: 벽까지 0.33 m → (1.26,1.97) 로 0.10 m 옮김 (벽까지 0.42 m)
+[ERROR] [1793846042.176701484] [real_course_runner]: [line6] 회전 타임아웃(10.0초, 남은 오차 -9도) -> 포기하고 계속 진행
+[WARN] [1793846042.376832819] [real_course_runner]: [parking] 목표 보정: 벽까지 0.29 m → (-0.04,2.11) 로 0.14 m 옮김 (벽까지 0.40 m)
+[WARN] [1793846042.377537351] [real_course_runner]: [parking] 목표 발행 -> (-0.04, 2.11)
+[WARN] [1793846043.583047917] [real_course_runner]: [parking] 목표 발행 -> (-0.04, 2.11)
+[WARN] [1793846044.777044672] [real_course_runner]: [parking] 목표 발행 -> (-0.04, 2.11)
+[WARN] [1793846045.783196959] [real_course_runner]: [parking] 도착
+[WARN] [1793846045.783569965] [real_course_runner]: [parking] 도착 -> 제자리 회전 시작 (목표 -5도)
+[ERROR] [1793846055.976714060] [real_course_runner]: [parking] 회전 타임아웃(10.0초, 남은 오차 -13도) -> 포기하고 계속 진행
+[WARN] [1793846055.977298592] [real_course_runner]: [parking] 정지 → 0.8초 뒤 Sit (선 높이 0.314 m)
+[WARN] [1793846056.976364452] [real_course_runner]: 명령 전송: Sit(1009)
+[INFO] [1793846058.176638253] [real_course_runner]: 착석 확인됨(body_height=0.233) -> 5.5초 유지 시작
+[WARN] [1793846063.776609562] [real_course_runner]: 명령 전송: RiseSit(1010)
+[WARN] [1793846064.976784058] [real_course_runner]: 일어남 확인(body_height=0.320) -> 다음 점
+[WARN] [1793846064.977976495] [real_course_runner]: [line7] 목표 보정: 벽까지 0.37 m → (1.24,1.94) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793846065.176266461] [real_course_runner]: 명령 전송: TROTRUN(1062)
+[WARN] [1793846065.176893191] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.94)
+[WARN] [1793846066.376870951] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.94)
+[WARN] [1793846067.576736339] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.94)
+[WARN] [1793846068.776908254] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.94)
+[WARN] [1793846069.976919824] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.94)
+[WARN] [1793846070.776861663] [real_course_runner]: [line7] 도착
+[WARN] [1793846070.976871587] [real_course_runner]: [line8] 목표 보정: 벽까지 0.30 m → (1.19,3.78) 로 0.15 m 옮김 (벽까지 0.40 m)
+[WARN] [1793846070.977453689] [real_course_runner]: [line8] 목표 발행 -> (1.19, 3.78)
+[WARN] [1793846072.185035100] [real_course_runner]: [line8] 목표 발행 -> (1.19, 3.78)
+[WARN] [1793846073.382993894] [real_course_runner]: [line8] 목표 발행 -> (1.19, 3.78)
+[WARN] [1793846074.576654137] [real_course_runner]: [line8] 목표 발행 -> (1.19, 3.78)
+[WARN] [1793846075.776970859] [real_course_runner]: [line8] 목표 발행 -> (1.19, 3.78)
+[WARN] [1793846076.577468624] [real_course_runner]: [line8] 도착
+[WARN] [1793846076.776723975] [real_course_runner]: [exit] 목표 보정: 벽까지 0.36 m → (-0.46,4.01) 로 0.07 m 옮김 (벽까지 0.40 m)
+[WARN] [1793846076.777346746] [real_course_runner]: [exit] 목표 발행 -> (-0.46, 4.01)
+[WARN] [1793846077.976569108] [real_course_runner]: [exit] 목표 발행 -> (-0.46, 4.01)
+[WARN] [1793846079.176727635] [real_course_runner]: [exit] 목표 발행 -> (-0.46, 4.01)
+[WARN] [1793846079.777253680] [real_course_runner]: [exit] 도착했지만 뒤끝이 선 안(중심 x -0.13) → 바깥으로 밀고 나감
+[WARN] [1793846081.977165629] [real_course_runner]: [exit] Out Line 통과 확인(중심 x -0.61) — 완주, 정지
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 868, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 864, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793847643.741028158] [real_course_runner]: 실측 코스 러너 시작 — 14개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'line7', 'line8', 'exit']
+[WARN] [1793847643.930542617] [real_course_runner]: 자가진단 OK — 현재 (-0.01,-0.00), start와 0.08m 차이. 코스 시작.
+[WARN] [1793847644.201120530] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793847644.201768911] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793847644.202412915] [real_course_runner]: [line1] 목표 발행 -> (2.03, -0.10)
+[WARN] [1793847645.331499785] [real_course_runner]: [line1] 목표 발행 -> (2.03, -0.10)
+[WARN] [1793847646.531498834] [real_course_runner]: [line1] 목표 발행 -> (2.03, -0.10)
+[WARN] [1793847647.730824963] [real_course_runner]: [line1] 목표 발행 -> (2.03, -0.10)
+[WARN] [1793847648.332188081] [real_course_runner]: [line1] 목표 보정: 벽까지 0.37 m → (2.03,-0.05) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793847648.931256657] [real_course_runner]: [line1] 목표 발행 -> (2.03, -0.05)
+[WARN] [1793847649.332633577] [real_course_runner]: [line1] 도착
+[WARN] [1793847649.531212666] [real_course_runner]: [stopline1] 목표 발행 -> (4.02, 1.77)
+[WARN] [1793847650.731191476] [real_course_runner]: [stopline1] 목표 발행 -> (4.02, 1.77)
+[WARN] [1793847651.931182250] [real_course_runner]: [stopline1] 목표 발행 -> (4.02, 1.77)
+[WARN] [1793847653.130999360] [real_course_runner]: [stopline1] 목표 발행 -> (4.02, 1.77)
+[WARN] [1793847654.331110663] [real_course_runner]: [stopline1] 목표 발행 -> (4.02, 1.77)
+[WARN] [1793847655.532926032] [real_course_runner]: [stopline1] 목표 발행 -> (4.02, 1.77)
+[WARN] [1793847656.731051982] [real_course_runner]: [stopline1] 목표 발행 -> (4.02, 1.77)
+[WARN] [1793847657.930927083] [real_course_runner]: [stopline1] 목표 발행 -> (4.02, 1.77)
+[WARN] [1793847658.331213381] [real_course_runner]: [stopline1] 도착
+[WARN] [1793847658.331749847] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793847660.930643195] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[ERROR] [1793847671.131059214] [real_course_runner]: 신호 확인 10.0초 안에 GREEN 미확정(현재 RED) -> 타임아웃, 신호 무관하게 출발
+[WARN] [1793847671.231295776] [real_course_runner]: [line2] 목표 보정: 벽까지 0.38 m → (5.93,3.41) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793847671.333844552] [real_course_runner]: [line2] 목표 발행 -> (5.93, 3.41)
+[WARN] [1793847672.531615712] [real_course_runner]: [line2] 목표 발행 -> (5.93, 3.41)
+[WARN] [1793847673.731845731] [real_course_runner]: [line2] 목표 발행 -> (5.93, 3.41)
+[WARN] [1793847674.931213058] [real_course_runner]: [line2] 목표 발행 -> (5.93, 3.41)
+[WARN] [1793847676.131715875] [real_course_runner]: [line2] 목표 발행 -> (5.93, 3.41)
+[WARN] [1793847676.133215192] [real_course_runner]: [line2] 도착
+[WARN] [1793847676.231612690] [real_course_runner]: [rabain] 목표 보정: 벽까지 0.28 m → (6.88,3.25) 로 0.15 m 옮김 (벽까지 0.40 m)
+[WARN] [1793847676.331126087] [real_course_runner]: [rabain] 목표 발행 -> (6.88, 3.25)
+[WARN] [1793847677.531742293] [real_course_runner]: [rabain] 목표 발행 -> (6.88, 3.25)
+[WARN] [1793847678.731311471] [real_course_runner]: [rabain] 목표 발행 -> (6.88, 3.25)
+[WARN] [1793847678.931274935] [real_course_runner]: [rabain] 도착
+[WARN] [1793847678.931745485] [real_course_runner]: [rabain] 도착 -> 제자리 회전 시작 (목표 -94도)
+[ERROR] [1793847689.130978883] [real_course_runner]: [rabain] 회전 타임아웃(10.0초, 남은 오차 -10도) -> 포기하고 계속 진행
+[WARN] [1793847689.131598792] [real_course_runner]: [rabain] 라바콘 슬라럼 진입 -> cone_zone_active ON
+[WARN] [1793847689.331403853] [real_course_runner]: [rabaout] 목표 발행 -> (6.54, -0.48)
+[WARN] [1793847690.531259772] [real_course_runner]: [rabaout] 목표 발행 -> (6.54, -0.48)
+[WARN] [1793847691.731026483] [real_course_runner]: [rabaout] 목표 발행 -> (6.54, -0.48)
+[WARN] [1793847692.936365115] [real_course_runner]: [rabaout] 목표 발행 -> (6.54, -0.48)
+[WARN] [1793847694.131321786] [real_course_runner]: [rabaout] 목표 발행 -> (6.54, -0.48)
+[WARN] [1793847695.331038919] [real_course_runner]: [rabaout] 목표 발행 -> (6.54, -0.48)
+[WARN] [1793847696.134910035] [real_course_runner]: [rabaout] 목표 보정: 벽까지 0.37 m → (6.49,-0.48) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793847696.532065185] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847697.130519624] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.19 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793847697.131102520] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793847697.731626584] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847698.931189478] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847700.132248841] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847701.330756707] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.38 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793847701.331583815] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793847701.332886135] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847702.535671073] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847703.731023822] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847704.931235145] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847706.131341381] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847707.331724435] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847708.531682086] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+[WARN] [1793847709.735691069] [real_course_runner]: [rabaout] 목표 발행 -> (6.49, -0.48)
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1004, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1000, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793847818.712210597] [real_course_runner]: 실측 코스 러너 시작 — 14개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'line7', 'line8', 'exit']
+[WARN] [1793847818.901980113] [real_course_runner]: 자가진단 OK — 현재 (0.00,-0.01), start와 0.11m 차이. 코스 시작.
+[WARN] [1793847819.168774556] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793847819.169146711] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793847819.169816041] [real_course_runner]: [line1] 목표 보정: 벽까지 0.31 m → (2.18,0.22) 로 0.10 m 옮김 (벽까지 0.41 m)
+[WARN] [1793847819.170201028] [real_course_runner]: [line1] 목표 발행 -> (2.18, 0.22)
+[WARN] [1793847820.302536439] [real_course_runner]: [line1] 목표 발행 -> (2.18, 0.22)
+[WARN] [1793847821.502761511] [real_course_runner]: [line1] 목표 발행 -> (2.18, 0.22)
+[WARN] [1793847822.702967148] [real_course_runner]: [line1] 목표 발행 -> (2.18, 0.22)
+[WARN] [1793847823.103554496] [real_course_runner]: [line1] 목표 보정: 벽까지 0.15 m → (2.18,-0.03) 로 0.27 m 옮김 (벽까지 0.40 m)
+[WARN] [1793847823.902788838] [real_course_runner]: [line1] 목표 발행 -> (2.18, -0.03)
+[WARN] [1793847825.102487926] [real_course_runner]: [line1] 목표 발행 -> (2.18, -0.03)
+[WARN] [1793847825.502002466] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.14 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793847825.502766700] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793847825.702649038] [real_course_runner]: [line1] 도착
+[WARN] [1793847825.902438981] [real_course_runner]: [stopline1] 목표 발행 -> (3.86, 2.28)
+[WARN] [1793847826.203648679] [real_course_runner]: [stopline1] 목표 보정: 벽까지 0.31 m → (3.76,2.28) 로 0.10 m 옮김 (벽까지 0.40 m)
+[WARN] [1793847827.102177277] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847828.304294729] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847829.502187978] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847830.702745764] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847831.902407531] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847833.102691748] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847833.103649153] [real_course_runner]: [stopline1] 도착
+[WARN] [1793847833.104098152] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793847835.702067629] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1004, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1000, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793847976.599523096] [real_course_runner]: 실측 코스 러너 시작 — 14개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'line7', 'line8', 'exit']
+[WARN] [1793847976.790522671] [real_course_runner]: 자가진단 OK — 현재 (-0.01,-0.00), start와 0.12m 차이. 코스 시작.
+[WARN] [1793847977.050066841] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793847977.050622854] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793847977.051567912] [real_course_runner]: [line1] 목표 보정: 벽까지 0.37 m → (2.13,0.22) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793847977.052096755] [real_course_runner]: [line1] 목표 발행 -> (2.13, 0.22)
+[WARN] [1793847978.190994355] [real_course_runner]: [line1] 목표 발행 -> (2.13, 0.22)
+[WARN] [1793847979.391231114] [real_course_runner]: [line1] 목표 발행 -> (2.13, 0.22)
+[WARN] [1793847980.591029761] [real_course_runner]: [line1] 목표 발행 -> (2.13, 0.22)
+[WARN] [1793847981.191588601] [real_course_runner]: [line1] 목표 보정: 벽까지 0.28 m → (2.18,0.12) 로 0.14 m 옮김 (벽까지 0.41 m)
+[WARN] [1793847981.791312221] [real_course_runner]: [line1] 목표 발행 -> (2.18, 0.12)
+[WARN] [1793847982.590893056] [real_course_runner]: [line1] 도착
+[WARN] [1793847982.591839624] [real_course_runner]: [stopline1] 목표 보정: 벽까지 0.38 m → (3.81,2.28) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793847982.790510314] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.17 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793847982.791357871] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793847982.792268191] [real_course_runner]: [stopline1] 목표 발행 -> (3.81, 2.28)
+[WARN] [1793847983.392165491] [real_course_runner]: [stopline1] 목표 보정: 벽까지 0.16 m → (3.76,2.28) 로 0.10 m 옮김 (벽까지 0.26 m)
+[WARN] [1793847983.990955502] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847985.191122489] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847986.391082544] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847987.590871271] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847988.790582685] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847989.990737266] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847991.190871390] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847992.390914823] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847992.793170297] [real_course_runner]: [stopline1] 도착
+[WARN] [1793847992.793669506] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[WARN] [1793847993.390549263] [real_course_runner]: 정지 유지 중 이동 감지 -> 다시 접근 단계로
+[WARN] [1793847993.590775772] [real_course_runner]: [stopline1] 목표 발행 -> (3.76, 2.28)
+[WARN] [1793847993.591836279] [real_course_runner]: [stopline1] 도착
+[WARN] [1793847993.592276308] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793847996.190568538] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1004, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1000, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793848173.491575698] [real_course_runner]: 실측 코스 러너 시작 — 14개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'line7', 'line8', 'exit']
+[WARN] [1793848173.682161662] [real_course_runner]: 자가진단 OK — 현재 (0.01,-0.01), start와 0.10m 차이. 코스 시작.
+[WARN] [1793848173.947926911] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793848173.948322774] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793848173.948766118] [real_course_runner]: [line1] 목표 발행 -> (2.04, -0.07)
+[WARN] [1793848175.082791756] [real_course_runner]: [line1] 목표 발행 -> (2.04, -0.07)
+[WARN] [1793848176.282546728] [real_course_runner]: [line1] 목표 발행 -> (2.04, -0.07)
+[WARN] [1793848177.482717576] [real_course_runner]: [line1] 목표 발행 -> (2.04, -0.07)
+[WARN] [1793848177.883552882] [real_course_runner]: [line1] 목표 보정: 벽까지 0.38 m → (2.04,-0.02) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793848178.682738983] [real_course_runner]: [line1] 목표 발행 -> (2.04, -0.02)
+[WARN] [1793848179.083095182] [real_course_runner]: [line1] 도착
+[WARN] [1793848179.282367112] [real_course_runner]: [stopline1] 목표 발행 -> (4.12, 1.70)
+[WARN] [1793848180.482630611] [real_course_runner]: [stopline1] 목표 발행 -> (4.12, 1.70)
+[WARN] [1793848181.682511643] [real_course_runner]: [stopline1] 목표 발행 -> (4.12, 1.70)
+[WARN] [1793848182.882367929] [real_course_runner]: [stopline1] 목표 발행 -> (4.12, 1.70)
+[WARN] [1793848184.083469363] [real_course_runner]: [stopline1] 목표 발행 -> (4.12, 1.70)
+[WARN] [1793848185.282318943] [real_course_runner]: [stopline1] 목표 발행 -> (4.12, 1.70)
+[WARN] [1793848186.482907291] [real_course_runner]: [stopline1] 목표 발행 -> (4.12, 1.70)
+[WARN] [1793848187.682390561] [real_course_runner]: [stopline1] 목표 발행 -> (4.12, 1.70)
+[WARN] [1793848188.083247619] [real_course_runner]: [stopline1] 도착
+[WARN] [1793848188.083936614] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793848190.682387904] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793848193.082514556] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793848193.283051433] [real_course_runner]: [line2] 목표 보정: 벽까지 0.37 m → (6.16,3.29) 로 0.05 m 옮김 (벽까지 0.40 m)
+[WARN] [1793848193.283769940] [real_course_runner]: [line2] 목표 발행 -> (6.16, 3.29)
+[WARN] [1793848194.482849317] [real_course_runner]: [line2] 목표 발행 -> (6.16, 3.29)
+[WARN] [1793848195.683452663] [real_course_runner]: [line2] 목표 발행 -> (6.16, 3.29)
+[WARN] [1793848196.882831516] [real_course_runner]: [line2] 목표 발행 -> (6.16, 3.29)
+[WARN] [1793848198.083203254] [real_course_runner]: [line2] 목표 발행 -> (6.16, 3.29)
+[WARN] [1793848198.283450966] [real_course_runner]: [line2] 도착
+[WARN] [1793848198.482321966] [real_course_runner]: [rabain] 목표 발행 -> (7.05, 3.19)
+[WARN] [1793848199.682703100] [real_course_runner]: [rabain] 목표 발행 -> (7.05, 3.19)
+[WARN] [1793848200.882677013] [real_course_runner]: [rabain] 목표 발행 -> (7.05, 3.19)
+[WARN] [1793848200.883596736] [real_course_runner]: [rabain] 도착
+[WARN] [1793848200.884045726] [real_course_runner]: [rabain] 도착 -> 제자리 회전 시작 (목표 -97도)
+[ERROR] [1793848211.082857944] [real_course_runner]: [rabain] 회전 타임아웃(10.0초, 남은 오차 -10도) -> 포기하고 계속 진행
+[WARN] [1793848211.083581840] [real_course_runner]: [rabain] 라바콘 슬라럼 진입 -> cone_zone_active ON
+[WARN] [1793848211.285520818] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848212.485445069] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848213.682569613] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848214.882438562] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848216.082515063] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848217.282420506] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848217.682295959] [real_course_runner]: 콘 피하기 0 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793848217.882847281] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793848218.282914689] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848219.482547014] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848220.686421610] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848221.082157051] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793848221.082675781] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793848221.882583429] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848223.082336760] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848224.282667040] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848225.482614560] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848226.682660915] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848227.082463012] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793848227.083430150] [real_course_runner]: [rabaout] 4초간 제자리 + 장애물 0.44 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.07 vy -0.13, 1번째)
+[WARN] [1793848228.682948383] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793848228.683796872] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848229.882552653] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848231.086145775] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848231.482469866] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793848231.483318208] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793848232.282803089] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848233.482202737] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848234.682329205] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848235.882332272] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848236.882502566] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793848236.883497293] [real_course_runner]: [rabaout] 4초간 제자리 + 장애물 0.37 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.02 vy -0.15, 2번째)
+[WARN] [1793848238.482746429] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793848238.487423786] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848239.686155591] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848240.882812618] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848242.082406958] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848242.882562362] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793848242.883497475] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793848243.082656007] [real_course_runner]: [rabaout] 목표 발행 -> (6.52, -0.67)
+[WARN] [1793848243.884588774] [real_course_runner]: [rabaout] 도착
+[WARN] [1793848243.884871638] [real_course_runner]: [rabaout] 도착 -> 제자리 회전 시작 (목표 172도)
+[ERROR] [1793848254.082509709] [real_course_runner]: [rabaout] 회전 타임아웃(10.0초, 남은 오차 -12도) -> 포기하고 계속 진행
+[WARN] [1793848254.082970401] [real_course_runner]: [rabaout] 라바콘 슬라럼 탈출 -> cone_zone_active OFF
+[WARN] [1793848254.282596590] [real_course_runner]: [line3] 목표 발행 -> (5.87, -0.53)
+[WARN] [1793848255.482561963] [real_course_runner]: [line3] 목표 발행 -> (5.87, -0.53)
+[WARN] [1793848255.882424537] [real_course_runner]: [line3] 도착
+[WARN] [1793848256.082633469] [real_course_runner]: [stopline2] 목표 발행 -> (4.10, 1.67)
+[WARN] [1793848257.082288069] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.39 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793848257.082907270] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793848257.282663923] [real_course_runner]: [stopline2] 목표 발행 -> (4.10, 1.67)
+[WARN] [1793848258.482621298] [real_course_runner]: [stopline2] 목표 발행 -> (4.10, 1.67)
+[WARN] [1793848259.682760544] [real_course_runner]: [stopline2] 목표 발행 -> (4.10, 1.67)
+[WARN] [1793848260.882481399] [real_course_runner]: [stopline2] 목표 발행 -> (4.10, 1.67)
+[WARN] [1793848261.883266593] [real_course_runner]: [stopline2] 목표 발행 -> (4.10, 1.67)
+[WARN] [1793848262.882816969] [real_course_runner]: [stopline2] 도착
+[WARN] [1793848262.883278105] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793848265.482635677] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793848266.282249446] [real_course_runner]: 신호 대기 중 이동 감지 -> 다시 접근 단계로
+[WARN] [1793848266.482499794] [real_course_runner]: [stopline2] 목표 발행 -> (4.10, 1.67)
+[WARN] [1793848266.483281738] [real_course_runner]: [stopline2] 도착
+[WARN] [1793848266.483703757] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793848269.082384049] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793848269.282299743] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793848269.482242250] [real_course_runner]: [line4] 목표 발행 -> (2.28, 3.69)
+[WARN] [1793848270.682908591] [real_course_runner]: [line4] 목표 발행 -> (2.28, 3.69)
+[WARN] [1793848271.882237641] [real_course_runner]: [line4] 목표 발행 -> (2.28, 3.69)
+[WARN] [1793848273.086228603] [real_course_runner]: [line4] 목표 발행 -> (2.28, 3.69)
+[WARN] [1793848274.282888983] [real_course_runner]: [line4] 목표 발행 -> (2.28, 3.69)
+[WARN] [1793848274.682652949] [real_course_runner]: [line4] 도착
+[WARN] [1793848274.882854780] [real_course_runner]: [line5] 목표 보정: 벽까지 0.38 m → (1.53,3.79) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793848274.883505932] [real_course_runner]: [line5] 목표 발행 -> (1.53, 3.79)
+[WARN] [1793848276.083074602] [real_course_runner]: [line5] 목표 발행 -> (1.53, 3.79)
+[WARN] [1793848276.084127541] [real_course_runner]: [line5] 도착
+[WARN] [1793848276.287098327] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848277.486234923] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848278.682647241] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848279.882552230] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848281.082495718] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848282.282381805] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848282.689299238] [real_course_runner]: 콘 피하기 0 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793848282.690210109] [real_course_runner]: [line6] 4초간 제자리 + 장애물 0.32 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.09 vy -0.12, 1번째)
+[WARN] [1793848284.282612223] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793848284.283081697] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848285.482872805] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848286.682470130] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848287.682296499] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793848287.683354008] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793848287.882964112] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848289.082329373] [real_course_runner]: [line6] 목표 발행 -> (1.21, 2.00)
+[WARN] [1793848289.087577170] [real_course_runner]: [line6] 도착
+[WARN] [1793848289.087886765] [real_course_runner]: [line6] 도착 -> 제자리 회전 시작 (목표 174도)
+[ERROR] [1793848299.282490660] [real_course_runner]: [line6] 회전 타임아웃(10.0초, 남은 오차 -15도) -> 포기하고 계속 진행
+[WARN] [1793848299.482402656] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.46 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793848299.483359758] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793848299.491661810] [real_course_runner]: [parking] 목표 발행 -> (0.12, 2.11)
+[WARN] [1793848300.688905869] [real_course_runner]: [parking] 목표 발행 -> (0.12, 2.11)
+[WARN] [1793848301.882364658] [real_course_runner]: [parking] 목표 발행 -> (0.12, 2.11)
+[WARN] [1793848302.282508242] [real_course_runner]: [parking] 도착
+[WARN] [1793848302.282784098] [real_course_runner]: [parking] 도착 -> 제자리 회전 시작 (목표 -8도)
+[WARN] [1793848312.682782329] [real_course_runner]: [parking] 회전 완료 -> 다음 동작
+[WARN] [1793848312.683552380] [real_course_runner]: [parking] 정지 → 0.8초 뒤 Sit (선 높이 0.312 m)
+[WARN] [1793848313.682191281] [real_course_runner]: 명령 전송: StandDown(1005)
+[INFO] [1793848314.482627590] [real_course_runner]: 착석 확인됨(body_height=0.234) -> 5.5초 유지 시작
+[WARN] [1793848320.082129578] [real_course_runner]: 명령 전송: StandUp(1004)
+[WARN] [1793848321.283080360] [real_course_runner]: 일어남 확인(body_height=0.283) -> 다음 점
+[WARN] [1793848321.283677071] [real_course_runner]: 명령 전송: BalanceStand(1002)
+[WARN] [1793848321.488370538] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793848321.489055646] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.97)
+[WARN] [1793848322.682744160] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.97)
+[WARN] [1793848323.882589941] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.97)
+[ERROR] [1793848324.053225935] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848328.082192738] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(line7)
+[WARN] [1793848328.288359134] [real_course_runner]: [line7] 목표 발행 -> (1.24, 1.97)
+[WARN] [1793848328.882105606] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.22 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793848328.882745164] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793848329.286497051] [real_course_runner]: [line7] 목표 보정: 벽까지 0.03 m → (0.89,1.97) 로 0.35 m 옮김 (벽까지 0.38 m)
+[WARN] [1793848329.286877791] [real_course_runner]: [line7] 도착
+[WARN] [1793848329.483509029] [real_course_runner]: [line8] 목표 보정: 벽까지 0.27 m → (1.45,3.81) 로 0.18 m 옮김 (벽까지 0.41 m)
+[WARN] [1793848329.484232900] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848330.682680427] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848331.882631421] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848333.082730340] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848334.283010797] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848335.482614745] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848336.682907464] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848337.682723637] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793848337.683921379] [real_course_runner]: [line8] 4초간 제자리 + 장애물 0.29 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.03 vy -0.15, 1번째)
+[ERROR] [1793848338.152968445] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848342.282165308] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(line8)
+[WARN] [1793848342.482476027] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793848342.483151701] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848343.682927095] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848344.882562078] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848346.082648714] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848346.683117282] [real_course_runner]: [line8] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 2번째)
+[WARN] [1793848348.282797014] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[ERROR] [1793848348.283335664] [real_course_runner]: [line8] 콘 무시 뒤에도 10초 못 나아감(목표까지 1.83 m) — 경로 따라가기(ego 세움, 콘 무시, 벽은 봄)
+[WARN] [1793848373.282940093] [real_course_runner]: [line8] 경로 따라가기 끝(25초) → 보통 주행
+[WARN] [1793848373.283251873] [real_course_runner]: 콘 피하기 2 → 1 단계 (경로 따라가기 끝) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[ERROR] [1793848373.353068763] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848377.482123600] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(line8)
+[WARN] [1793848377.682651603] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793848377.683609445] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848378.882856616] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848380.082974114] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848381.282726760] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848381.682673848] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793848381.683641383] [real_course_runner]: [line8] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 3번째)
+[WARN] [1793848383.282814717] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793848383.283614974] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848384.482713067] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848385.682633427] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848386.882598987] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848387.482933997] [real_course_runner]: [line8] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 4번째)
+[ERROR] [1793848387.552780475] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848391.682082119] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(line8)
+[WARN] [1793848391.882639817] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[ERROR] [1793848391.887357666] [real_course_runner]: [line8] 콘 무시 뒤에도 10초 못 나아감(목표까지 1.83 m) — 경로 따라가기(ego 세움, 콘 무시, 벽은 봄)
+[WARN] [1793848417.082849119] [real_course_runner]: [line8] 경로 따라가기 끝(25초) → 보통 주행
+[WARN] [1793848417.083224026] [real_course_runner]: 콘 피하기 2 → 1 단계 (경로 따라가기 끝) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[ERROR] [1793848417.152930167] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848421.282205908] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(line8)
+[WARN] [1793848421.482632643] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793848421.483534408] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848422.682569883] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848423.882760238] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848425.082500454] [real_course_runner]: [line8] 목표 발행 -> (1.45, 3.81)
+[WARN] [1793848425.482554457] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[ERROR] [1793848425.483165465] [real_course_runner]: [line8] 물러나기 4번에도 못 감 — 경유점 건너뜀
+[WARN] [1793848425.682603238] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793848425.683189114] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848426.882522829] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848428.082508821] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848429.282579150] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848429.882718996] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 1번째)
+[ERROR] [1793848431.353341112] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848435.482181305] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848435.682505944] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848436.882659601] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848438.082341042] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848439.282357443] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848439.882573575] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 2번째)
+[WARN] [1793848441.482512667] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848442.682310746] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848443.882372692] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848445.082439930] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848445.482719018] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 3번째)
+[ERROR] [1793848445.552670386] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848449.682202794] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848449.882464761] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848451.082410560] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848452.282569721] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848453.482730062] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848453.882860928] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 4번째)
+[WARN] [1793848455.482596614] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848456.682579017] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848457.882469834] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848459.082622683] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848459.482900260] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 5번째)
+[ERROR] [1793848459.753031728] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848463.882277874] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848464.082526074] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848465.282617365] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848466.482525801] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848467.682524525] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848468.282761637] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 6번째)
+[WARN] [1793848469.882441464] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848471.082526355] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848472.282447490] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848473.482471457] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848473.882723654] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 7번째)
+[ERROR] [1793848473.952516555] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848478.082355883] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848478.282797506] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848479.482798465] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848480.682664396] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848481.882926267] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848482.482863246] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 8번째)
+[WARN] [1793848484.082744702] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848485.282809230] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848486.482686772] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848487.682815349] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848488.082954605] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 9번째)
+[ERROR] [1793848488.152952375] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848492.282326766] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848492.482934841] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848493.682281104] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848494.882965690] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848496.082680405] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848496.682676147] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 10번째)
+[WARN] [1793848498.282503726] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848499.482709130] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848500.682765887] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848501.882719838] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848502.283091864] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 11번째)
+[ERROR] [1793848502.352953382] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848506.482293814] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848506.682660948] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848507.882644567] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848509.082529951] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848510.282613246] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848510.882977163] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 12번째)
+[WARN] [1793848512.482523671] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848513.682593779] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848514.882837699] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848516.082743995] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848516.482839203] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 13번째)
+[ERROR] [1793848516.553189501] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848520.682167532] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848520.882732319] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848522.082551494] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848523.282607461] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848524.482519270] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848525.083008569] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 14번째)
+[WARN] [1793848526.682670531] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848527.882539583] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848529.082678258] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848530.282625383] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848530.753170998] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848534.882259556] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848535.082604944] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848536.282629241] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848537.482867076] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848538.682537696] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848539.082784139] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 15번째)
+[WARN] [1793848540.682459715] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848541.882523706] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848543.082527526] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848544.282384890] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848544.682756957] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 16번째)
+[ERROR] [1793848544.952838575] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848549.082428533] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848549.282606165] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848550.482525798] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848551.682792968] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848552.882841943] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848553.283108448] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 17번째)
+[WARN] [1793848554.882481892] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848556.082691349] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848557.282499077] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848558.482701276] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848558.882691630] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 18번째)
+[ERROR] [1793848559.152829238] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848563.282296150] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848563.482508395] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848564.682511468] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848565.882515582] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848567.082508515] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848567.682667421] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 19번째)
+[WARN] [1793848569.282648909] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848570.482548326] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848571.682401804] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848572.882401526] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848573.352782115] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848577.482472069] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848577.682805756] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848578.882728809] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848580.082709333] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848581.283032378] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848581.683407037] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 20번째)
+[WARN] [1793848583.282859203] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848584.482423458] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848585.683001513] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848586.883004210] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848587.283064435] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 21번째)
+[ERROR] [1793848587.553135406] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848591.682374189] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848591.882721065] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848593.082620289] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848594.282791000] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848595.482655423] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848596.082751971] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 22번째)
+[WARN] [1793848597.682768018] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848598.882547582] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848600.082653898] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848601.282523183] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848601.752858043] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848605.882199139] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848606.082326371] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848607.282824524] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848608.483078343] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848609.682843221] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848610.083136986] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 23번째)
+[WARN] [1793848611.682707413] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848612.882828723] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848614.082715540] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848615.282812478] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848615.683168132] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 24번째)
+[ERROR] [1793848615.952940990] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848620.082275883] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848620.282563203] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848621.482672918] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848622.682822555] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848623.882666678] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848624.282790030] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 25번째)
+[WARN] [1793848625.882801166] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848627.082545295] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848628.282774411] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848629.482902502] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848630.083223454] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 26번째)
+[ERROR] [1793848630.152933121] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848634.282473355] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848634.482831334] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848635.682947718] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848636.882886846] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848638.082924945] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848638.483101210] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 27번째)
+[WARN] [1793848640.083012094] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848641.282734448] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848642.482402820] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848643.682447804] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848644.282688544] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 28번째)
+[ERROR] [1793848644.352520747] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848648.482208398] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848648.682502197] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848649.882523115] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848651.082454710] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848652.282491987] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848652.683054964] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 29번째)
+[WARN] [1793848654.282472510] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848655.482535478] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848656.682439598] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848657.882587646] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848658.282824094] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 30번째)
+[ERROR] [1793848658.553090056] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848662.682167149] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848662.882652175] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848664.082586031] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848665.282535953] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848666.482555494] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848667.082941442] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 31번째)
+[WARN] [1793848668.682566171] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848669.882756433] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848671.082631196] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848672.282720937] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848672.753133316] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848676.882302004] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848677.082654714] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848678.282497963] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848679.482725450] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848680.682570223] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848681.282629958] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 32번째)
+[WARN] [1793848682.882470225] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848684.082653150] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848685.282493000] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848686.482605028] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848686.952795599] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848691.082210797] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848691.282549541] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848692.482368703] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848693.682244530] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848694.682517141] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848695.482586151] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 33번째)
+[WARN] [1793848697.082539009] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848698.282544717] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848699.482449852] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848700.682522602] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848701.152632695] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848705.282200570] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848705.482543043] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848706.682360512] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848707.882525903] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848709.082518457] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848709.682673952] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 34번째)
+[WARN] [1793848711.282550762] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848712.482550403] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848713.682423985] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848714.882441862] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848715.353129946] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848719.482558657] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848719.682433845] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848720.882440694] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848722.082407792] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848723.282383160] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848723.682688421] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 35번째)
+[WARN] [1793848725.282552539] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848726.482386534] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848727.682335163] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848728.882337571] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848729.482616075] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 36번째)
+[ERROR] [1793848729.552935397] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848733.682198987] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848733.882679534] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848735.082438077] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848736.282396286] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848737.482383561] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848738.082776366] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 37번째)
+[WARN] [1793848739.682562992] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848740.882586896] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848742.082671955] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848743.282393228] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848743.752971186] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848747.882226286] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848748.082506861] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848749.282436245] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848750.482264389] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848751.682449565] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848752.082810998] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 38번째)
+[WARN] [1793848753.682581567] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848754.882485800] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848756.082505702] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848757.282441709] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848757.882784135] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 39번째)
+[ERROR] [1793848757.953127868] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848762.082071133] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848762.282661644] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848763.482498127] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848764.682574241] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848765.882638237] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848766.482667984] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 40번째)
+[WARN] [1793848768.082512881] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848769.282332122] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848770.482370312] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848771.682515543] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848772.082758070] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 41번째)
+[ERROR] [1793848772.152734346] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848776.282282428] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848776.482336632] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848777.682589943] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848778.882406104] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848780.082328477] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848780.482751231] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 42번째)
+[WARN] [1793848782.082303427] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848783.282487612] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848784.482373199] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848785.682429518] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848786.282669165] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 43번째)
+[ERROR] [1793848786.352734422] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848790.482083041] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848790.682394463] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848791.882540409] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848793.082716421] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848794.282495381] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848794.682826827] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 44번째)
+[WARN] [1793848796.282586466] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848797.482632351] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848798.682564190] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848799.882565633] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848800.282819083] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 45번째)
+[ERROR] [1793848800.553171473] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848804.682199271] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848804.882413179] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848806.082413673] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848807.282549844] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848808.482552080] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848808.882959495] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 46번째)
+[WARN] [1793848810.482537778] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848811.682456182] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848812.882535631] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848814.082381760] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848814.682660778] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 47번째)
+[ERROR] [1793848814.752782497] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848818.882232947] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848819.082515132] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848820.282599634] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848821.482500859] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848822.682287150] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848823.282531512] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 48번째)
+[WARN] [1793848824.882338999] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848826.082578156] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848827.282390711] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848828.482370849] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848828.882675065] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 49번째)
+[ERROR] [1793848828.952729921] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848833.082179622] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848833.282461087] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848834.482438035] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848835.682442659] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848836.882704484] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848837.482597756] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 50번째)
+[WARN] [1793848839.082387262] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848840.282314747] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848841.482430043] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848842.682550125] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848843.082791865] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 51번째)
+[ERROR] [1793848843.153233423] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848847.282127728] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848847.482440459] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848848.682387180] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848849.882499912] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848851.082525715] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848851.482745881] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 52번째)
+[WARN] [1793848853.082525926] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848854.282504706] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848855.482455578] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848856.682653045] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848857.082809295] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 53번째)
+[ERROR] [1793848857.353086473] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848861.482171040] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848861.682432751] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848862.882471880] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848864.082368023] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848865.282502234] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848865.682723530] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 54번째)
+[WARN] [1793848867.282451992] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848868.482480929] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848869.682384514] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848870.882324662] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848871.482518182] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 55번째)
+[ERROR] [1793848871.552917063] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848875.682087900] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848875.882466668] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848877.082349937] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848878.282589140] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848879.482540290] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848880.082638833] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 56번째)
+[WARN] [1793848881.682575304] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848882.882566822] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848884.082383499] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848885.282368077] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[ERROR] [1793848885.752769632] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848889.882264114] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848890.082584024] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848891.282710098] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848892.482628658] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848893.682551444] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848894.082826632] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 57번째)
+[WARN] [1793848895.682594826] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848896.882537461] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848898.082471000] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848899.282589007] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848899.882939322] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 58번째)
+[ERROR] [1793848899.952854806] [real_course_runner]: 위치 감시 STOP(FAST-LIO 와 AMCL 이 30 cm/8° 넘게 어긋남) — 그 자리에 섬, 재정렬 기다림
+[WARN] [1793848904.082172439] [real_course_runner]: 위치 감시 STOP — 4초 기다려도 STOP, 그냥 계속(fail-open) — 다시 출발(exit)
+[WARN] [1793848904.282514358] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848905.482510174] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848906.682910752] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848907.882416750] [real_course_runner]: [exit] 목표 발행 -> (-0.24, 4.18)
+[WARN] [1793848908.282654666] [real_course_runner]: [exit] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.05 vy -0.14, 59번째)
+[INFO] [1793865274.399258616] [real_course_runner]: 실측 코스 러너 시작 — 14개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'line7', 'line8', 'exit']
+[WARN] [1793865274.592351129] [real_course_runner]: 자가진단 OK — 현재 (-0.01,-0.00), start와 0.18m 차이. 코스 시작.
+[WARN] [1793865274.825184788] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793865274.825493285] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793865274.825975412] [real_course_runner]: [line1] 목표 보정: 벽까지 0.39 m → (1.80,0.02) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793865274.826256617] [real_course_runner]: [line1] 목표 발행 -> (1.80, 0.02)
+[WARN] [1793865275.793183647] [real_course_runner]: [line1] 목표 보정: 벽까지 0.36 m → (1.75,0.07) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793865275.993007825] [real_course_runner]: [line1] 목표 발행 -> (1.75, 0.07)
+[WARN] [1793865276.893390367] [real_course_runner]: [line1] 목표 보정: 벽까지 0.34 m → (1.75,0.02) 로 0.07 m 옮김 (벽까지 0.41 m)
+[WARN] [1793865277.193028071] [real_course_runner]: [line1] 목표 발행 -> (1.75, 0.02)
+[WARN] [1793865277.992904602] [real_course_runner]: [line1] 목표 보정: 벽까지 0.33 m → (1.70,0.07) 로 0.10 m 옮김 (벽까지 0.43 m)
+[WARN] [1793865278.392616197] [real_course_runner]: [line1] 목표 발행 -> (1.70, 0.07)
+[WARN] [1793865279.592981113] [real_course_runner]: [line1] 목표 발행 -> (1.70, 0.07)
+[WARN] [1793865280.593095734] [real_course_runner]: [line1] 도착
+[WARN] [1793865280.792785260] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793865281.992628801] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793865282.592360931] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.25 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793865282.593017663] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793865283.193213440] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793865284.392769394] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793865285.592430044] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793865286.792346219] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793865286.992651680] [real_course_runner]: [stopline1] 도착
+[WARN] [1793865286.993117127] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793865289.592441477] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793865294.992512623] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793865295.192396060] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.52 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793865295.193069124] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793865295.193780047] [real_course_runner]: [line2] 목표 보정: 벽까지 0.31 m → (5.71,3.77) 로 0.15 m 옮김 (벽까지 0.44 m)
+[WARN] [1793865295.194188380] [real_course_runner]: [line2] 목표 발행 -> (5.71, 3.77)
+[WARN] [1793865296.392925397] [real_course_runner]: [line2] 목표 발행 -> (5.71, 3.77)
+[WARN] [1793865297.593191988] [real_course_runner]: [line2] 목표 발행 -> (5.71, 3.77)
+[WARN] [1793865298.194340025] [real_course_runner]: [line2] 목표 보정: 벽까지 0.31 m → (5.71,3.82) 로 0.16 m 옮김 (벽까지 0.41 m)
+[WARN] [1793865298.792870758] [real_course_runner]: [line2] 목표 발행 -> (5.71, 3.82)
+[WARN] [1793865299.992896696] [real_course_runner]: [line2] 목표 발행 -> (5.71, 3.82)
+[WARN] [1793865300.392992907] [real_course_runner]: [line2] 도착
+[WARN] [1793865300.592592572] [real_course_runner]: [rabain] 목표 발행 -> (6.50, 3.75)
+[WARN] [1793865301.792650855] [real_course_runner]: [rabain] 목표 발행 -> (6.50, 3.75)
+[WARN] [1793865302.992581113] [real_course_runner]: [rabain] 목표 발행 -> (6.50, 3.75)
+[WARN] [1793865302.992915069] [real_course_runner]: [rabain] 도착
+[WARN] [1793865302.993091098] [real_course_runner]: [rabain] 도착 -> 제자리 회전 시작 (목표 -92도)
+[ERROR] [1793865313.192765840] [real_course_runner]: [rabain] 회전 타임아웃(10.0초, 남은 오차 -13도) -> 포기하고 계속 진행
+[WARN] [1793865313.193267025] [real_course_runner]: [rabain] 라바콘 슬라럼 진입 -> cone_zone_active ON
+[WARN] [1793865313.395034950] [real_course_runner]: [rabaout] 목표 발행 -> (6.32, -0.14)
+[WARN] [1793865314.593728976] [real_course_runner]: [rabaout] 목표 발행 -> (6.32, -0.14)
+[WARN] [1793865314.992584731] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.24 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793865314.993355536] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793865315.594886345] [real_course_runner]: [rabaout] 목표 보정: 벽까지 0.36 m → (6.27,-0.14) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793865315.792582134] [real_course_runner]: [rabaout] 목표 발행 -> (6.27, -0.14)
+[WARN] [1793865316.992908198] [real_course_runner]: [rabaout] 목표 발행 -> (6.27, -0.14)
+[WARN] [1793865318.192886620] [real_course_runner]: [rabaout] 목표 발행 -> (6.27, -0.14)
+[WARN] [1793865318.793896767] [real_course_runner]: [rabaout] 목표 보정: 벽까지 0.26 m → (6.17,-0.09) 로 0.16 m 옮김 (벽까지 0.41 m)
+[WARN] [1793865319.392847240] [real_course_runner]: [rabaout] 목표 발행 -> (6.17, -0.09)
+[WARN] [1793865320.592937945] [real_course_runner]: [rabaout] 목표 발행 -> (6.17, -0.09)
+[WARN] [1793865321.794856467] [real_course_runner]: [rabaout] 목표 발행 -> (6.17, -0.09)
+[WARN] [1793865322.992923995] [real_course_runner]: [rabaout] 목표 발행 -> (6.17, -0.09)
+[WARN] [1793865324.192821404] [real_course_runner]: [rabaout] 목표 발행 -> (6.17, -0.09)
+[WARN] [1793865325.392811912] [real_course_runner]: [rabaout] 목표 발행 -> (6.17, -0.09)
+[WARN] [1793865326.393006717] [real_course_runner]: [rabaout] 도착
+[WARN] [1793865326.393322747] [real_course_runner]: [rabaout] 도착 -> 제자리 회전 시작 (목표 -180도)
+[ERROR] [1793865336.592723256] [real_course_runner]: [rabaout] 회전 타임아웃(10.0초, 남은 오차 -5도) -> 포기하고 계속 진행
+[WARN] [1793865336.593222903] [real_course_runner]: [rabaout] 라바콘 슬라럼 탈출 -> cone_zone_active OFF
+[WARN] [1793865336.794272347] [real_course_runner]: [line3] 목표 보정: 벽까지 0.13 m → (5.95,-0.16) 로 0.32 m 옮김 (벽까지 0.38 m)
+[WARN] [1793865336.794609788] [real_course_runner]: [line3] 목표 발행 -> (5.95, -0.16)
+[WARN] [1793865337.192968306] [real_course_runner]: [line3] 도착
+[WARN] [1793865337.392619873] [real_course_runner]: [stopline2] 목표 발행 -> (3.70, 1.97)
+[WARN] [1793865338.592599317] [real_course_runner]: [stopline2] 목표 발행 -> (3.70, 1.97)
+[WARN] [1793865339.792591092] [real_course_runner]: [stopline2] 목표 발행 -> (3.70, 1.97)
+[WARN] [1793865340.992657913] [real_course_runner]: [stopline2] 목표 발행 -> (3.70, 1.97)
+[WARN] [1793865342.192680040] [real_course_runner]: [stopline2] 목표 발행 -> (3.70, 1.97)
+[WARN] [1793865343.392530391] [real_course_runner]: [stopline2] 목표 발행 -> (3.70, 1.97)
+[WARN] [1793865344.592705043] [real_course_runner]: [stopline2] 목표 발행 -> (3.70, 1.97)
+[WARN] [1793865345.792457271] [real_course_runner]: [stopline2] 목표 발행 -> (3.70, 1.97)
+[WARN] [1793865346.195695328] [real_course_runner]: [stopline2] 도착
+[WARN] [1793865346.196141107] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793865348.792444017] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793865349.992542515] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793865350.192445629] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.52 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793865350.193199848] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793865350.193822408] [real_course_runner]: [line4] 목표 발행 -> (1.71, 3.83)
+[WARN] [1793865351.394869165] [real_course_runner]: [line4] 목표 발행 -> (1.71, 3.83)
+[WARN] [1793865352.592749833] [real_course_runner]: [line4] 목표 발행 -> (1.71, 3.83)
+[WARN] [1793865353.792658789] [real_course_runner]: [line4] 목표 발행 -> (1.71, 3.83)
+[WARN] [1793865354.992568576] [real_course_runner]: [line4] 목표 발행 -> (1.71, 3.83)
+[WARN] [1793865355.192608902] [real_course_runner]: [line4] 도착
+[WARN] [1793865355.392578571] [real_course_runner]: [line5] 목표 발행 -> (0.95, 3.92)
+[WARN] [1793865356.595484197] [real_course_runner]: [line5] 목표 발행 -> (0.95, 3.92)
+[WARN] [1793865356.596001152] [real_course_runner]: [line5] 도착
+[WARN] [1793865356.792582188] [real_course_runner]: [line6] 목표 발행 -> (0.79, 2.06)
+[WARN] [1793865357.992755784] [real_course_runner]: [line6] 목표 발행 -> (0.79, 2.06)
+[WARN] [1793865359.192614139] [real_course_runner]: [line6] 목표 발행 -> (0.79, 2.06)
+[WARN] [1793865359.992424637] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.14 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793865359.993077650] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793865360.392641923] [real_course_runner]: [line6] 목표 발행 -> (0.79, 2.06)
+[WARN] [1793865360.795645887] [real_course_runner]: [line6] 도착
+[WARN] [1793865360.795994048] [real_course_runner]: [line6] 도착 -> 제자리 회전 시작 (목표 -172도)
+[ERROR] [1793865370.992576643] [real_course_runner]: [line6] 회전 타임아웃(10.0초, 남은 오차 -9도) -> 포기하고 계속 진행
+[WARN] [1793865371.192632983] [real_course_runner]: [parking] 목표 발행 -> (-0.31, 2.07)
+[WARN] [1793865372.392422051] [real_course_runner]: [parking] 목표 발행 -> (-0.31, 2.07)
+[WARN] [1793865373.392738876] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.67 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793865373.393436626] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793865373.393996575] [real_course_runner]: [parking] 목표 발행 -> (-0.31, 2.07)
+[WARN] [1793865373.995925567] [real_course_runner]: [parking] 도착
+[WARN] [1793865373.996237723] [real_course_runner]: [parking] 도착 -> 제자리 회전 시작 (목표 0도)
+[ERROR] [1793865384.192637009] [real_course_runner]: [parking] 회전 타임아웃(10.0초, 남은 오차 -15도) -> 포기하고 계속 진행
+[WARN] [1793865384.193246444] [real_course_runner]: [parking] 정지 → 0.8초 뒤 Sit (선 높이 0.312 m)
+[WARN] [1793865385.192462409] [real_course_runner]: 명령 전송: StandDown(1005)
+[INFO] [1793865385.792629782] [real_course_runner]: 착석 확인됨(body_height=0.239) -> 5.5초 유지 시작
+[WARN] [1793865391.392526864] [real_course_runner]: 명령 전송: StandUp(1004)
+[WARN] [1793865392.792735734] [real_course_runner]: 일어남 확인(body_height=0.325) -> 다음 점
+[WARN] [1793865392.793156352] [real_course_runner]: 명령 전송: BalanceStand(1002)
+[WARN] [1793865392.992552058] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793865392.993120594] [real_course_runner]: [line7] 목표 발행 -> (0.82, 2.03)
+[WARN] [1793865394.192465417] [real_course_runner]: [line7] 목표 발행 -> (0.82, 2.03)
+[WARN] [1793865395.392515113] [real_course_runner]: [line7] 목표 발행 -> (0.82, 2.03)
+[WARN] [1793865395.992620137] [real_course_runner]: [line7] 도착
+[WARN] [1793865396.195021715] [real_course_runner]: [line8] 목표 보정: 벽까지 0.36 m → (0.76,3.97) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793865396.195350833] [real_course_runner]: [line8] 목표 발행 -> (0.76, 3.97)
+[WARN] [1793865397.397279536] [real_course_runner]: [line8] 목표 발행 -> (0.76, 3.97)
+[WARN] [1793865398.592776215] [real_course_runner]: [line8] 목표 발행 -> (0.76, 3.97)
+[WARN] [1793865398.792596451] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.06 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793865398.793465443] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793865399.792786707] [real_course_runner]: [line8] 목표 발행 -> (0.76, 3.97)
+[WARN] [1793865400.992613539] [real_course_runner]: [line8] 목표 발행 -> (0.76, 3.97)
+[WARN] [1793865401.193233783] [real_course_runner]: [line8] 도착
+[WARN] [1793865401.392652480] [real_course_runner]: [exit] 목표 보정: 벽까지 0.19 m → (-0.75,4.10) 로 0.10 m 옮김 (벽까지 0.29 m)
+[WARN] [1793865401.393099324] [real_course_runner]: [exit] 목표 발행 -> (-0.75, 4.10)
+[WARN] [1793865402.594956754] [real_course_runner]: [exit] 목표 발행 -> (-0.75, 4.10)
+[WARN] [1793865403.792963041] [real_course_runner]: [exit] 목표 발행 -> (-0.75, 4.10)
+[WARN] [1793865404.596724430] [real_course_runner]: [exit] 도착했지만 뒤끝이 선 안(중심 x -0.42) → 바깥으로 밀고 나감
+[WARN] [1793865408.992466195] [real_course_runner]: [exit] Out Line 통과 확인(중심 x -1.02) — 완주, 정지
+[WARN] [1793865427.396042966] [real_course_runner]: [exit] 목표 보정: 벽까지 0.04 m → (-0.85,4.20) 로 0.10 m 옮김 (벽까지 0.13 m)
+[INFO] [1793869473.496675450] [real_course_runner]: 실측 코스 러너 시작 — 14개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'line7', 'line8', 'exit']
+[WARN] [1793869473.689724679] [real_course_runner]: 자가진단 OK — 현재 (-0.01,0.00), start와 0.18m 차이. 코스 시작.
+[WARN] [1793869473.950647679] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793869473.951191811] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793869473.952071700] [real_course_runner]: [line1] 목표 보정: 벽까지 0.34 m → (1.75,0.02) 로 0.07 m 옮김 (벽까지 0.41 m)
+[WARN] [1793869473.952563904] [real_course_runner]: [line1] 목표 발행 -> (1.75, 0.02)
+[WARN] [1793869475.089923739] [real_course_runner]: [line1] 목표 발행 -> (1.75, 0.02)
+[WARN] [1793869476.290118032] [real_course_runner]: [line1] 목표 발행 -> (1.75, 0.02)
+[WARN] [1793869477.490166995] [real_course_runner]: [line1] 목표 발행 -> (1.75, 0.02)
+[WARN] [1793869477.890143969] [real_course_runner]: 콘 피하기 0 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793869478.090368815] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793869478.690278456] [real_course_runner]: [line1] 목표 발행 -> (1.75, 0.02)
+[WARN] [1793869479.890160634] [real_course_runner]: [line1] 목표 발행 -> (1.75, 0.02)
+[WARN] [1793869480.090372368] [real_course_runner]: [line1] 목표 보정: 벽까지 0.33 m → (1.70,0.07) 로 0.10 m 옮김 (벽까지 0.43 m)
+[WARN] [1793869480.289789777] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793869480.290550279] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793869481.090343528] [real_course_runner]: [line1] 목표 발행 -> (1.70, 0.07)
+[WARN] [1793869481.890326741] [real_course_runner]: [line1] 도착
+[WARN] [1793869482.089773949] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793869483.290785447] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793869484.490126850] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793869485.689949675] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793869486.889794298] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793869488.089926618] [real_course_runner]: [stopline1] 목표 발행 -> (3.72, 2.01)
+[WARN] [1793869488.489928128] [real_course_runner]: [stopline1] 도착
+[WARN] [1793869488.490326599] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793869491.089792631] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793869491.289699146] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793869491.491206992] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.53 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793869491.491974495] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793869491.492780966] [real_course_runner]: [line2] 목표 보정: 벽까지 0.38 m → (5.56,3.72) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793869491.493228548] [real_course_runner]: [line2] 목표 발행 -> (5.56, 3.72)
+[WARN] [1793869492.491763963] [real_course_runner]: [line2] 목표 보정: 벽까지 0.35 m → (5.61,3.72) 로 0.07 m 옮김 (벽까지 0.42 m)
+[WARN] [1793869492.690253877] [real_course_runner]: [line2] 목표 발행 -> (5.61, 3.72)
+[WARN] [1793869493.289843030] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.23 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793869493.290303833] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1004, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1000, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793869494.232081567] [real_course_runner]: 실측 코스 러너 시작 — 14개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'line7', 'line8', 'exit']
+[ERROR] [1793869494.424818139] [real_course_runner]: 자가진단 실패 — 현재 (4.57,2.99)가 start(0.10,0.04)에서 5.35m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869494.624817575] [real_course_runner]: 자가진단 실패 — 현재 (4.65,3.07)가 start(0.10,0.04)에서 5.46m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869494.824837414] [real_course_runner]: 자가진단 실패 — 현재 (4.73,3.15)가 start(0.10,0.04)에서 5.57m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869495.024842854] [real_course_runner]: 자가진단 실패 — 현재 (4.82,3.20)가 start(0.10,0.04)에서 5.68m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869495.224844737] [real_course_runner]: 자가진단 실패 — 현재 (4.91,3.27)가 start(0.10,0.04)에서 5.79m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869495.424912117] [real_course_runner]: 자가진단 실패 — 현재 (4.95,3.32)가 start(0.10,0.04)에서 5.85m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869495.624798813] [real_course_runner]: 자가진단 실패 — 현재 (4.97,3.33)가 start(0.10,0.04)에서 5.88m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869495.824906994] [real_course_runner]: 자가진단 실패 — 현재 (5.02,3.35)가 start(0.10,0.04)에서 5.93m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869496.024810866] [real_course_runner]: 자가진단 실패 — 현재 (5.10,3.40)가 start(0.10,0.04)에서 6.02m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869496.224822289] [real_course_runner]: 자가진단 실패 — 현재 (5.17,3.47)가 start(0.10,0.04)에서 6.12m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869496.424934989] [real_course_runner]: 자가진단 실패 — 현재 (5.22,3.53)가 start(0.10,0.04)에서 6.19m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869496.624878559] [real_course_runner]: 자가진단 실패 — 현재 (5.23,3.56)가 start(0.10,0.04)에서 6.22m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869496.824704146] [real_course_runner]: 자가진단 실패 — 현재 (5.27,3.59)가 start(0.10,0.04)에서 6.27m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869497.024837019] [real_course_runner]: 자가진단 실패 — 현재 (5.33,3.64)가 start(0.10,0.04)에서 6.35m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869497.224849780] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869497.424832335] [real_course_runner]: 자가진단 실패 — 현재 (5.43,3.73)가 start(0.10,0.04)에서 6.49m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869497.624939543] [real_course_runner]: 자가진단 실패 — 현재 (5.43,3.75)가 start(0.10,0.04)에서 6.49m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869497.824837289] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.75)가 start(0.10,0.04)에서 6.49m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869498.024821044] [real_course_runner]: 자가진단 실패 — 현재 (5.43,3.75)가 start(0.10,0.04)에서 6.49m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869498.224905547] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.75)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869498.424924514] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869498.624836271] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869498.824828169] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869499.024688662] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869499.224828528] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869499.424800192] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869499.624603616] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869499.825001300] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869500.025396080] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.47m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869500.224756619] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869500.425091047] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.74)가 start(0.10,0.04)에서 6.47m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869500.624930700] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.73)가 start(0.10,0.04)에서 6.47m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869500.824865602] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.74)가 start(0.10,0.04)에서 6.47m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869501.024959914] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.73)가 start(0.10,0.04)에서 6.47m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869501.224706557] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.73)가 start(0.10,0.04)에서 6.46m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869501.424846150] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.73)가 start(0.10,0.04)에서 6.46m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869501.624826882] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.46m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869501.824905953] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.46m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869502.024843033] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869502.224808814] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869502.424838943] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869502.624814672] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869502.824823629] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869503.024779454] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869503.224809850] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869503.424821662] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.71)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869503.624782906] [real_course_runner]: 자가진단 실패 — 현재 (5.41,3.71)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869503.824817168] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869504.025222081] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869504.224877876] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869504.424873247] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869504.624659150] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869504.824850414] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869505.024689538] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869505.224819632] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869505.424885726] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869505.624939846] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869505.824781729] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869506.024941855] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869506.224666451] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869506.424838016] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869506.624806638] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869506.824761902] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869507.024880809] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869507.224757068] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869507.424826397] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.74)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869507.624826176] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869507.824830742] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869508.024794152] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869508.224836692] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869508.424949852] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.74)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869508.625046613] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869508.824787594] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869509.024889762] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869509.225069443] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869509.424727038] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869509.624878181] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869509.824870983] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869510.024600161] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869510.224751142] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869510.424775626] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869510.624796339] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869510.824757310] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869511.024902329] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869511.224790664] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869511.424831055] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869511.624813645] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.73)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869511.824834699] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869512.024785283] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869512.224682879] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.73)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869512.424812034] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869512.624838650] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869512.824811759] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.72)가 start(0.10,0.04)에서 6.45m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869513.024785828] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869513.224699165] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869513.424701739] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.71)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869513.624790622] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.71)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869513.824775790] [real_course_runner]: 자가진단 실패 — 현재 (5.38,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869514.024877122] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869514.224814005] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869514.424814718] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.71)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869514.624840331] [real_course_runner]: 자가진단 실패 — 현재 (5.38,3.72)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869514.824962993] [real_course_runner]: 자가진단 실패 — 현재 (5.38,3.73)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869515.024821755] [real_course_runner]: 자가진단 실패 — 현재 (5.38,3.72)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869515.224827859] [real_course_runner]: 자가진단 실패 — 현재 (5.36,3.70)가 start(0.10,0.04)에서 6.41m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869515.424853714] [real_course_runner]: 자가진단 실패 — 현재 (5.37,3.69)가 start(0.10,0.04)에서 6.40m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869515.624820083] [real_course_runner]: 자가진단 실패 — 현재 (5.38,3.68)가 start(0.10,0.04)에서 6.41m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869515.824830042] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869516.024703115] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869516.224821327] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869516.425081771] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869516.624784313] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869516.824868882] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869517.024833532] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869517.224789930] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869517.424936222] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869517.624821657] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869517.824852837] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869518.024824280] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869518.224747263] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869518.424794555] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869518.624666773] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869518.824974407] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869519.024970091] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869519.224874136] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869519.424926979] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869519.624882265] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869519.824915411] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869520.024811630] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869520.224793909] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869520.424775459] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869520.624816427] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869520.824668343] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869521.024769169] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869521.224882838] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869521.424840913] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.44m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869521.624875137] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869521.824788447] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869522.024798805] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869522.224807374] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869522.424780441] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869522.624820377] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869522.824868889] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869523.024949425] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869523.224655657] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869523.424848011] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869523.624907962] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869523.824853357] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869524.024693303] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869524.224792560] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869524.424836098] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869524.624800445] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869524.824839280] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869525.025043227] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.70)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869525.224913635] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869525.424688688] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869525.624813142] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869525.824841051] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869526.024901291] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869526.224708892] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869526.424860016] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869526.624919122] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869526.824811755] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869527.024960968] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869527.224834663] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869527.424845462] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869527.624777068] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869527.824708853] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869528.024904671] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869528.224768130] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869528.425045531] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869528.625022163] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869528.824667095] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869529.024763874] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869529.224740363] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869529.424667566] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869529.624620152] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869529.824682571] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869530.024795744] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869530.224783995] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869530.424952761] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869530.624818231] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869530.824827036] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869531.024838492] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869531.224747890] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869531.424815457] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869531.624716929] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869531.824871335] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869532.024785678] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869532.224916804] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869532.424787982] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869532.624824731] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869532.824671703] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869533.024857089] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869533.224878356] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869533.424945834] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869533.624791824] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869533.824906885] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869534.024809174] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869534.224778297] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869534.424888568] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869534.624904037] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869534.824804254] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869535.024957012] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869535.224951981] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869535.424802916] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869535.624806760] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869535.824877273] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869536.024788387] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869536.224766619] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869536.424831921] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869536.625041387] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869536.824875437] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869537.024857066] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869537.224803345] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869537.424791984] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869537.624845620] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869537.824932541] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869538.024660899] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869538.225102802] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869538.424839656] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869538.624721187] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869538.824872498] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869539.024730443] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869539.224722074] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869539.424830808] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869539.624797797] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869539.824810525] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869540.024924603] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869540.224661453] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869540.424696725] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869540.624841877] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869540.824794482] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869541.024804234] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869541.224805011] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869541.424763177] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869541.624680788] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869541.824935507] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869542.024802080] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869542.224813399] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869542.424903734] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869542.624811572] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869542.824880913] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869543.024909920] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869543.224678477] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869543.424789089] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869543.624825774] [real_course_runner]: 자가진단 실패 — 현재 (5.38,3.68)가 start(0.10,0.04)에서 6.41m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869543.824974414] [real_course_runner]: 자가진단 실패 — 현재 (5.38,3.68)가 start(0.10,0.04)에서 6.41m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869544.024869718] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.42m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869544.225000167] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.42m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869544.424874141] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869544.624826707] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869544.824928653] [real_course_runner]: 자가진단 실패 — 현재 (5.39,3.69)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869545.024776405] [real_course_runner]: 자가진단 실패 — 현재 (5.37,3.65)가 start(0.10,0.04)에서 6.38m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869545.224781100] [real_course_runner]: 자가진단 실패 — 현재 (5.32,3.58)가 start(0.10,0.04)에서 6.30m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869545.424852444] [real_course_runner]: 자가진단 실패 — 현재 (5.29,3.53)가 start(0.10,0.04)에서 6.25m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869545.624830574] [real_course_runner]: 자가진단 실패 — 현재 (5.29,3.53)가 start(0.10,0.04)에서 6.25m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869545.824898034] [real_course_runner]: 자가진단 실패 — 현재 (5.28,3.53)가 start(0.10,0.04)에서 6.25m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869546.024711289] [real_course_runner]: 자가진단 실패 — 현재 (5.29,3.53)가 start(0.10,0.04)에서 6.25m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869546.224833079] [real_course_runner]: 자가진단 실패 — 현재 (5.29,3.52)가 start(0.10,0.04)에서 6.25m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869546.424850442] [real_course_runner]: 자가진단 실패 — 현재 (5.35,3.50)가 start(0.10,0.04)에서 6.28m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869546.624790585] [real_course_runner]: 자가진단 실패 — 현재 (5.40,3.48)가 start(0.10,0.04)에서 6.31m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869546.824842699] [real_course_runner]: 자가진단 실패 — 현재 (5.42,3.47)가 start(0.10,0.04)에서 6.33m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869547.024876252] [real_course_runner]: 자가진단 실패 — 현재 (5.43,3.46)가 start(0.10,0.04)에서 6.33m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869547.224873628] [real_course_runner]: 자가진단 실패 — 현재 (5.46,3.47)가 start(0.10,0.04)에서 6.36m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869547.425016555] [real_course_runner]: 자가진단 실패 — 현재 (5.50,3.47)가 start(0.10,0.04)에서 6.39m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869547.624753941] [real_course_runner]: 자가진단 실패 — 현재 (5.52,3.50)가 start(0.10,0.04)에서 6.43m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869547.824734882] [real_course_runner]: 자가진단 실패 — 현재 (5.56,3.54)가 start(0.10,0.04)에서 6.48m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869548.024782739] [real_course_runner]: 자가진단 실패 — 현재 (5.59,3.57)가 start(0.10,0.04)에서 6.52m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869548.225048009] [real_course_runner]: 자가진단 실패 — 현재 (5.61,3.62)가 start(0.10,0.04)에서 6.57m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+[ERROR] [1793869548.425108347] [real_course_runner]: 자가진단 실패 — 현재 (5.58,3.63)가 start(0.10,0.04)에서 6.54m 떨어짐 (한계 0.5m). 로봇이 옮겨졌거나 FAST-LIO가 잘못 초기화된 것으로 보임 — 목표를 보내지 않음. Ctrl+C로 끄고 FAST-LIO를 이 자리에서 재시작한 뒤 다시 실행하세요.
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1004, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu/src/real_course_runner.py", line 1000, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333

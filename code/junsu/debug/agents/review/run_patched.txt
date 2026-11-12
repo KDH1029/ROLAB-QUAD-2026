@@ -1,0 +1,12 @@
+러너: /home/ilovehan9283/ws/junsu_v2/debug/agents/review/patched/src/real_course_runner.py
+[고쳐짐/정상] B1 목표 보정(벽 0.08 m 안): 원래 점 벽까지 0.060 m → v2 목표 y 0.38 (16:54 코드 y 0.38)
+[고쳐짐/정상] B1b 얇은 벽 너머로 안 옮김(11-06 의도 유지): 통로 안 점 (0, 0.03) → (-0.30, 0.13) (y>0.30 이면 벽 너머)
+[고쳐짐/정상] B2 target() 계산 비용: 한 번 계산 0.55 ms × 틱당 1 번 → 틱당 ~0.5 ms (5 Hz, 목표가 벽 0.40 m 안이면 매 틱)
+[고쳐짐/정상] B3 포기 직후 되짚기 재발: 경로 위 자리가 없는 trail 로는 되짚기 안 함(ego 에 맡김)
+[고쳐짐/정상] B4 좁은 통로 뒤로 나오기: 통로 폭 0.60 m 가운데, 뒤 1 m 로 → 명령 vx -0.20 vy +0.00 (기대 vx -0.20)
+[고쳐짐/정상] B5 wall1 퇴화 구간: 구간 길이 0.02 m 인데 벽 추종으로 ego 없이 0.00 m 걸음(5초, 상태 TO_GOAL, 목표 line13) — 실제론 앞벽 0.5 m 가 나올 때까지
+[고쳐짐/정상] B6 넘어진 뒤 재정렬: 러너가 기다리는 동안 실행 1번(요청 1.6초 뒤)
+[고쳐짐/정상] B7 상태 파일이 기본 경로를 덮음: 코드 기본 route_map_1106.json → 관리자가 실제로 쓸 경로 route_map_1106.json (상태 파일 /home/ilovehan9283/ws/junsu_v2/maps/segments/logs/go2_ctl_state.json, guard off)
+[고쳐짐/정상] B8 필터 끔인데 a(전체 켜기)가 guard 노드를 띄움: start_all 순서에 guard 가 OPS['guard'] 와 무관하게 들어 있음
+
+요약: 0/9 재현됨 — 

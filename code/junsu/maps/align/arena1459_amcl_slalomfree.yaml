@@ -1,0 +1,11 @@
+# junsu v2 11-05: arena1459_amcl 에서 슬라럼 복도 안쪽(x 6.18~6.9, y 0.3~4.3) 점유 칸 43개 비움 — 콘은 매번 다른 자리(지도에 쓰면 안 됨)
+image: arena1459_amcl_slalomfree.pgm
+mode: trinary
+resolution: 0.03
+origin:
+- -2.82
+- -2.46
+- 0.0
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196

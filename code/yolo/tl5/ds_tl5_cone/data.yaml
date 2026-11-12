@@ -1,0 +1,11 @@
+path: /home/ilovehan9283/ws/datasets/tl5/ds_tl5_cone
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: tl_red
+  1: tl_green
+  2: pedestrian
+  3: temi
+  4: unknown
+  5: cone

@@ -1,0 +1,15 @@
+real_waypoints_venue.json 메모 (2026-11-04 18:3x, 담당자 확인 필요 — 이 파일은 손대지 않았다/되돌림)
+
+이 좌표 파일을 src/real_course_runner.py 로 그대로 쓰면 시작을 거부한다:
+  러너 ORDER = stopline1, rabain, rabaout, stopline2, line, parking, exit  (+ 출발 확인용 start)
+  파일 라벨  = start, stopline1, rabarin, rabarout, stopline2, parkin, park, parkout
+
+1. 철자/이름 불일치: rabarin(러너 rabain) · rabarout(러너 rabaout) · park(러너 parking)
+2. 러너에 없는 라벨: parkin, parkout (러너는 무시함)
+3. 파일에 없는 라벨: line, exit → load_waypoints() 가 "없는 라벨" 오류로 시작 거부
+4. stopline1 (3.573, 1.908) 과 stopline2 (3.512, 1.861) 이 6 cm 거리 — 둘 다 X자 가운데.
+   8자 코스로 같은 교차점을 두 번 지나는 것이면 맞고, 정지선이 서로 다른 곳이면 하나가 잘못 찍힘.
+
+참고: 14:59 녹화 지도(arena1104b)와 같은 출발 자세라 변환 없이 주행 경로와 중앙값 5 cm 로 맞음
+  (그림 maps/venue_check/waypoints_on_map_1459.png, 도구 tools/waypoints_vs_map.py).
+  콘 구간 = 오른쪽 통로 rabarin (6.30, 4.53) → rabarout (6.67, 0.00), 4.55 m.

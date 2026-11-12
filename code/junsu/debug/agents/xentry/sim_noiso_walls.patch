@@ -1,0 +1,32 @@
+--- a/sim/run_sim_v2.sh	2026-11-06 08:23:26.889594782 +0900
++++ b/sim/run_sim_v2.sh	2026-11-06 08:23:26.903478601 +0900
+@@ -4,6 +4,8 @@
+ #   CONE=det|walls|none  MISS=0.2  CNOISE=0.05  STEP=0.10  WZTHR=0.12  NOISE=0  SEED=0  START="x y yaw"(경로 출발점에서 더할 오차)
+ #   MAXV=0.5  SAFE=0.50(벽 밀어내기 시작 거리)  LOBS=250(벽 페널티)  CSAFE=(콘 밀어내기, 기본 yaml 0.38)  CINFL=(콘 단단한 여유, 기본 0.28)
+ #   PASS=0.8  SKIP=25  GUARD=on|off  TMAX=360  EXIT_X=0.70(새 코스 출구 선 가정)
++# ★ 11-06 xentry: 가상 라이다 벽 기본값 = 외톨이 칸 뺀 벽(sim_walls_rec1650_noiso.npy). 옛 벽(1.98,0.10 외톨이 칸 포함)은 WALLS=$S/sim_walls_rec1650.npy
++#   외톨이 칸 하나가 X 통로 입구(벽 끝과 0.396 m)를 ego 팽창 0.20 m 격자에서 막아 북쪽 막다른 통로로 빠지게 했다(debug/agents/xentry/REPORT.md).
+ # 결과: sim/runs_v2/<이름>/ (world.jsonl · 노드 로그 · report.txt). ★ 격리: 도메인 78~81 + lo 전용, 로봇이 응답하면 거부.
+ set +u
+ NAME=$1; DOM=$2; S="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"; J="$(cd "$S/.." && pwd)"; ROUTE=${3:-$J/maps/route_rec1650_v2.json}
+@@ -21,7 +23,7 @@
+ BP=~/ws/merge_tmp_20261102/review/install/go2_bridge/share/go2_bridge/config/bridge_params.yaml; EGO=$J/ws_ego_review
+ PGS=(); run(){ local n=$1; shift; setsid "$@" > $O/$n.log 2>&1 < /dev/null & PGS+=($!); }
+ stop(){ for p in "${PGS[@]}"; do kill -INT -- -$p 2>/dev/null; done; sleep 2; for p in "${PGS[@]}"; do kill -TERM -- -$p 2>/dev/null; done; }; trap stop EXIT
+-run world python3 $S/sim_world_v2.py --walls ${WALLS:-$S/sim_walls_rec1650.npy} --obc $S/sim_obc_rec1650.npy --cones $S/sim_cones_rec1650.npy --log $O/world.jsonl \
++run world python3 $S/sim_world_v2.py --walls ${WALLS:-$S/sim_walls_rec1650_noiso.npy} --obc $S/sim_obc_rec1650.npy --cones $S/sim_cones_rec1650.npy --log $O/world.jsonl \
+   --start $SX $SY $SA --cone-mode ${CONE:-det} --cone-miss ${MISS:-0.2} --cone-noise ${CNOISE:-0.05} --step-thr ${STEP:-0.10} --wz-thr ${WZTHR:-0.12} --noise ${NOISE:-0} --seed ${SEED:-0}
+ sleep 2
+ run fuse python3 $J/src/obstacle_fusion_node.py --ros-args -p use_l1:=false -p use_cam:=false -p cones_topic:="''" -p lidar_cones_topic:="''"
+--- a/sim/make_sim_world_rec1650.py	2026-11-06 08:23:26.889630433 +0900
++++ b/sim/make_sim_world_rec1650.py	2026-11-06 08:23:26.903616309 +0900
+@@ -12,6 +12,9 @@
+ W = ed.real_walls(ed.load_cache())
+ nb = np.array([len(x) - 1 for x in cKDTree(W).query_ball_point(W, 0.12)]); OBc = W[nb >= 2]
+ np.save(os.path.join(H, 'sim_walls_rec1650.npy'), np.c_[W, np.full(len(W), 0.3)].astype(np.float32)); np.save(os.path.join(H, 'sim_obc_rec1650.npy'), OBc.astype(np.float32))
++# ★ 11-06 xentry: 가상 라이다도 외톨이 칸을 뺀 벽으로(몸 접촉 판정 OBc 와 같은 거르기). 지도 잡음 한 칸(1.98,0.10 — 바닥 위 0.46 m 복셀 1개)이
++#   X 통로 입구를 ego 팽창 격자에서 막았다. 실제 라이다엔 안 보이는 칸이다. run_sim_v2.sh 기본 WALLS.
++np.save(os.path.join(H, 'sim_walls_rec1650_noiso.npy'), np.c_[OBc, np.full(len(OBc), 0.3)].astype(np.float32))
+ # 콘 칸: rec1650 3D 지도와 콘 지운 지도 A 의 차이(바닥 위 0.10~0.65 m)
+ def cells(p):
+     d = np.load(p); P = (d['vox'] + 0.5) * float(d['V']); k = np.floor(P[:, :2] / 0.5).astype(int)

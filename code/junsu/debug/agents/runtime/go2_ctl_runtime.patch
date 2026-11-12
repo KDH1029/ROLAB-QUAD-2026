@@ -1,0 +1,135 @@
+--- a/tools/go2_ctl.py
++++ b/tools/go2_ctl.py
+@@ -272,6 +272,8 @@
+                 OPS['cones'] = 'cam'      # 예전 저장값(on/off) → 지금 이름
+         except Exception:
+             pass
++        if self.alive('runner'):   # ★ runtime: 11-06 08시 — 07:55 에 띄운 러너(옛 route_map.json)가 관리자가 튕긴 뒤에도 계속 돌고 있었다. 로봇이 붙어 FAST-LIO 가 돌면 출발점 0.5 m 안이라 바로 목표·걸음새를 보낸다
++            self.msg = '★ 전에 띄운 러너가 아직 돎(이 관리자가 띄운 것 아님) — Q 로 전부 끄고 시작할 것(a 도 러너를 먼저 끔)'
+         threading.Thread(target=self.lc_loop, daemon=True).start()
+ 
+     def save(self):
+@@ -313,8 +315,11 @@
+                 pass
+         time.sleep(0.5)
+         if name == 'vision':
+-            subprocess.run(f"{SSH} {ROBOT_PC} 'bash ~/junsu_vision/jetson_vision.sh stop'", shell=True, timeout=15,
+-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
++            try:       # ★ runtime: 내부 PC 가 붙었다 끊긴 뒤(ssh 묶음 연결이 살아 있으면) 15초를 넘길 수 있다 — Q(화면 스레드)에서 예외로 관리자가 튕기고 나머지 부품이 남았다
++                subprocess.run(f"{SSH} {ROBOT_PC} 'bash ~/junsu_vision/jetson_vision.sh stop'", shell=True, timeout=15,
++                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
++            except subprocess.TimeoutExpired:
++                self.msg = '★ 내부 PC 비전 끄기 응답 없음(15초) — 나머지는 계속 끔'
+         subprocess.run(['pkill', '-INT', '-f', self.specs[name][2]], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+         for _ in range(6):
+             if not self.alive(name):
+@@ -330,13 +335,20 @@
+             s = self.lc_get(node)
+             if s == 'active':
+                 return True
+-            subprocess.run(['ros2', 'lifecycle', 'set', '/' + node, 'configure' if s == 'unconfigured' else 'activate'],
+-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
++            try:       # ★ runtime: ros2 lifecycle set 은 서비스가 안 보이면 끝없이 기다린다(call_change_states) → 10초 TimeoutExpired 가 start_all·motor_on 스레드를 죽였다
++                subprocess.run(['ros2', 'lifecycle', 'set', '/' + node, 'configure' if s == 'unconfigured' else 'activate'],
++                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
++            except subprocess.TimeoutExpired:
++                pass
+             time.sleep(0.5)
+         self.msg = f'★ /{node} 활성화 실패'; return False
+ 
+     def lc_down(self, node):
+-        subprocess.run(['ros2', 'lifecycle', 'set', '/' + node, 'deactivate'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
++        try:           # ★ runtime: x(비상 정지)는 화면 스레드에서 돈다 — 여기서 TimeoutExpired 가 나면 러너를 못 끄고 관리자가 튕겼다
++            subprocess.run(['ros2', 'lifecycle', 'set', '/' + node, 'deactivate'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
++            return True
++        except subprocess.TimeoutExpired:
++            self.msg = f'★ /{node} 끄기 응답 없음(10초)'; return False
+ 
+     def lc_get(self, node):
+         try:
+@@ -359,6 +371,8 @@
+             order = [o for o in order if o[0] != 'loc']
+         if OPS.get('guard', 'on') != 'on':     # ★ review: 필터를 끈 기본(off)에서도 파이썬 노드가 모든 /cmd_vel 을 검사(후보 125개×자세)하며 CPU 를 썼다 — 끔이면 안 띄움
+             order = [o for o in order if o[0] != 'guard']
++        if self.alive('runner'):               # ★ runtime: 남은 러너가 새 FAST-LIO(원점 = 출발점 근처)를 보면 START_CHECK 를 바로 통과해 목표·걸음새를 보낸다 — 켜기 전에 끔
++            self.msg = '남은 러너 끄는 중…'; self.stop('runner', quiet=True)
+         for name, topic, wait in order:
+             self.msg = f'{name} 켜는 중…'; self.start(name)
+             t0 = time.monotonic()
+@@ -395,11 +409,18 @@
+         """출발 정렬 — 오늘 좌표 경로 파일을 만든다. 실패·거부면 원래 경로(= 정렬 전과 같음)."""
+         out = os.path.join(LOG, 'route_today.json')
+         self.msg = '출발 정렬 중 — 로봇을 세운 채 가만히(약 5초)'
++        for f in (out, out + '.align.json'):   # ★ runtime: 정렬 도구가 쓰기 전에 죽으면 지난번 파일(다른 경로일 수 있음)을 그대로 러너에 넘겼다
++            try:
++                os.remove(f)
++            except OSError:
++                pass
+         try:
+             r = subprocess.run(['python3', os.path.join(J, 'tools', 'start_align', 'go2_start_align.py'), OPS['route'], out,
+                                 '--map', os.path.join(J, 'maps', 'align', 'arena1459_nocone_slalomfree.yaml')],
+                                capture_output=True, text=True, timeout=40)
+             side = json.load(open(out + '.align.json'))
++            if os.path.abspath(side.get('waypoints_in', '')) != os.path.abspath(OPS['route']):
++                raise RuntimeError(f"정렬 파일의 경로가 다름: {os.path.basename(side.get('waypoints_in', '?'))}")
+             self.align_info = side
+             ok = r.returncode == 0
+             self.msg = (f"출발 정렬 {'OK' if ok else '거부(원래 경로)'}: " + json.dumps({k: side[k] for k in side if k in ('T', 'match', 'reason')}, ensure_ascii=False)[:120])
+@@ -413,6 +434,16 @@
+             self.msg = '★ 모터가 꺼져 있음 — m 으로 먼저 켤 것(러너는 켬)'
+         if start_at is None:
+             self.route_run = self.align() if OPS.get('align', 'on') == 'on' else OPS['route']
++        elif not getattr(self, 'route_run', None) and OPS.get('align', 'on') == 'on':
++            # ★ runtime: 관리자를 다시 켠 뒤(튕김·q) R 이면 route_run 이 없어 정렬 안 된 지도 좌표 경로로 갔다(손 배치 오차 13~20 cm·2~4° 그대로).
++            #   같은 FAST-LIO 면 r 때 만든 route_today.json 이 맞다 — 그 파일이 지금 경로로 만든 것일 때만 쓴다.
++            out = os.path.join(LOG, 'route_today.json')
++            try:
++                side = json.load(open(out + '.align.json'))
++                if os.path.exists(out) and os.path.abspath(side.get('waypoints_in', '')) == os.path.abspath(OPS['route']):
++                    self.route_run = out
++            except (OSError, ValueError):
++                pass
+         route = getattr(self, 'route_run', None) or OPS['route']   # 이어가기는 처음 출발 때 정렬한 파일 그대로(같은 FAST-LIO 이므로)
+         self.start('runner', self.runner_env(), ('' if start_at is None else f'--start-at {start_at}'), route=route)
+         if start_at is not None:
+@@ -470,7 +501,9 @@
+             s = stdscr.getstr(h - 1, min(dw(L[-1]) + 1, w - 10), 60).decode(errors='ignore').strip()
+         except curses.error:
+             s = ''
+-        curses.noecho(); curses.curs_set(0); stdscr.nodelay(True); return s
++        curses.noecho(); curses.curs_set(0)
++        stdscr.timeout(500)   # ★ runtime: nodelay(True) 는 기다림 0 으로 바꿔 ask 한 번 뒤 화면 루프가 쉬지 않고 돎(pgrep 11개씩 → 한 코어 100%). 처음 값 500 ms 로 되돌림
++        return s
+ 
+     def run_bg(f, *a):
+         threading.Thread(target=f, args=a, daemon=True).start()
+@@ -555,7 +588,7 @@
+             run_bg(ctl.runner_start, None)
+         elif k == 'R':
+             s = ask(f"이어갈 목표 번호(0~{max(len(labs) - 1, 0)}, 엔터={ctl.last_runner_idx}) {' '.join(f'{i}:{l}' for i, l in enumerate(labs))[:w - 60]} : ")
+-            n = ctl.last_runner_idx if s == '' else int(s) if s.isdigit() else None
++            n = ctl.last_runner_idx if s == '' else int(s) if (s.isascii() and s.isdigit()) else None   # ★ runtime: '²' 등은 isdigit 이지만 int() 가 예외(try 밖)
+             if n is not None:
+                 run_bg(ctl.runner_start, n)
+         elif k == 'p':
+@@ -570,7 +603,10 @@
+                     files = sorted(glob.glob(os.path.join(J, 'maps', 'route_map*.json')) + glob.glob(os.path.join(J, 'maps', 'real_waypoints_venue_run.json')))
+                     files = [f for f in files if '.bak' not in f and 'autosave' not in f]
+                     c = ask(' '.join(f'{i}:{os.path.basename(f)}' for i, f in enumerate(files)) + ' → 번호: ')
+-                    OPS['route'] = files[int(c)]; ctl.msg = f"경로 {os.path.basename(OPS['route'])} — 러너를 r/R 로 다시 켜야 적용"
++                    new = files[int(c)]
++                    if new != OPS['route']:
++                        ctl.route_run = None   # ★ runtime: 바꾼 뒤 R 이 r 때 경로(옛 파일)로 이어가고 번호만 새 경로 라벨로 보였다
++                    OPS['route'] = new; ctl.msg = f"경로 {os.path.basename(OPS['route'])} — r 로 다시 켜야 정렬까지 적용(R 은 이 경로의 정렬 파일이 없으면 지도 좌표 그대로)"
+                 elif s == '2' and OPS.get('planner', 'review') == 'review':
+                     v = ask('review ego 벽 여유(m, 빈칸 = 팀원 yaml 0.20) — ego 다시 켬: ').strip()
+                     OPS['inflate_review'] = float(v) if v else None; run_bg(ctl.start, 'ego'); ctl.msg = f"review ego 여유 {OPS['inflate_review'] or 0.20} — ego 다시 켬"
+@@ -631,7 +667,7 @@
+             except Exception as e:
+                 ctl.msg = f'작전 바꾸기 실패: {e}'
+         elif k == 'l':
+-            n = ask('로그 볼 부품 이름(xt16/bridge/fastlio/wall/fusion/ego/vision/motor/runner): ')
++            n = ask('로그 볼 부품 이름(xt16/bridge/fastlio/wall/fusion/ego/vision/motor/runner/loc/guard): ')
+             f = os.path.join(LOG, f'ctl_{n}.log')
+             if os.path.exists(f):
+                 curses.endwin(); subprocess.run(['bash', '-c', f'tail -n 40 {f}; read -p "엔터로 돌아가기" _'])

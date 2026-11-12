@@ -1,0 +1,66 @@
+[INFO] [1793869237.222889031] [real_course_runner]: 실측 코스 러너 시작 — 47개 목표: ['line1', 'line2', 'line3', 'stopline1', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'line20', 'line21', 'line22', 'line23', 'line24', 'line25', 'line26', 'line27', 'stopline2', 'line28', 'line29', 'line30', 'line31', 'line32', 'line33', 'line34', 'line35', 'line36', 'parking', 'line37', 'line38', 'line39', 'line40', 'line41', 'line42', 'line43', 'exit']
+[WARN] [1793869237.415836725] [real_course_runner]: 자가진단 OK — 현재 (-0.01,-0.00), start와 0.09m 차이. 코스 시작.
+[WARN] [1793869237.616030197] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793869237.716692615] [real_course_runner]: [line1] 핀 구간 4개 — ego 세우고 회귀 곡선 추종(길이 4.45 m)
+[WARN] [1793869265.215935967] [real_course_runner]: [stopline1] 경로 따라 도착(남은 0.05 m) — 멈춤 확인 뒤 동작
+[WARN] [1793869265.615952452] [real_course_runner]: [stopline1] 도착 -> 제자리 회전 시작 (목표 46도)
+[WARN] [1793869269.816559465] [real_course_runner]: [stopline1] 회전 완료 -> 다음 동작
+[WARN] [1793869269.816869324] [real_course_runner]: [stopline1] 정지선 — 2.5초 정지 뒤 YOLO 켬
+[WARN] [1793869272.416106819] [real_course_runner]: 2.5초 정지 완료 -> YOLO 켜고 초록 기다림
+[WARN] [1793869273.616387587] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793869273.816543506] [real_course_runner]: [line4] 핀 구간 25개 — ego 세우고 회귀 곡선 추종(길이 11.46 m)
+[WARN] [1793869309.215922942] [real_course_runner]: 앞 15 cm 안 물체 — 앞으로 안 감(최대 3초)
+[WARN] [1793869309.416144607] [real_course_runner]: 앞 15 cm 안 물체 — 앞으로 안 감(최대 3초)
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junk/src/real_course_runner.py", line 1431, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junk/src/real_course_runner.py", line 1427, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793869586.470980039] [real_course_runner]: 실측 코스 러너 시작 — 47개 목표: ['line1', 'line2', 'line3', 'stopline1', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'line20', 'line21', 'line22', 'line23', 'line24', 'line25', 'line26', 'line27', 'stopline2', 'line28', 'line29', 'line30', 'line31', 'line32', 'line33', 'line34', 'line35', 'line36', 'parking', 'line37', 'line38', 'line39', 'line40', 'line41', 'line42', 'line43', 'exit']
+[WARN] [1793869586.663830827] [real_course_runner]: 자가진단 OK — 현재 (-0.04,0.02), start와 0.10m 차이. 코스 시작.
+[WARN] [1793869586.864090801] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793869586.955363877] [real_course_runner]: [line1] 핀 구간 4개 — ego 세우고 회귀 곡선 추종(길이 4.43 m)
+[WARN] [1793869590.464136434] [real_course_runner]: 앞 15 cm 안 물체 — 앞으로 안 감(최대 3초)
+[WARN] [1793869590.664097818] [real_course_runner]: 앞 15 cm 안 물체 — 앞으로 안 감(최대 3초)
+[WARN] [1793869615.463825771] [real_course_runner]: [stopline1] 경로 따라 도착(남은 0.06 m) — 멈춤 확인 뒤 동작
+[WARN] [1793869615.663877278] [real_course_runner]: [stopline1] 정지선 — 2.5초 정지 뒤 YOLO 켬
+[WARN] [1793869618.264289989] [real_course_runner]: 2.5초 정지 완료 -> 신호등 안 씀, 출발
+[WARN] [1793869618.466129311] [real_course_runner]: [line4] 핀 구간 25개 — ego 세우고 회귀 곡선 추종(길이 11.46 m)
+[WARN] [1793869619.263896397] [real_course_runner]: [stopline2] 경로 따라 도착(남은 0.06 m) — 멈춤 확인 뒤 동작
+[WARN] [1793869619.463941057] [real_course_runner]: [stopline2] 정지선 — 2.5초 정지 뒤 YOLO 켬
+[WARN] [1793869622.064120152] [real_course_runner]: 2.5초 정지 완료 -> 신호등 안 씀, 출발
+[WARN] [1793869622.264443918] [real_course_runner]: 핀 회귀 곡선이 벽 0.20 m 까지 붙음(꺾은선 0.24 m) → 꺾은선으로
+[WARN] [1793869622.264829708] [real_course_runner]: [line28] 핀 구간 10개 — ego 세우고 회귀 곡선 추종(길이 6.77 m)
+[WARN] [1793869625.066325151] [real_course_runner]: 앞 15 cm 안 물체 — 앞으로 안 감(최대 3초)
+[WARN] [1793869625.264114358] [real_course_runner]: 앞 15 cm 안 물체 — 앞으로 안 감(최대 3초)
+[WARN] [1793869626.664170302] [real_course_runner]: 앞 15 cm 안 물체 — 앞으로 안 감(최대 3초)
+[WARN] [1793869627.467256541] [real_course_runner]: [line28] 목표 보정: 벽까지 0.39 m → (2.11,3.59) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793869630.467031325] [real_course_runner]: [line28] 목표 보정: 벽까지 0.36 m → (2.16,3.54) 로 0.11 m 옮김 (벽까지 0.42 m)
+[WARN] [1793869634.966672398] [real_course_runner]: [line28] 목표 보정: 벽까지 0.36 m → (2.26,3.39) 로 0.28 m 옮김 (벽까지 0.39 m)
+[WARN] [1793869635.664203638] [real_course_runner]: 앞 15 cm 안 물체 — 앞으로 안 감(최대 3초)
+[WARN] [1793869695.063920327] [real_course_runner]: [parking] 경로 따라 도착(남은 2.31 m) — 멈춤 확인 뒤 동작
+[WARN] [1793869695.264068306] [real_course_runner]: [parking] 정지 → 0.8초 뒤 Sit (선 높이 0.311 m)
+[WARN] [1793869696.263858466] [real_course_runner]: 명령 전송: StandDown(1005)
+[WARN] [1793869697.864115282] [real_course_runner]: Sit 명령 후 착석 미확인(body_height=0.31123775243759155) -> 재전송 2/3
+[WARN] [1793869697.864404015] [real_course_runner]: 명령 전송: StandDown(1005)
+[WARN] [1793869699.464791532] [real_course_runner]: Sit 명령 후 착석 미확인(body_height=0.3125176429748535) -> 재전송 3/3
+[WARN] [1793869699.465238872] [real_course_runner]: 명령 전송: StandDown(1005)
+[INFO] [1793869701.464484133] [real_course_runner]: 착석 확인됨(body_height=0.064) -> 5.5초 유지 시작
+[WARN] [1793869704.864679927] [real_course_runner]: 유지 중 이탈 감지(body_height 복귀) -> 다시 착석 확인
+[ERROR] [1793869706.464625352] [real_course_runner]: Sit 3번에도 착석 확인 안 됨(body_height=0.31783729791641235) — 높이 판정 무시, 시간 기준 7.0초 유지
+[WARN] [1793869713.663997278] [real_course_runner]: 명령 전송: StandUp(1004)
+[WARN] [1793869717.664809833] [real_course_runner]: 일어남 확인(body_height=0.319, 4.0초, 출렁임 계속 — 시간 기준) -> BalanceStand, 1.0초 뒤 다음 점
+[WARN] [1793869717.665271199] [real_course_runner]: 명령 전송: BalanceStand(1002)
+[WARN] [1793869718.663995984] [real_course_runner]: 재정렬 요청(park, ±0.5 m, ±20°)
+[WARN] [1793869718.864630439] [real_course_runner]: 주차 뒤 재정렬 응답 없음(5초) → 다음 점 쪽으로 회전
+[WARN] [1793869718.865043657] [real_course_runner]: [parking] 도착 -> 제자리 회전 시작 (목표 141도)
+[ERROR] [1793869728.064538869] [real_course_runner]: [parking] 회전 타임아웃(9초, 남은 오차 -64도) -> 포기하고 계속 진행
+[WARN] [1793869728.263898391] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793869728.264924509] [real_course_runner]: [line37] 핀 구간 8개 — ego 세우고 회귀 곡선 추종(길이 4.20 m)

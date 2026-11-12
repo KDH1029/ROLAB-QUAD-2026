@@ -1,0 +1,106 @@
+{
+ "format": "route_v1",
+ "frame": "FAST-LIO camera_init — 11-04 14:59 녹화 시작 자리·방향이 원점(저장 좌표와 같음)",
+ "map": "/home/ilovehan9283/ws/v_gosu/eval/out/fixed1459_2cm_map.npz",
+ "saved": "2026-11-05 14:08:12",
+ "problems": [],
+ "route": [
+  {
+   "label": "start",
+   "x": 0.102,
+   "y": 0.043,
+   "clear_m": 0.43
+  },
+  {
+   "label": "line1",
+   "x": 1.873,
+   "y": 0.079,
+   "clear_m": 0.43
+  },
+  {
+   "label": "stopline1",
+   "x": 3.861,
+   "y": 2.284,
+   "clear_m": 0.52
+  },
+  {
+   "label": "line2",
+   "x": 5.579,
+   "y": 4.163,
+   "clear_m": 0.35
+  },
+  {
+   "label": "rabain",
+   "x": 6.531,
+   "y": 4.192,
+   "clear_m": 0.11
+  },
+  {
+   "label": "rabaout",
+   "x": 6.66,
+   "y": 0.351,
+   "clear_m": 0.18
+  },
+  {
+   "label": "line3",
+   "x": 5.927,
+   "y": 0.354,
+   "clear_m": 0.29
+  },
+  {
+   "label": "stopline2",
+   "x": 3.849,
+   "y": 2.246,
+   "clear_m": 0.56
+  },
+  {
+   "label": "line4",
+   "x": 1.732,
+   "y": 3.964,
+   "clear_m": 0.36
+  },
+  {
+   "label": "line5",
+   "x": 0.956,
+   "y": 4.02,
+   "clear_m": 0.4
+  },
+  {
+   "label": "line6",
+   "x": 1.042,
+   "y": 2.071,
+   "clear_m": 0.4
+  },
+  {
+   "label": "wall1",
+   "x": -0.205,
+   "y": 2.013,
+   "clear_m": 0.35
+  },
+  {
+   "label": "parking",
+   "x": -0.205,
+   "y": 2.013,
+   "clear_m": 0.35
+  },
+  {
+   "label": "line7",
+   "x": 0.827,
+   "y": 2.4,
+   "clear_m": 0.41
+  },
+  {
+   "label": "line8",
+   "x": 0.956,
+   "y": 4.005,
+   "clear_m": 0.42
+  },
+  {
+   "label": "exit",
+   "x": -0.832,
+   "y": 4.064,
+   "clear_m": 0.47
+  }
+ ],
+ "note": "11-05 junsu_v2 제안: 슬라럼=rabain/rabaout(ego+카메라 콘), wall1 로 벽 따라 주차 칸 진입 → 같은 자리 parking(엎드리기)"
+}

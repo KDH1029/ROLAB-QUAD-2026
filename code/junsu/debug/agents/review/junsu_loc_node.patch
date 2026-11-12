@@ -1,0 +1,13 @@
+--- a/src/junsu_loc_node.py
++++ b/src/junsu_loc_node.py
+@@ -163,7 +163,9 @@
+             st = str(json.loads(m.data).get('state', ''))
+         except ValueError:
+             return
+-        self.runner_pose_state = st.startswith('PARK_SIT') or st in ('PARK_HOLD', 'PARK_RISE_WAIT') or st.startswith('FALL')
++        # ★ review: 'FALL' 앞부분이면 FALL_REALIGN(다시 선 뒤 러너가 재정렬 응답을 기다리는 상태)까지 '자세 낮음'으로 봐서
++        #   재정렬을 러너가 포기(6초)할 때까지 미뤘다가, 걷는 중에 ±0.6 m/±45° 로 돌렸다. 넘어져 있는 동안(FALLEN)만.
++        self.runner_pose_state = st.startswith('PARK_SIT') or st in ('PARK_HOLD', 'PARK_RISE_WAIT', 'FALLEN')
+ 
+     def holding(self):
+         """자세가 낮거나 막 다시 선 중(선 스캔 모으는 중)이면 True. 바뀌는 순간 처리(스캔 비움 · AMCL 다시 초기화 · 미룬 재정렬)."""

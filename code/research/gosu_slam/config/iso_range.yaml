@@ -1,0 +1,49 @@
+/**:
+    ros__parameters:
+        feature_extract_enable: false
+        point_filter_num: 2          # 20Hz scan: 32000 pts/scan, 1/2 downsample
+        max_iteration: 4
+        filter_size_surf: 0.15
+        filter_size_map: 0.15
+        cube_side_length: 100.0      # Compact local map for real-time navigation (~150MB RAM)
+        runtime_pos_log_enable: false
+        map_file_path: ""
+
+        common:
+            lid_topic:  "/velodyne_points"   # Output from go2_bridge cloud_bridge
+            imu_topic:  "/imu/body"          # Output from go2_bridge imu_bridge (/lowstate 500Hz)
+            time_sync_en: false
+            time_offset_lidar_to_imu: 0.0
+
+        preprocess:
+            lidar_type: 2                # 2 = Velodyne format (x,y,z,intensity,ring,time)
+            scan_line: 16                # Hesai XT16 = 16 channels
+            timestamp_unit: 0            # time field is in seconds
+            blind: 0.5                   # robot body blind radius (meters)
+            scan_rate: 20
+
+        mapping:
+            acc_cov: 0.5                 # Quadruped footstep impact allowance
+            gyr_cov: 0.2                 # Quadruped body sway allowance
+            b_acc_cov: 0.0001
+            b_gyr_cov: 0.0001
+            fov_degree:    360.0
+            det_range:     15.0
+            extrinsic_est_en:  false     # Fixed extrinsic calibration
+            extrinsic_T: [ 0.25, 0.0, 0.1588 ] # Accurate lever arm: LiDAR is 15.88cm above body IMU
+            extrinsic_R: [ -0.0001707, -0.9999240,  0.0123287,
+                            0.9999844, -0.0001019,  0.0055807,
+                           -0.0055790,  0.0123295,  0.9999084 ]
+
+        publish:
+            path_en: false
+            effect_map_en: false
+            map_en: false                # Disable Laser_map accumulation to preserve memory
+            scan_publish_en: true        # Publishes /cloud_registered for obstacle avoidance
+            dense_publish_en: false
+            scan_bodyframe_pub_en: true  # Publishes /cloud_registered_body
+
+        pcd_save:
+            pcd_save_en: false           # Do NOT accumulate or save PCD during navigation
+            interval: -1
+

@@ -1,0 +1,61 @@
+# junsu git — 코드·설정·경로·문서만 추적. 큰 파일·빌드 결과·실행 기록은 밖에 두고 ARTIFACTS.md5 로 내용만 추적한다.
+
+# colcon 빌드 결과
+ws_*/build/
+ws_*/install/
+ws_*/log/
+**/fast_lio/doc/
+
+# 옮기기용 묶음(같은 소스 사본)
+jetson_transfer_bundle/
+
+# 모델·엔진(ARTIFACTS.md5 에 md5)
+*.pt
+*.onnx
+*.engine
+*.engine.calib
+*.engine.json
+onboard_vision/models_1104/*_openvino_model/
+
+# 지도·녹화·점구름(ARTIFACTS.md5 에 md5)
+*.pcd
+*.mcap
+*.db3
+*.bag
+maps/divergence_test/
+maps/motorless_check*/
+
+# 비전 사진(보정·평가)·결과
+onboard_vision/calib/
+onboard_vision/evalset/
+onboard_vision/results/
+onboard_vision/logs/
+depth_terrain/refs/
+
+# 실행 기록(관리자 로그·상태·오늘 정렬 경로)
+maps/segments/logs/
+*.log
+
+# 손 백업(이제 git 이 대신함)
+*.bak
+*.bak_*
+*.bak[0-9]*
+
+# 파이썬
+__pycache__/
+*.pyc
+
+# 시뮬레이션 실행 결과·캐시·FAST-LIO 실행 기록
+sim/runs/
+tools/route_editor_cache.npz
+**/fast_lio/Log/
+
+# worktree 링크(main 의 빌드·모델·사진을 가리킴)
+ws_*/install
+onboard_vision/calib
+onboard_vision/evalset
+ws_mission_vision/build/
+ws_mission_vision/install/
+ws_mission_vision/log/
+ws_mission_vision/build.log
+ws_fastlio_tunable/build.log

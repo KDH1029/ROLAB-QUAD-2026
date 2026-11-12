@@ -1,0 +1,6 @@
+# junsu 11-05: AMCL 감시용 지도(review maps/arena1459_amcl — 14:59 지도, 콘 없음)
+/junsu/map_server:
+  ros__parameters:
+    yaml_filename: arena1459_amcl_slalomfree.yaml   # go2_ctl 이 -p 로 절대 경로를 넘김
+    topic_name: map
+    frame_id: map

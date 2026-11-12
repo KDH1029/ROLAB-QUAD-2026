@@ -1,0 +1,101 @@
+--- /home/ilovehan9283/ws/junsu_v2/sim/sim_world_v2.py	2026-11-06 04:41:39.005789959 +0900
++++ sim_world_cal.py	2026-11-06 08:17:46.549930079 +0900
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env python3
+-"""v2 시뮬 세계 — junsu_v2 실제 스택(러너 · review ego · 합치기 · 몸 모양 안전 필터 · cmd_vel_to_sport)을 로봇 없이 돌린다(11-06).
++"""v2 시뮬 세계 — ★ simcal 보정판(11-06): --lat 명령→움직임 지연, --rot-thr 제자리 회전 정지마찰(16:54 회전 타임아웃 4번 재현). 원본: sim/sim_world_v2.py
++junsu_v2 실제 스택(러너 · review ego · 합치기 · 몸 모양 안전 필터 · cmd_vel_to_sport)을 로봇 없이 돌린다(11-06).
+ ★ 격리 도메인(run_sim_v2.sh: 78~81, lo 전용)에서만. 로봇이 응답하면 run_sim_v2.sh 가 거부한다.
+ 
+ 받음  /api/sport/request  Move(1008 {"x","y","z"} 몸체 기준) · StopMove(1003) · StandDown(1005) · StandUp(1004) · BalanceStand(1002)
+@@ -59,11 +60,12 @@
+         self.create_subscription(Bool, '/mission/camera_active', self.cb_cam, 10)
+         self.create_subscription(String, '/mission/runner_status', self.cb_status, 5)
+         self.runner_state = ''
++        self.pend = []; self.rot_stall_t = 0.0   # ★ simcal: (적용 시각, x, y, z) 지연 버퍼 · 제자리 회전 정지마찰 누적 시간
+         self.dt = 0.02
+         self.create_timer(self.dt, self.step)
+         self.create_timer(0.1, self.sensors)
+         self.create_timer(0.1, self.record)
+-        self.ev('start', walls=len(self.walls), cones=len(self.cones), cone_mode=a.cone_mode, step_thr=a.step_thr, wz_thr=a.wz_thr)
++        self.ev('start', walls=len(self.walls), cones=len(self.cones), cone_mode=a.cone_mode, step_thr=a.step_thr, wz_thr=a.wz_thr, lat=a.lat, rot_thr=a.rot_thr)
+ 
+     def now(self):
+         return time.monotonic() - self.t0
+@@ -92,10 +94,10 @@
+                 p = json.loads(m.parameter or '{}')
+             except ValueError:
+                 p = {}
+-            self.cx, self.cy, self.cz = float(p.get('x', 0)), float(p.get('y', 0)), float(p.get('z', 0)); self.cmd_t = t
++            self.pend.append((t + self.a.lat, float(p.get('x', 0)), float(p.get('y', 0)), float(p.get('z', 0))))   # ★ simcal: 지연
+             return
+         if api == STOPMOVE:
+-            self.cx = self.cy = self.cz = 0.0
++            self.pend.append((t + self.a.lat, 0.0, 0.0, 0.0))
+         elif api in (STANDDOWN, SIT):
+             self.down = True; self.pose_busy_until = t + 1.5
+         elif api in (STANDUP, RISESIT):
+@@ -110,11 +112,15 @@
+ 
+     def step(self):
+         dt = self.dt; t = self.now()
++        while self.pend and self.pend[0][0] <= t:                          # ★ simcal: 지연된 명령 적용(cmd_t 도 적용 시각 기준)
++            _, self.cx, self.cy, self.cz = self.pend.pop(0); self.cmd_t = t
+         moving_ok = not self.down and t >= self.pose_busy_until and t >= self.gait_busy_until and t - self.cmd_t <= 0.5
+         tx, ty, tz = (self.cx, self.cy, self.cz) if moving_ok else (0.0, 0.0, 0.0)
+         if moving_ok and (abs(tx) > 1e-3 or abs(ty) > 1e-3 or abs(tz) > 1e-3):
+             if self.a.step_thr > 0 and abs(tx) < self.a.step_thr and abs(ty) < self.a.step_thr and abs(tz) < self.a.wz_thr:
+                 tx = ty = tz = 0.0; self.lean_t += dt                     # 발 안 뗌(몸만 기움)
++            elif self.a.rot_thr > 0 and abs(tx) < 0.05 and abs(ty) < 0.05 and 0 < abs(tz) < self.a.rot_thr:
++                tz = 0.0; self.rot_stall_t += dt                           # ★ simcal: 제자리 회전 정지마찰(16:54: 남은 5~15° 에서 10초 안 돎)
+             elif self.gait != 'classic' and abs(tx) < 0.05 and abs(ty) < 0.05 and 0 < abs(tz) < self.a.default_rot_thr:
+                 tz = 0.0; self.hop_t += dt                                 # 기본 보행 제자리 회전이 느려 기울었다 튐
+         lim = lambda cur, tgt, acc: cur + max(-acc * dt, min(acc * dt, tgt - cur))
+@@ -154,7 +160,7 @@
+     def record(self):
+         self.ev('pose', x=round(self.x, 3), y=round(self.y, 3), yaw=round(math.degrees(self.yaw), 1), v=round(math.hypot(self.vx, self.vy), 3),
+                 wz=round(self.wz, 3), cmd=[round(self.cx, 3), round(self.cy, 3), round(self.cz, 3)], h=round(self.h, 3), gait=self.gait,
+-                gap=round(self.sgap(), 3), lean=round(self.lean_t, 2), hop=round(self.hop_t, 2), rs=self.runner_state)
++                gap=round(self.sgap(), 3), lean=round(self.lean_t, 2), hop=round(self.hop_t, 2), rstall=round(self.rot_stall_t, 2), rs=self.runner_state)
+ 
+     def sensors(self):
+         h = Header(); h.stamp = self.get_clock().now().to_msg(); h.frame_id = 'camera_init'
+@@ -193,6 +199,8 @@
+     ap.add_argument('--cone-miss', type=float, default=0.2); ap.add_argument('--cone-noise', type=float, default=0.05)
+     ap.add_argument('--step-thr', type=float, default=0.10); ap.add_argument('--wz-thr', type=float, default=0.12)
+     ap.add_argument('--default-rot-thr', type=float, default=0.6); ap.add_argument('--noise', type=float, default=0.0)
++    ap.add_argument('--lat', type=float, default=0.0, help='★ simcal: 명령→움직임 지연(초)')
++    ap.add_argument('--rot-thr', type=float, default=0.0, help='★ simcal: 제자리 회전(|vx|,|vy|<0.05) 이 이 각속도 아래면 안 돎(rad/s). 16:54 맞춤 0.30')
+     a, _ = ap.parse_known_args()
+     rclpy.init(); n = SimWorld(a)
+     try:
+--- /home/ilovehan9283/ws/junsu_v2/sim/run_sim_v2.sh	2026-11-06 07:22:38.799357130 +0900
++++ run_sim_cal.sh	2026-11-06 08:13:40.045350469 +0900
+@@ -6,7 +6,7 @@
+ #   PASS=0.8  SKIP=25  GUARD=on|off  TMAX=360  EXIT_X=0.70(새 코스 출구 선 가정)
+ # 결과: sim/runs_v2/<이름>/ (world.jsonl · 노드 로그 · report.txt). ★ 격리: 도메인 78~81 + lo 전용, 로봇이 응답하면 거부.
+ set +u
+-NAME=$1; DOM=$2; S="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"; J="$(cd "$S/.." && pwd)"; ROUTE=${3:-$J/maps/route_rec1650_v2.json}
++NAME=$1; DOM=$2; S=$HOME/ws/junsu_v2/sim; J=$HOME/ws/junsu_v2; MY="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"; ROUTE=${3:-$J/maps/route_rec1650_v2.json}
+ # ★ STACK=main → 11-05 16:54 실주행 코드(~/ws/junsu_v2_bak = junsu a438045): 그 관리자와 같은 ego 인자·몸 모양 필터 없음·러너 환경
+ if [ "${STACK:-v2}" = main ]; then J=$HOME/ws/junsu_v2_bak; GUARD=off; fi
+ for h in 161 18; do ping -c1 -W1 192.168.123.$h >/dev/null 2>&1 && { echo "★ 로봇(192.168.123.$h) 응답 — 거부"; exit 1; }; done
+@@ -14,15 +14,15 @@
+ export V_DOMAIN=$DOM; source ~/ws/v_gosu/env_replay.sh
+ case "$ROS_DOMAIN_ID" in 78|79|80|81) ;; *) echo "★ 도메인"; exit 1;; esac
+ source ~/unitree_ros2/cyclonedds_ws/install/setup.bash >/dev/null 2>&1; source ~/ws/merge_tmp_20261102/review/install/setup.bash >/dev/null 2>&1
+-O=$S/runs_v2/$NAME; rm -rf $O; mkdir -p $O; cp $ROUTE $O/route.json
++O=$MY/runs/$NAME; rm -rf $O; mkdir -p $O; cp $ROUTE $O/route.json
+ read SX SY SA < <(python3 -c "
+ import json, math; d = json.load(open('$ROUTE'))['route']; s = d[0]; dx, dy, da = [float(v) for v in '${START:-0 0 0}'.split()]
+ print(s['x'] + dx, s['y'] + dy, math.radians(s.get('yaw', 0.0)) + math.radians(da))")
+ BP=~/ws/merge_tmp_20261102/review/install/go2_bridge/share/go2_bridge/config/bridge_params.yaml; EGO=$J/ws_ego_review
+ PGS=(); run(){ local n=$1; shift; setsid "$@" > $O/$n.log 2>&1 < /dev/null & PGS+=($!); }
+ stop(){ for p in "${PGS[@]}"; do kill -INT -- -$p 2>/dev/null; done; sleep 2; for p in "${PGS[@]}"; do kill -TERM -- -$p 2>/dev/null; done; }; trap stop EXIT
+-run world python3 $S/sim_world_v2.py --walls ${WALLS:-$S/sim_walls_rec1650.npy} --obc $S/sim_obc_rec1650.npy --cones $S/sim_cones_rec1650.npy --log $O/world.jsonl \
+-  --start $SX $SY $SA --cone-mode ${CONE:-det} --cone-miss ${MISS:-0.2} --cone-noise ${CNOISE:-0.05} --step-thr ${STEP:-0.10} --wz-thr ${WZTHR:-0.12} --noise ${NOISE:-0} --seed ${SEED:-0}
++run world python3 ${WORLD:-$S/sim_world_v2.py} --walls ${WALLS:-$S/sim_walls_rec1650.npy} --obc $S/sim_obc_rec1650.npy --cones $S/sim_cones_rec1650.npy --log $O/world.jsonl \
++  --start $SX $SY $SA --cone-mode ${CONE:-det} --cone-miss ${MISS:-0.2} --cone-noise ${CNOISE:-0.05} --step-thr ${STEP:-0.10} --wz-thr ${WZTHR:-0.12} --noise ${NOISE:-0} --seed ${SEED:-0} ${WORLD_ARGS:-}
+ sleep 2
+ run fuse python3 $J/src/obstacle_fusion_node.py --ros-args -p use_l1:=false -p use_cam:=false -p cones_topic:="''" -p lidar_cones_topic:="''"
+ EGOARGS="-p obstacle_source:=scan -p cones.topic:=/mission/cones -p max_vel:=${MAXV:-0.5} -p optimizer.lambda_obs:=${LOBS:-250.0} -p safe_dist:=${SAFE:-0.50} -p extra_obstacle_topic:=/mission/wall_memory -p control.rotate_in_place_rad:=1.8"

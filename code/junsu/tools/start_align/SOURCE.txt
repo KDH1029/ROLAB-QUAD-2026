@@ -1,0 +1,1 @@
+review 4b0625b(11-05 04:24) scripts/go2_start_align.py·start_align_core.py, maps/arena1459_nocone — 그대로 복사(수정 금지)

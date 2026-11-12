@@ -1,0 +1,27 @@
+{
+ "format": "route_v1",
+ "note": "2026-11-05 밤 — real_waypoints_venue_run.json(검증됨)에 line->parking 사이 중간 유도점(line_b1..13)만 추가한 버전. 직선으로는 ego_planner가 못 지나가는 2cm짜리 틈이 있어서(sim_walls_fix1105.npy 기준 실측), 격자 경로탐색으로 벽에서 0.30m+ 떨어진 실제 통과 가능 경로를 찾아서 넣음. parking->exit 구간은 아직 못 고침(지도 데이터 안에서 안전 경로를 못 찾음 -- 현장에서 문 폭 확인 필요, README 참고).",
+ "route": [
+  {"label": "start", "x": 0.045, "y": 0.12},
+  {"label": "stopline1", "x": 3.573, "y": 1.908},
+  {"label": "rabain", "x": 6.296, "y": 4.528},
+  {"label": "rabaout", "x": 6.67, "y": -0.002},
+  {"label": "stopline2", "x": 3.512, "y": 1.861},
+  {"label": "line", "x": 1.07, "y": 4.027},
+  {"label": "line_b1", "x": 1.96, "y": 3.80},
+  {"label": "line_b2", "x": 3.46, "y": 2.30},
+  {"label": "line_b3", "x": 3.46, "y": 2.20},
+  {"label": "line_b4", "x": 3.51, "y": 2.15},
+  {"label": "line_b5", "x": 3.51, "y": 1.90},
+  {"label": "line_b6", "x": 1.91, "y": 0.30},
+  {"label": "line_b7", "x": 1.51, "y": 0.30},
+  {"label": "line_b8", "x": 1.26, "y": 0.55},
+  {"label": "line_b9", "x": 1.26, "y": 0.95},
+  {"label": "line_b10", "x": 1.21, "y": 1.00},
+  {"label": "line_b11", "x": 1.21, "y": 1.20},
+  {"label": "line_b12", "x": 0.76, "y": 1.65},
+  {"label": "line_b13", "x": -0.19, "y": 1.65},
+  {"label": "parking", "x": -0.424, "y": 1.904},
+  {"label": "exit", "x": -1.2, "y": 4.22}
+ ]
+}

@@ -1,0 +1,597 @@
+[INFO] [1793919331.571717919] [real_course_runner]: 실측 코스 러너 시작 — 15개 목표: ['line1', 'stopline1', 'line2', 'rabain', 'rabaout', 'line3', 'stopline2', 'line4', 'line5', 'line6', 'parking', 'wall1', 'line7', 'line8', 'exit']
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1558, in <module>
+    if self.is_sat():
+^^
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1554, in main
+    self.state = 'PARK_SIT_WAIT'; self.state_t = now
+^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793931571.385351638] [real_course_runner]: 실측 코스 러너 시작 — 25개 목표: ['line1', 'line2', 'line3', 'stopline1', 'line4', 'rabain', 'rabaout', 'line5', 'line6', 'line7', 'line8', 'stopline2', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'parking', 'wall1', 'line15', 'line16', 'line17', 'line18', 'exit']
+[WARN] [1793931571.578157735] [real_course_runner]: 자가진단 OK — 현재 (-0.00,0.00), start와 0.04m 차이. 코스 시작.
+[WARN] [1793931571.832284469] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793931571.832784686] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793931571.833332199] [real_course_runner]: [line1] 목표 발행 -> (1.60, -0.07)
+[WARN] [1793931572.978441460] [real_course_runner]: [line1] 목표 발행 -> (1.60, -0.07)
+[WARN] [1793931574.178443490] [real_course_runner]: [line1] 목표 발행 -> (1.60, -0.07)
+[WARN] [1793931575.378551585] [real_course_runner]: [line1] 목표 발행 -> (1.60, -0.07)
+[WARN] [1793931575.578773396] [real_course_runner]: [line1] 도착
+[WARN] [1793931575.779417129] [real_course_runner]: [line2] 목표 보정: 벽까지 0.23 m → (1.99,0.08) 로 0.21 m 옮김 (벽까지 0.41 m)
+[WARN] [1793931575.779905421] [real_course_runner]: [line2] 목표 발행 -> (1.99, 0.08)
+[WARN] [1793931576.778748370] [real_course_runner]: [line2] 도착
+[WARN] [1793931576.978220533] [real_course_runner]: [line3] 목표 발행 -> (2.97, 0.88)
+[WARN] [1793931578.178420162] [real_course_runner]: [line3] 목표 발행 -> (2.97, 0.88)
+[WARN] [1793931579.378455376] [real_course_runner]: [line3] 목표 발행 -> (2.97, 0.88)
+[WARN] [1793931580.378288607] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.24 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931580.378984385] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931580.578417316] [real_course_runner]: [line3] 목표 발행 -> (2.97, 0.88)
+[WARN] [1793931581.778502067] [real_course_runner]: [line3] 목표 발행 -> (2.97, 0.88)
+[INFO] [1793931582.578817685] [real_course_runner]: [line3] 0.8 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793931582.778452225] [real_course_runner]: [stopline1] 목표 발행 -> (3.98, 1.80)
+[WARN] [1793931583.978532012] [real_course_runner]: [stopline1] 목표 발행 -> (3.98, 1.80)
+[WARN] [1793931585.178242995] [real_course_runner]: [stopline1] 목표 발행 -> (3.98, 1.80)
+[WARN] [1793931586.378259335] [real_course_runner]: [stopline1] 목표 발행 -> (3.98, 1.80)
+[WARN] [1793931586.578324925] [real_course_runner]: [stopline1] 도착
+[WARN] [1793931586.578592896] [real_course_runner]: [stopline1] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793931589.178576166] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793931589.378757005] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793931589.381060192] [real_course_runner]: [line4] 목표 보정: 벽까지 0.32 m → (5.73,3.36) 로 0.32 m 옮김 (벽까지 0.40 m)
+[WARN] [1793931589.578149450] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.49 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793931589.578619916] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793931589.578908707] [real_course_runner]: [line4] 목표 발행 -> (5.73, 3.36)
+[WARN] [1793931590.778261744] [real_course_runner]: [line4] 목표 발행 -> (5.73, 3.36)
+[WARN] [1793931591.981048679] [real_course_runner]: [line4] 목표 발행 -> (5.73, 3.36)
+[WARN] [1793931593.178451563] [real_course_runner]: [line4] 목표 발행 -> (5.73, 3.36)
+[WARN] [1793931593.778780607] [real_course_runner]: [line4] 도착
+[WARN] [1793931593.978233069] [real_course_runner]: 콘 피하기 0 → 1 단계 (콘 구간 — 처음부터 콘을 덜 피함(너무 쉽게 막힘)) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931593.978883601] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931593.979343612] [real_course_runner]: [rabain] 목표 발행 -> (6.83, 3.56)
+[WARN] [1793931595.180113704] [real_course_runner]: [rabain] 목표 발행 -> (6.83, 3.56)
+[WARN] [1793931596.379348109] [real_course_runner]: [rabain] 목표 발행 -> (6.83, 3.56)
+[WARN] [1793931597.578740915] [real_course_runner]: [rabain] 목표 발행 -> (6.83, 3.56)
+[WARN] [1793931597.778734596] [real_course_runner]: [rabain] 도착
+[WARN] [1793931597.779142647] [real_course_runner]: [rabain] 도착 -> 제자리 회전 시작 (목표 -93도)
+[WARN] [1793931602.778968157] [real_course_runner]: [rabain] 회전 완료 -> 다음 동작
+[WARN] [1793931602.779355955] [real_course_runner]: [rabain] 라바콘 슬라럼 진입 -> cone_zone_active ON
+[WARN] [1793931602.979720753] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931604.180239100] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931605.178286477] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793931605.181983620] [real_course_runner]: [rabaout] 4초간 제자리 + 장애물 0.16 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.13 vy -0.07, 1번째)
+[WARN] [1793931606.780522912] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793931606.781019546] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931607.978321105] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931609.178182457] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931610.378425662] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931611.578436508] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931612.378366265] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931612.379035711] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931612.778426660] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931613.978418661] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931615.178481057] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931616.378432332] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931616.578247799] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793931616.581376288] [real_course_runner]: [rabaout] 4초간 제자리 + 장애물 0.04 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.05 vy -0.14, 2번째)
+[WARN] [1793931618.180773140] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793931618.181298685] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931619.379794499] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931620.578413337] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931621.778230764] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931621.778926875] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931621.779428010] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931622.978420780] [real_course_runner]: [rabaout] 목표 발행 -> (6.55, -0.47)
+[WARN] [1793931623.978615200] [real_course_runner]: [rabaout] 도착
+[WARN] [1793931623.979003106] [real_course_runner]: [rabaout] 도착 -> 제자리 회전 시작 (목표 173도)
+[WARN] [1793931628.778973717] [real_course_runner]: [rabaout] 회전 완료(남은 -10° — 15° 안 1초) -> 다음 동작
+[WARN] [1793931628.779358359] [real_course_runner]: [rabaout] 라바콘 슬라럼 탈출 -> cone_zone_active OFF
+[WARN] [1793931628.978426280] [real_course_runner]: [line5] 목표 발행 -> (5.83, -0.34)
+[WARN] [1793931630.178410676] [real_course_runner]: [line5] 목표 발행 -> (5.83, -0.34)
+[WARN] [1793931631.378443576] [real_course_runner]: [line5] 목표 발행 -> (5.83, -0.34)
+[WARN] [1793931632.578475356] [real_course_runner]: [line5] 목표 발행 -> (5.83, -0.34)
+[WARN] [1793931633.179780259] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793931633.180447546] [real_course_runner]: [line5] 4초간 제자리 + 장애물 0.22 m — 반대쪽으로 0.20 m 물러남(몸체 vx +0.15 vy -0.03, 1번째)
+[WARN] [1793931634.778633898] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793931634.779104891] [real_course_runner]: [line5] 목표 발행 -> (5.83, -0.34)
+[WARN] [1793931635.978436590] [real_course_runner]: [line5] 목표 발행 -> (5.83, -0.34)
+[WARN] [1793931637.178670682] [real_course_runner]: [line5] 목표 발행 -> (5.83, -0.34)
+[WARN] [1793931637.778747420] [real_course_runner]: [line5] 도착
+[WARN] [1793931637.879408324] [real_course_runner]: [line6] 목표 보정: 벽까지 0.21 m → (5.26,0.17) 로 0.21 m 옮김 (벽까지 0.42 m)
+[WARN] [1793931637.978411679] [real_course_runner]: [line6] 목표 발행 -> (5.26, 0.17)
+[WARN] [1793931638.178316442] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931638.179077709] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931639.178893186] [real_course_runner]: [line6] 목표 발행 -> (5.26, 0.17)
+[WARN] [1793931639.378783577] [real_course_runner]: [line6] 도착
+[WARN] [1793931639.380958472] [real_course_runner]: [line7] 목표 보정: 벽까지 0.20 m → (5.08,0.40) 로 0.35 m 옮김 (벽까지 0.40 m)
+[WARN] [1793931639.582743294] [real_course_runner]: [line7] 목표 발행 -> (5.08, 0.40)
+[WARN] [1793931639.978812256] [real_course_runner]: [line7] 도착
+[WARN] [1793931640.179142026] [real_course_runner]: [line8] 목표 보정: 벽까지 0.20 m → (4.36,1.17) 로 0.25 m 옮김 (벽까지 0.40 m)
+[WARN] [1793931640.179483257] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931640.578265568] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.42 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793931640.578722294] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793931641.378428336] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931642.578472131] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931643.778548726] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931644.978478620] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931645.378295105] [real_course_runner]: 콘 피하기 0 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793931645.379249946] [real_course_runner]: [line8] 4초간 제자리 + 장애물 0.26 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.13 vy +0.08, 1번째)
+[WARN] [1793931646.978657436] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793931646.979118309] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931648.178408145] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931649.378578728] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931650.578454535] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931651.182573551] [real_course_runner]: [line8] 4초간 제자리 + 장애물 0.32 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.15 vy -0.02, 2번째)
+[WARN] [1793931652.778278524] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931653.978479967] [real_course_runner]: [line8] 목표 발행 -> (4.36, 1.17)
+[WARN] [1793931654.382353605] [real_course_runner]: [line8] 목표 보정: 벽까지 0.20 m → (4.31,1.22) 로 0.30 m 옮김 (벽까지 0.40 m)
+[WARN] [1793931654.778496351] [real_course_runner]: [line8] 도착
+[WARN] [1793931654.978484046] [real_course_runner]: [stopline2] 목표 발행 -> (3.96, 1.76)
+[WARN] [1793931655.580776645] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931655.581454457] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931656.178565671] [real_course_runner]: [stopline2] 목표 발행 -> (3.96, 1.76)
+[WARN] [1793931657.378421299] [real_course_runner]: [stopline2] 목표 발행 -> (3.96, 1.76)
+[WARN] [1793931657.379107352] [real_course_runner]: [stopline2] 도착
+[WARN] [1793931657.379456076] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[WARN] [1793931659.178648697] [real_course_runner]: 정지 유지 중 이동 감지 -> 다시 접근 단계로
+[WARN] [1793931659.381509020] [real_course_runner]: [stopline2] 목표 발행 -> (3.96, 1.76)
+[WARN] [1793931660.578695317] [real_course_runner]: [stopline2] 목표 발행 -> (3.96, 1.76)
+[WARN] [1793931660.579461202] [real_course_runner]: [stopline2] 도착
+[WARN] [1793931660.579817934] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793931663.178351251] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793931666.578715028] [real_course_runner]: 신호 대기 중 이동 감지 -> 다시 접근 단계로
+[WARN] [1793931666.780713717] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.47 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793931666.781212864] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793931666.781581096] [real_course_runner]: [stopline2] 목표 발행 -> (3.96, 1.76)
+[WARN] [1793931667.578770691] [real_course_runner]: [stopline2] 도착
+[WARN] [1793931667.579217710] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[WARN] [1793931668.778718128] [real_course_runner]: 정지 유지 중 이동 감지 -> 다시 접근 단계로
+[WARN] [1793931668.978608101] [real_course_runner]: [stopline2] 목표 발행 -> (3.96, 1.76)
+[WARN] [1793931669.981147160] [real_course_runner]: [stopline2] 도착
+[WARN] [1793931669.981410874] [real_course_runner]: [stopline2] 정지선 진입 -> 카메라 ON, 2.5초 정지 시작
+[INFO] [1793931672.578657778] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793931676.578821669] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793931676.779879737] [real_course_runner]: [line9] 목표 보정: 벽까지 0.31 m → (2.08,3.74) 로 0.07 m 옮김 (벽까지 0.37 m)
+[WARN] [1793931676.780353340] [real_course_runner]: [line9] 목표 발행 -> (2.08, 3.74)
+[WARN] [1793931677.984019047] [real_course_runner]: [line9] 목표 발행 -> (2.08, 3.74)
+[WARN] [1793931679.178527365] [real_course_runner]: [line9] 목표 발행 -> (2.08, 3.74)
+[WARN] [1793931680.378575599] [real_course_runner]: [line9] 목표 발행 -> (2.08, 3.74)
+[WARN] [1793931681.578437461] [real_course_runner]: [line9] 목표 발행 -> (2.08, 3.74)
+[WARN] [1793931681.778834117] [real_course_runner]: [line9] 도착
+[WARN] [1793931681.879715127] [real_course_runner]: [line10] 목표 보정: 벽까지 0.20 m → (1.07,3.76) 로 0.25 m 옮김 (벽까지 0.42 m)
+[WARN] [1793931681.978510411] [real_course_runner]: [line10] 목표 발행 -> (1.07, 3.76)
+[WARN] [1793931683.183969573] [real_course_runner]: [line10] 목표 발행 -> (1.07, 3.76)
+[WARN] [1793931683.378213222] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.19 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931683.378676245] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931684.378249714] [real_course_runner]: [line10] 목표 발행 -> (1.07, 3.76)
+[WARN] [1793931685.378759944] [real_course_runner]: [line10] 도착
+[WARN] [1793931685.380875434] [real_course_runner]: [line11] 목표 보정: 벽까지 0.36 m → (1.18,3.16) 로 0.16 m 옮김 (벽까지 0.41 m)
+[WARN] [1793931685.578471528] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931686.778531021] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931687.978405400] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931689.178406537] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931690.378520517] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931691.578528015] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931692.778532242] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931692.778927562] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793931692.779957070] [real_course_runner]: [line11] 4초간 제자리 + 장애물 0.24 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.05 vy -0.14, 1번째)
+[WARN] [1793931694.378505050] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793931694.378827029] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931695.578721570] [real_course_runner]: [line11] 목표 발행 -> (1.18, 3.16)
+[WARN] [1793931696.178730116] [real_course_runner]: [line11] 도착
+[WARN] [1793931696.378477836] [real_course_runner]: [line12] 목표 발행 -> (1.22, 2.91)
+[INFO] [1793931696.578743603] [real_course_runner]: [line12] 0.8 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793931696.779500490] [real_course_runner]: [line13] 목표 보정: 벽까지 0.26 m → (1.21,2.66) 로 0.25 m 옮김 (벽까지 0.40 m)
+[WARN] [1793931696.779974633] [real_course_runner]: [line13] 목표 발행 -> (1.21, 2.66)
+[WARN] [1793931697.378384366] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931697.378849656] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931697.379418803] [real_course_runner]: [line13] 도착
+[WARN] [1793931697.578361745] [real_course_runner]: [line14] 목표 발행 -> (1.06, 1.83)
+[WARN] [1793931698.778387666] [real_course_runner]: [line14] 목표 발행 -> (1.06, 1.83)
+[WARN] [1793931699.778642488] [real_course_runner]: [line14] 도착
+[WARN] [1793931699.779000024] [real_course_runner]: [line14] 도착 -> 제자리 회전 시작 (목표 174도)
+[WARN] [1793931703.379021473] [real_course_runner]: [line14] 회전 완료(남은 -3° — 15° 안 1초) -> 다음 동작
+[WARN] [1793931703.578250851] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.38 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793931703.578922807] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793931703.579385043] [real_course_runner]: [parking] 목표 발행 -> (-0.03, 2.00)
+[WARN] [1793931704.778468455] [real_course_runner]: [parking] 목표 발행 -> (-0.03, 2.00)
+[WARN] [1793931705.978455278] [real_course_runner]: [parking] 목표 발행 -> (-0.03, 2.00)
+[WARN] [1793931706.178629479] [real_course_runner]: [parking] 도착
+[WARN] [1793931706.179105876] [real_course_runner]: [parking] 정지 → 0.8초 뒤 Sit (선 높이 0.316 m)
+[WARN] [1793931707.178242598] [real_course_runner]: 명령 전송: StandDown(1005)
+[INFO] [1793931707.778818626] [real_course_runner]: 착석 확인됨(body_height=0.256) -> 6.5초 유지 시작
+[WARN] [1793931714.378277654] [real_course_runner]: 명령 전송: StandUp(1004)
+[WARN] [1793931715.778961267] [real_course_runner]: 일어남 확인(body_height=0.326) -> 다음 점
+[WARN] [1793931715.779407995] [real_course_runner]: 명령 전송: BalanceStand(1002)
+[WARN] [1793931715.779715517] [real_course_runner]: 재정렬 요청(park, ±0.5 m, ±20°)
+[WARN] [1793931716.378402979] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793931718.625495698] [real_course_runner]: 좌표 재정렬(realign): T (0.09206926542542394, 0.0848862798391841, 0.1040741261408001) → (0.0998, 0.0772, 0.0866) — 남은 목표 7개 다시 계산
+[WARN] [1793931718.778518312] [real_course_runner]: 주차 뒤 재정렬 반영됨 → 다음 점 쪽으로 회전
+[WARN] [1793931718.778872695] [real_course_runner]: [parking] 도착 -> 제자리 회전 시작 (목표 163도)
+[WARN] [1793931719.379049978] [real_course_runner]: [parking] 회전 완료 -> 다음 동작
+[WARN] [1793931719.578282796] [real_course_runner]: [wall1] 벽 추종 구간이 0.01 m 뿐(앞 점과 같은 자리) — 건너뜀
+[WARN] [1793931719.779604121] [real_course_runner]: [line15] 목표 보정: 벽까지 0.19 m → (1.09,1.93) 로 0.30 m 옮김 (벽까지 0.40 m)
+[WARN] [1793931719.780092114] [real_course_runner]: [line15] 목표 발행 -> (1.09, 1.93)
+[WARN] [1793931720.978212716] [real_course_runner]: [line15] 목표 발행 -> (1.09, 1.93)
+[WARN] [1793931722.178412646] [real_course_runner]: [line15] 목표 발행 -> (1.09, 1.93)
+[WARN] [1793931723.378502663] [real_course_runner]: [line15] 목표 발행 -> (1.09, 1.93)
+[WARN] [1793931723.778534219] [real_course_runner]: [line15] 도착
+[WARN] [1793931723.880243441] [real_course_runner]: [line16] 목표 보정: 벽까지 0.37 m → (1.21,2.71) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793931723.978389667] [real_course_runner]: [line16] 목표 발행 -> (1.21, 2.71)
+[WARN] [1793931725.178335895] [real_course_runner]: [line16] 목표 발행 -> (1.21, 2.71)
+[WARN] [1793931726.378415672] [real_course_runner]: [line16] 목표 발행 -> (1.21, 2.71)
+[WARN] [1793931726.578263567] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.09 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931726.578995960] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931726.978724582] [real_course_runner]: [line16] 도착
+[WARN] [1793931727.180381078] [real_course_runner]: [line17] 목표 보정: 벽까지 0.26 m → (1.13,2.96) 로 0.32 m 옮김 (벽까지 0.36 m)
+[WARN] [1793931727.180846563] [real_course_runner]: [line17] 목표 발행 -> (1.13, 2.96)
+[WARN] [1793931727.378911263] [real_course_runner]: [line17] 도착
+[WARN] [1793931727.381205945] [real_course_runner]: [line18] 목표 보정: 벽까지 0.36 m → (1.05,3.74) 로 0.16 m 옮김 (벽까지 0.42 m)
+[WARN] [1793931727.578512014] [real_course_runner]: [line18] 목표 발행 -> (1.05, 3.74)
+[WARN] [1793931728.778458857] [real_course_runner]: [line18] 목표 발행 -> (1.05, 3.74)
+[WARN] [1793931729.978574459] [real_course_runner]: [line18] 목표 발행 -> (1.05, 3.74)
+[WARN] [1793931731.178484768] [real_course_runner]: [line18] 목표 발행 -> (1.05, 3.74)
+[WARN] [1793931732.378415564] [real_course_runner]: [line18] 목표 발행 -> (1.05, 3.74)
+[WARN] [1793931732.778293632] [real_course_runner]: 콘 피하기 1 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793931732.779251067] [real_course_runner]: [line18] 4초간 제자리 + 장애물 0.30 m — 반대쪽으로 0.20 m 물러남(몸체 vx -0.14 vy -0.06, 1번째)
+[WARN] [1793931734.378623190] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793931734.386329203] [real_course_runner]: [line18] 목표 발행 -> (1.05, 3.74)
+[WARN] [1793931735.586105047] [real_course_runner]: [line18] 목표 발행 -> (1.05, 3.74)
+[WARN] [1793931735.778833942] [real_course_runner]: [line18] 도착
+[WARN] [1793931735.878666938] [real_course_runner]: [exit] 목표 보정: 벽까지 0.02 m → (-0.63,4.00) 로 0.07 m 옮김 (벽까지 0.02 m)
+[WARN] [1793931735.978439582] [real_course_runner]: [exit] 목표 발행 -> (-0.63, 4.00)
+[WARN] [1793931736.378263515] [real_course_runner]: 콘 피하기 2 → 1 단계 (막힌 곳에서 0.6 m 빠져나옴) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793931736.378708219] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793931736.978760919] [real_course_runner]: [exit] 목표 발행 -> (-0.63, 4.00)
+[WARN] [1793931738.178468942] [real_course_runner]: [exit] 목표 발행 -> (-0.63, 4.00)
+[WARN] [1793931739.178873017] [real_course_runner]: [exit] 도착했지만 뒤끝이 선 안(중심 x -0.32) → 바깥으로 밀고 나감
+[ERROR] [1793931739.379213516] [real_course_runner]: [exit] 밀고 나가는 앞쪽 0.22 m 안 장애물 — 정지(중심 x -0.38)
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1644, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1640, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793942128.077892386] [real_course_runner]: 실측 코스 러너 시작 — 36개 목표: ['line1', 'line2', 'line3', 'line4', 'stopline1', 'line5', 'rabain', 'pin1', 'pin2', 'pin3', 'pin4', 'pin5', 'pin6', 'pin7', 'pin8', 'pin9', 'rabaout', 'line6', 'line7', 'line8', 'line9', 'line10', 'stopline2', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'parking', 'wall1', 'line17', 'line18', 'line19', 'line20', 'exit']
+[WARN] [1793942128.270800741] [real_course_runner]: 자가진단 OK — 현재 (0.00,0.01), start와 0.16m 차이. 코스 시작.
+[WARN] [1793942128.271161037] [real_course_runner]: 명령 전송: BalanceStand(1002)
+[WARN] [1793942128.625355867] [real_course_runner]: [line1] 목표 보정: 벽까지 0.39 m → (1.46,-0.15) 로 0.05 m 옮김 (벽까지 0.40 m)
+[WARN] [1793942128.870948596] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793942129.070923492] [real_course_runner]: ClassicWalk 확인(시도 1번) — 출발
+[WARN] [1793942129.271044464] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942129.271345441] [real_course_runner]: [line1] 목표 발행 -> (1.46, -0.15)
+[WARN] [1793942130.470936176] [real_course_runner]: [line1] 목표 발행 -> (1.46, -0.15)
+[INFO] [1793942130.471478127] [real_course_runner]: [line1] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942130.571808663] [real_course_runner]: [line2] 목표 보정: 벽까지 0.31 m → (1.96,0.15) 로 0.16 m 옮김 (벽까지 0.41 m)
+[WARN] [1793942130.672226962] [real_course_runner]: [line2] 목표 발행 -> (1.96, 0.15)
+[WARN] [1793942131.871132714] [real_course_runner]: [line2] 목표 발행 -> (1.96, 0.15)
+[WARN] [1793942132.672804573] [real_course_runner]: [line2] 목표 보정: 벽까지 0.25 m → (1.91,0.15) 로 0.21 m 옮김 (벽까지 0.42 m)
+[WARN] [1793942133.071060497] [real_course_runner]: [line2] 목표 발행 -> (1.91, 0.15)
+[WARN] [1793942133.871890831] [real_course_runner]: [line2] 도착
+[WARN] [1793942134.071114888] [real_course_runner]: [line3] 목표 발행 -> (2.61, 0.78)
+[WARN] [1793942134.673490391] [real_course_runner]: [line3] 목표 보정: 벽까지 0.40 m → (2.66,0.78) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793942135.271090012] [real_course_runner]: [line3] 목표 발행 -> (2.66, 0.78)
+[WARN] [1793942136.471167310] [real_course_runner]: [line3] 목표 발행 -> (2.66, 0.78)
+[WARN] [1793942137.671066606] [real_course_runner]: [line3] 목표 발행 -> (2.66, 0.78)
+[WARN] [1793942138.470957010] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.02 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942138.471449099] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793942138.871145366] [real_course_runner]: [line3] 목표 발행 -> (2.66, 0.78)
+[WARN] [1793942139.471245014] [real_course_runner]: [line3] 도착
+[WARN] [1793942139.671129345] [real_course_runner]: [line4] 목표 발행 -> (3.01, 1.14)
+[INFO] [1793942140.072442514] [real_course_runner]: [line4] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942140.271211599] [real_course_runner]: [stopline1] 목표 발행 -> (3.71, 1.77)
+[WARN] [1793942141.471072806] [real_course_runner]: [stopline1] 목표 발행 -> (3.71, 1.77)
+[WARN] [1793942142.671180376] [real_course_runner]: [stopline1] 목표 발행 -> (3.71, 1.77)
+[WARN] [1793942143.671258280] [real_course_runner]: [stopline1] 도착
+[WARN] [1793942143.671655744] [real_course_runner]: [stopline1] 정지선 진입(점까지 0.04 m) -> 카메라 ON, 정지 시작
+[INFO] [1793942146.271371670] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[ERROR] [1793942156.271779799] [real_course_runner]: 신호 확인 10초 GREEN 미확정(현재 UNKNOWN) -> 타임아웃, 신호 무관하게 출발
+[WARN] [1793942156.470781761] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.54 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793942156.471203648] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942156.472458484] [real_course_runner]: [line5] 목표 보정: 벽까지 0.36 m → (5.55,3.40) 로 0.27 m 옮김 (벽까지 0.39 m)
+[WARN] [1793942156.472717697] [real_course_runner]: [line5] 목표 발행 -> (5.55, 3.40)
+[WARN] [1793942157.671015517] [real_course_runner]: [line5] 목표 발행 -> (5.55, 3.40)
+[WARN] [1793942158.871025819] [real_course_runner]: [line5] 목표 발행 -> (5.55, 3.40)
+[WARN] [1793942160.071183124] [real_course_runner]: [line5] 목표 발행 -> (5.55, 3.40)
+[WARN] [1793942160.871678192] [real_course_runner]: [line5] 도착
+[WARN] [1793942161.070917828] [real_course_runner]: 콘 피하기 0 → 1 단계 (콘 구간 — 처음부터 콘을 덜 피함(너무 쉽게 막힘)) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942161.071538307] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793942161.071936304] [real_course_runner]: [rabain] 목표 발행 -> (6.54, 3.74)
+[WARN] [1793942162.271185622] [real_course_runner]: [rabain] 목표 발행 -> (6.54, 3.74)
+[WARN] [1793942163.471084587] [real_course_runner]: [rabain] 목표 발행 -> (6.54, 3.74)
+[WARN] [1793942164.471405841] [real_course_runner]: [rabain] 도착 — 다음 점 방향과 25° 안이라 회전 없이 통과
+[WARN] [1793942164.471769568] [real_course_runner]: [rabain] 라바콘 슬라럼 진입 -> cone_zone_active ON
+[WARN] [1793942164.751647881] [real_course_runner]: [pin1] 핀 구간 9개 — ego 먼저(목표 pin9 (5.95,0.01)), 첫 실패면 핀 경로
+[ERROR] [1793942177.070872509] [real_course_runner]: [pin1] ego 첫 실패(ego 가 1.5초 넘게 길을 못 냄, 12.4초) → 지금 자리부터 핀 경로 따라가기
+[WARN] [1793942177.073756747] [real_course_runner]: 핀 회귀 곡선이 벽 0.05 m 까지 붙음(꺾은선 0.09 m) → 꺾은선으로
+[WARN] [1793942177.074158425] [real_course_runner]: [pin1] 핀 구간 9개 — ego 세우고 회귀 곡선 추종(길이 4.32 m)
+[WARN] [1793942189.671014018] [real_course_runner]: [pin9] 핀 구간 끝(남은 0.15 m)
+[WARN] [1793942189.871151314] [real_course_runner]: [rabaout] 목표 발행 -> (5.44, -0.21)
+[WARN] [1793942191.071188335] [real_course_runner]: [rabaout] 목표 발행 -> (5.44, -0.21)
+[WARN] [1793942191.871363965] [real_course_runner]: [rabaout] 도착
+[WARN] [1793942191.871715588] [real_course_runner]: [rabaout] 도착 -> 제자리 회전 시작 (목표 141도)
+[WARN] [1793942195.871772013] [real_course_runner]: [rabaout] 회전 완료(남은 -8° — 15° 안 1초) -> 다음 동작
+[WARN] [1793942195.872146350] [real_course_runner]: [rabaout] 라바콘 슬라럼 탈출 -> cone_zone_active OFF
+[WARN] [1793942196.072909506] [real_course_runner]: [line6] 목표 발행 -> (5.23, 0.16)
+[WARN] [1793942196.871582483] [real_course_runner]: [line6] 도착
+[WARN] [1793942197.075282615] [real_course_runner]: [line7] 목표 보정: 벽까지 0.15 m → (5.15,0.30) 로 0.28 m 옮김 (벽까지 0.43 m)
+[WARN] [1793942197.075802413] [real_course_runner]: [line7] 목표 발행 -> (5.15, 0.30)
+[WARN] [1793942197.271583038] [real_course_runner]: [line7] 도착
+[WARN] [1793942197.472326803] [real_course_runner]: [line8] 목표 보정: 벽까지 0.10 m → (4.89,0.55) 로 0.32 m 옮김 (벽까지 0.39 m)
+[WARN] [1793942197.472864726] [real_course_runner]: [line8] 목표 발행 -> (4.89, 0.55)
+[WARN] [1793942198.073908752] [real_course_runner]: [line8] 도착
+[WARN] [1793942198.075053820] [real_course_runner]: [line9] 목표 보정: 벽까지 0.11 m → (4.25,1.30) 로 0.32 m 옮김 (벽까지 0.40 m)
+[WARN] [1793942198.270760702] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.38 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793942198.271199155] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942198.271458753] [real_course_runner]: [line9] 목표 발행 -> (4.25, 1.30)
+[WARN] [1793942199.470986633] [real_course_runner]: [line9] 목표 발행 -> (4.25, 1.30)
+[WARN] [1793942200.470827494] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.02 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942200.471270574] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793942200.671301718] [real_course_runner]: [line9] 목표 발행 -> (4.25, 1.30)
+[WARN] [1793942201.871307164] [real_course_runner]: [line9] 목표 발행 -> (4.25, 1.30)
+[WARN] [1793942202.071751120] [real_course_runner]: [line9] 도착
+[WARN] [1793942202.073611385] [real_course_runner]: [line10] 목표 보정: 벽까지 0.32 m → (3.95,1.57) 로 0.10 m 옮김 (벽까지 0.41 m)
+[WARN] [1793942202.275625558] [real_course_runner]: [line10] 목표 발행 -> (3.95, 1.57)
+[INFO] [1793942202.471231526] [real_course_runner]: [line10] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942202.671099665] [real_course_runner]: [stopline2] 목표 발행 -> (3.71, 1.77)
+[WARN] [1793942203.870886725] [real_course_runner]: [stopline2] 목표 발행 -> (3.71, 1.77)
+[WARN] [1793942205.071076294] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.45 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793942205.071710839] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942205.072107414] [real_course_runner]: [stopline2] 목표 발행 -> (3.71, 1.77)
+[WARN] [1793942205.072811712] [real_course_runner]: [stopline2] 도착
+[WARN] [1793942205.073211265] [real_course_runner]: [stopline2] 정지선 진입(점까지 0.10 m) -> 카메라 ON, 정지 시작
+[INFO] [1793942207.671384518] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793942213.471437460] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793942213.575812443] [real_course_runner]: [line11] 목표 보정: 벽까지 0.27 m → (1.89,3.91) 로 0.16 m 옮김 (벽까지 0.42 m)
+[WARN] [1793942213.671076758] [real_course_runner]: [line11] 목표 발행 -> (1.89, 3.91)
+[WARN] [1793942214.676003533] [real_course_runner]: [line11] 목표 보정: 벽까지 0.27 m → (1.84,3.91) 로 0.15 m 옮김 (벽까지 0.39 m)
+[WARN] [1793942214.871164144] [real_course_runner]: [line11] 목표 발행 -> (1.84, 3.91)
+[WARN] [1793942216.071103385] [real_course_runner]: [line11] 목표 발행 -> (1.84, 3.91)
+[WARN] [1793942217.270891687] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.24 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942217.271501832] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793942217.271922949] [real_course_runner]: [line11] 목표 발행 -> (1.84, 3.91)
+[WARN] [1793942218.471027876] [real_course_runner]: [line11] 목표 발행 -> (1.84, 3.91)
+[WARN] [1793942219.671198051] [real_course_runner]: [line11] 목표 발행 -> (1.84, 3.91)
+[WARN] [1793942220.671541660] [real_course_runner]: [line11] 도착
+[WARN] [1793942220.875866827] [real_course_runner]: [line12] 목표 보정: 벽까지 0.22 m → (0.89,3.91) 로 0.22 m 옮김 (벽까지 0.42 m)
+[WARN] [1793942220.876311234] [real_course_runner]: [line12] 목표 발행 -> (0.89, 3.91)
+[WARN] [1793942222.071177611] [real_course_runner]: [line12] 목표 발행 -> (0.89, 3.91)
+[INFO] [1793942222.671554991] [real_course_runner]: [line12] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942222.876681255] [real_course_runner]: [line13] 목표 보정: 벽까지 0.17 m → (1.05,3.13) 로 0.28 m 옮김 (벽까지 0.40 m)
+[WARN] [1793942222.877195578] [real_course_runner]: [line13] 목표 발행 -> (1.05, 3.13)
+[INFO] [1793942222.878018096] [real_course_runner]: [line13] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942223.072661820] [real_course_runner]: [line14] 목표 보정: 벽까지 0.34 m → (1.06,2.89) 로 0.10 m 옮김 (벽까지 0.44 m)
+[WARN] [1793942223.073174831] [real_course_runner]: [line14] 목표 발행 -> (1.06, 2.89)
+[INFO] [1793942223.074088160] [real_course_runner]: [line14] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942223.076364197] [real_course_runner]: [line15] 목표 보정: 벽까지 0.29 m → (1.09,2.76) 로 0.32 m 옮김 (벽까지 0.39 m)
+[WARN] [1793942223.271191558] [real_course_runner]: [line15] 목표 발행 -> (1.09, 2.76)
+[INFO] [1793942223.271748485] [real_course_runner]: [line15] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942223.471264840] [real_course_runner]: [line16] 목표 발행 -> (0.90, 1.91)
+[WARN] [1793942224.671101420] [real_course_runner]: [line16] 목표 발행 -> (0.90, 1.91)
+[WARN] [1793942225.871232964] [real_course_runner]: [line16] 목표 발행 -> (0.90, 1.91)
+[WARN] [1793942227.071283270] [real_course_runner]: [line16] 목표 발행 -> (0.90, 1.91)
+[WARN] [1793942227.471417479] [real_course_runner]: [line16] 도착
+[WARN] [1793942227.471768956] [real_course_runner]: [line16] 도착 -> 제자리 회전 시작 (목표 179도)
+[WARN] [1793942231.271626824] [real_course_runner]: [line16] 회전 완료(남은 -11° — 15° 안 1초) -> 다음 동작
+[WARN] [1793942231.471046318] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.46 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793942231.471770993] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942231.472344023] [real_course_runner]: [parking] 목표 발행 -> (-0.39, 2.07)
+[WARN] [1793942232.671130202] [real_course_runner]: [parking] 목표 발행 -> (-0.39, 2.07)
+[WARN] [1793942233.871103071] [real_course_runner]: [parking] 목표 발행 -> (-0.39, 2.07)
+[WARN] [1793942235.071249914] [real_course_runner]: [parking] 목표 발행 -> (-0.39, 2.07)
+[WARN] [1793942235.072049195] [real_course_runner]: [parking] 도착
+[WARN] [1793942235.072442436] [real_course_runner]: [parking] 정지 → 0.8초 뒤 Sit (선 높이 0.314 m)
+[WARN] [1793942236.070908518] [real_course_runner]: 명령 전송: StandDown(1005)
+[INFO] [1793942236.671778376] [real_course_runner]: 착석 확인됨(body_height=0.243) -> 6.5초 유지 시작
+[WARN] [1793942243.271022134] [real_course_runner]: 명령 전송: StandUp(1004)
+[WARN] [1793942244.671727485] [real_course_runner]: 일어남 확인(body_height=0.326) -> 다음 점
+[WARN] [1793942244.672170737] [real_course_runner]: 명령 전송: BalanceStand(1002)
+[WARN] [1793942244.672485273] [real_course_runner]: 재정렬 요청(park, ±0.5 m, ±20°)
+[WARN] [1793942245.271132754] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793942247.793498596] [real_course_runner]: 좌표 재정렬(realign): T (0.25971624781161473, 0.020415065915217634, 0.10457377930718031) → (0.249, 0.0026, 0.1092) — 남은 목표 7개 다시 계산
+[WARN] [1793942247.871306186] [real_course_runner]: 주차 뒤 재정렬 반영됨 → 다음 점 쪽으로 회전
+[WARN] [1793942247.871653417] [real_course_runner]: [parking] 도착 -> 제자리 회전 시작 (목표 2도)
+[WARN] [1793942253.071738974] [real_course_runner]: [parking] 회전 완료(남은 -3° — 목표를 넘음) -> 다음 동작
+[WARN] [1793942253.270906163] [real_course_runner]: [wall1] 벽 추종 구간이 0.00 m 뿐(앞 점과 같은 자리) — 건너뜀
+[WARN] [1793942253.471135428] [real_course_runner]: [line17] 목표 발행 -> (0.89, 2.02)
+[WARN] [1793942254.670920373] [real_course_runner]: [line17] 목표 발행 -> (0.89, 2.02)
+[WARN] [1793942255.871127627] [real_course_runner]: [line17] 목표 발행 -> (0.89, 2.02)
+[WARN] [1793942256.071604718] [real_course_runner]: [line17] 도착
+[WARN] [1793942256.073903518] [real_course_runner]: [line18] 목표 보정: 벽까지 0.35 m → (1.09,2.88) 로 0.07 m 옮김 (벽까지 0.41 m)
+[WARN] [1793942256.271153739] [real_course_runner]: [line18] 목표 발행 -> (1.09, 2.88)
+[INFO] [1793942257.071433172] [real_course_runner]: [line18] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942257.073230233] [real_course_runner]: [line19] 목표 보정: 벽까지 0.19 m → (1.02,2.98) 로 0.34 m 옮김 (벽까지 0.39 m)
+[WARN] [1793942257.271131816] [real_course_runner]: [line19] 목표 발행 -> (1.02, 2.98)
+[WARN] [1793942258.271562257] [real_course_runner]: [line19] 도착
+[WARN] [1793942258.474799499] [real_course_runner]: [line20] 목표 보정: 벽까지 0.36 m → (0.89,3.92) 로 0.21 m 옮김 (벽까지 0.40 m)
+[WARN] [1793942258.475097145] [real_course_runner]: [line20] 목표 발행 -> (0.89, 3.92)
+[WARN] [1793942259.671187765] [real_course_runner]: [line20] 목표 발행 -> (0.89, 3.92)
+[WARN] [1793942260.271530927] [real_course_runner]: [line20] 도착
+[WARN] [1793942260.474009795] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.23 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942260.474468071] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793942260.474905872] [real_course_runner]: [exit] 목표 보정: 벽까지 0.02 m → (-0.77,3.99) 로 0.10 m 옮김 (벽까지 0.09 m)
+[WARN] [1793942260.475166739] [real_course_runner]: [exit] 목표 발행 -> (-0.77, 3.99)
+[WARN] [1793942261.671217162] [real_course_runner]: [exit] 목표 발행 -> (-0.77, 3.99)
+[WARN] [1793942262.871126151] [real_course_runner]: [exit] 목표 발행 -> (-0.77, 3.99)
+[WARN] [1793942263.871515272] [real_course_runner]: [exit] 도착했지만 뒤끝이 선 안(중심 x -0.45) → 바깥으로 밀고 나감
+[ERROR] [1793942264.271649214] [real_course_runner]: [exit] 밀고 나가는 앞쪽 0.22 m 안 장애물 — 정지(중심 x -0.58)
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1787, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1783, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793942577.402606422] [real_course_runner]: 실측 코스 러너 시작 — 36개 목표: ['line1', 'line2', 'line3', 'line4', 'stopline1', 'line5', 'rabain', 'pin1', 'pin2', 'pin3', 'pin4', 'pin5', 'pin6', 'pin7', 'pin8', 'pin9', 'rabaout', 'line6', 'line7', 'line8', 'line9', 'line10', 'stopline2', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'parking', 'wall1', 'line17', 'line18', 'line19', 'line20', 'exit']
+[WARN] [1793942577.595345319] [real_course_runner]: 자가진단 OK — 현재 (-0.01,-0.00), start와 0.13m 차이. 코스 시작.
+[WARN] [1793942577.595911714] [real_course_runner]: 명령 전송: BalanceStand(1002)
+[WARN] [1793942578.195476599] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793942578.395441564] [real_course_runner]: ClassicWalk 확인(시도 1번) — 출발
+[WARN] [1793942578.595874898] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942578.596325281] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942579.795553832] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942580.995762383] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942582.195709703] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942582.595630996] [real_course_runner]: 콘 피하기 0 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793942582.795917139] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793942583.395819010] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942584.595647076] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942585.795616670] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942586.995817146] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942588.195734683] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942589.395651675] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942590.595689109] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[WARN] [1793942591.795731127] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.11)
+[ERROR] [1793942592.795467292] [real_course_runner]: [line1] 콘 무시 뒤에도 10초 못 나아감(목표까지 1.45 m) — 경로 따라가기(ego 세움, 콘 무시, 벽은 봄)
+[WARN] [1793942595.397509744] [real_course_runner]: [line1] 목표 보정: 벽까지 0.37 m → (1.43,-0.06) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793942599.395422773] [real_course_runner]: [line1] 경로 따라가기 끝(목표 도착) → 보통 주행
+[WARN] [1793942599.395734442] [real_course_runner]: 콘 피하기 2 → 1 단계 (경로 따라가기 끝) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942599.595779276] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793942599.598064650] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.06)
+[INFO] [1793942599.598847215] [real_course_runner]: [line1] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942599.796553988] [real_course_runner]: [line2] 목표 보정: 벽까지 0.26 m → (1.98,0.20) 로 0.16 m 옮김 (벽까지 0.40 m)
+[WARN] [1793942599.796976177] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942600.995675354] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942601.795429534] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.48 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793942601.796042532] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942602.195624797] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942603.395573434] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942603.995601434] [real_course_runner]: 콘 피하기 0 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793942604.195595223] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793942604.595608336] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942605.795610073] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942606.995589309] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942608.195682673] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942609.395385939] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942610.595589639] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942611.795405494] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942612.996524627] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942614.195689459] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[ERROR] [1793942614.196028685] [real_course_runner]: [line2] 콘 무시 뒤에도 10초 못 나아감(목표까지 0.92 m) — 경로 따라가기(ego 세움, 콘 무시, 벽은 봄)
+[WARN] [1793942617.195420871] [real_course_runner]: [line2] 경로 따라가기 끝(목표 도착) → 보통 주행
+[WARN] [1793942617.195690545] [real_course_runner]: 콘 피하기 2 → 1 단계 (경로 따라가기 끝) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942617.395730522] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793942617.396166578] [real_course_runner]: [line2] 목표 발행 -> (1.98, 0.20)
+[WARN] [1793942617.397059326] [real_course_runner]: [line2] 도착
+[WARN] [1793942617.399231258] [real_course_runner]: [line3] 목표 보정: 벽까지 0.39 m → (2.63,0.88) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793942617.595565949] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942618.795572912] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942619.395535410] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.37 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793942619.396165302] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942619.995626567] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942621.195530725] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942621.795520819] [real_course_runner]: 콘 피하기 0 → 2 단계 (4초 제자리(막힘)) {'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0} — 벽은 그대로
+[WARN] [1793942621.796565756] [real_course_runner]: [line3] 4초간 제자리 + 장애물 0.37 m — 반대쪽으로 0.25 m 물러남(몸체 vx -0.06 vy -0.24, 1번째)
+[WARN] [1793942623.195898401] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.0, 'cones.safe_dist': 0.0, 'cones.weight': 0.0}
+[WARN] [1793942623.196389936] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942624.395710604] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942625.597795060] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942626.795598297] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942627.995392782] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942627.996059665] [real_course_runner]: [line3] 4초간 제자리 + 장애물 0.40 m — 반대쪽으로 0.25 m 물러남(몸체 vx -0.07 vy -0.24, 2번째)
+[WARN] [1793942629.395384400] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942630.595655921] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[WARN] [1793942631.795636009] [real_course_runner]: [line3] 목표 발행 -> (2.63, 0.88)
+[ERROR] [1793942631.795954660] [real_course_runner]: [line3] 콘 무시 뒤에도 10초 못 나아감(목표까지 1.46 m) — 경로 따라가기(ego 세움, 콘 무시, 벽은 봄)
+[WARN] [1793942634.196941967] [real_course_runner]: [line3] 목표 보정: 벽까지 0.36 m → (2.68,0.88) 로 0.07 m 옮김 (벽까지 0.40 m)
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1787, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1783, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333
+[INFO] [1793942712.071104750] [real_course_runner]: 실측 코스 러너 시작 — 36개 목표: ['line1', 'line2', 'line3', 'line4', 'stopline1', 'line5', 'rabain', 'pin1', 'pin2', 'pin3', 'pin4', 'pin5', 'pin6', 'pin7', 'pin8', 'pin9', 'rabaout', 'line6', 'line7', 'line8', 'line9', 'line10', 'stopline2', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'parking', 'wall1', 'line17', 'line18', 'line19', 'line20', 'exit']
+[WARN] [1793942712.264133162] [real_course_runner]: 자가진단 OK — 현재 (-0.01,-0.01), start와 0.12m 차이. 코스 시작.
+[WARN] [1793942712.264538458] [real_course_runner]: 명령 전송: BalanceStand(1002)
+[WARN] [1793942712.617860832] [real_course_runner]: [line1] 목표 보정: 벽까지 0.38 m → (1.43,-0.14) 로 0.05 m 옮김 (벽까지 0.43 m)
+[WARN] [1793942712.863990357] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793942713.063931477] [real_course_runner]: ClassicWalk 확인(시도 1번) — 출발
+[WARN] [1793942713.264497162] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942713.264980464] [real_course_runner]: [line1] 목표 발행 -> (1.43, -0.14)
+[INFO] [1793942714.264968992] [real_course_runner]: [line1] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942714.465107999] [real_course_runner]: [line2] 목표 보정: 벽까지 0.28 m → (1.99,0.08) 로 0.16 m 옮김 (벽까지 0.42 m)
+[WARN] [1793942714.465515694] [real_course_runner]: [line2] 목표 발행 -> (1.99, 0.08)
+[WARN] [1793942715.665814280] [real_course_runner]: [line2] 목표 발행 -> (1.99, 0.08)
+[WARN] [1793942716.864240111] [real_course_runner]: [line2] 목표 발행 -> (1.99, 0.08)
+[WARN] [1793942717.864921717] [real_course_runner]: [line2] 도착
+[WARN] [1793942718.065790964] [real_course_runner]: [line3] 목표 보정: 벽까지 0.40 m → (2.67,0.75) 로 0.05 m 옮김 (벽까지 0.41 m)
+[WARN] [1793942718.066243211] [real_course_runner]: [line3] 목표 발행 -> (2.67, 0.75)
+[WARN] [1793942719.264401439] [real_course_runner]: [line3] 목표 발행 -> (2.67, 0.75)
+[WARN] [1793942719.665955648] [real_course_runner]: [line3] 목표 보정: 벽까지 0.36 m → (2.72,0.75) 로 0.07 m 옮김 (벽까지 0.41 m)
+[WARN] [1793942720.464386072] [real_course_runner]: [line3] 목표 발행 -> (2.72, 0.75)
+[WARN] [1793942721.664302916] [real_course_runner]: [line3] 목표 발행 -> (2.72, 0.75)
+[WARN] [1793942722.866449406] [real_course_runner]: [line3] 목표 보정: 벽까지 0.29 m → (2.77,0.85) 로 0.18 m 옮김 (벽까지 0.40 m)
+[WARN] [1793942722.867000195] [real_course_runner]: [line3] 목표 발행 -> (2.77, 0.85)
+[WARN] [1793942723.264106028] [real_course_runner]: 콘 피하기 0 → 1 단계 (벽 0.06 m) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942723.264772713] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[INFO] [1793942723.664637183] [real_course_runner]: [line3] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942723.865543513] [real_course_runner]: [line4] 목표 보정: 벽까지 0.39 m → (3.03,1.04) 로 0.05 m 옮김 (벽까지 0.42 m)
+[WARN] [1793942723.865988540] [real_course_runner]: [line4] 목표 발행 -> (3.03, 1.04)
+[INFO] [1793942723.869074598] [real_course_runner]: [line4] 1.2 m 앞 — 다음 점으로 미리(곡선으로 돎)
+[WARN] [1793942724.064306600] [real_course_runner]: [stopline1] 목표 발행 -> (3.80, 1.65)
+[WARN] [1793942725.264541847] [real_course_runner]: [stopline1] 목표 발행 -> (3.80, 1.65)
+[WARN] [1793942726.464119357] [real_course_runner]: 콘 피하기 1 → 0 단계 (벽 0.37 m 2초) {'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0} — 벽은 그대로
+[WARN] [1793942726.464564459] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.28, 'cones.safe_dist': 0.38, 'cones.weight': 150.0}
+[WARN] [1793942726.464847029] [real_course_runner]: [stopline1] 목표 발행 -> (3.80, 1.65)
+[WARN] [1793942727.464607345] [real_course_runner]: [stopline1] 도착
+[WARN] [1793942727.465165807] [real_course_runner]: [stopline1] 정지선 진입(점까지 0.09 m) -> 카메라 ON, 정지 시작
+[INFO] [1793942730.064538565] [real_course_runner]: 2.5초 정지 완료 -> 신호 확인 단계
+[WARN] [1793942730.264611926] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793942730.465385812] [real_course_runner]: [line5] 목표 보정: 벽까지 0.35 m → (5.75,3.46) 로 0.05 m 옮김 (벽까지 0.40 m)
+[WARN] [1793942730.465823785] [real_course_runner]: [line5] 목표 발행 -> (5.75, 3.46)
+[WARN] [1793942731.265915719] [real_course_runner]: [line5] 목표 보정: 벽까지 0.35 m → (5.70,3.36) 로 0.14 m 옮김 (벽까지 0.42 m)
+[WARN] [1793942731.664339342] [real_course_runner]: [line5] 목표 발행 -> (5.70, 3.36)
+[WARN] [1793942732.864335470] [real_course_runner]: [line5] 목표 발행 -> (5.70, 3.36)
+[WARN] [1793942734.064426181] [real_course_runner]: [line5] 목표 발행 -> (5.70, 3.36)
+[WARN] [1793942735.064367477] [real_course_runner]: [line5] 도착
+[WARN] [1793942735.264184043] [real_course_runner]: 콘 피하기 0 → 1 단계 (콘 구간 — 처음부터 콘을 덜 피함(너무 쉽게 막힘)) {'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0} — 벽은 그대로
+[WARN] [1793942735.264819445] [real_course_runner]: ego_planner 장애물 필터 전환 -> {'min_obs_h': -5.0, 'max_obs_h': 5.0, 'cones.inflate_radius': 0.2, 'cones.safe_dist': 0.25, 'cones.weight': 50.0}
+[WARN] [1793942735.265241530] [real_course_runner]: [rabain] 목표 발행 -> (6.69, 3.53)
+[WARN] [1793942736.466046083] [real_course_runner]: [rabain] 목표 발행 -> (6.69, 3.53)
+[WARN] [1793942737.664215221] [real_course_runner]: [rabain] 목표 발행 -> (6.69, 3.53)
+[WARN] [1793942738.864513870] [real_course_runner]: [rabain] 목표 발행 -> (6.69, 3.53)
+[WARN] [1793942738.865276104] [real_course_runner]: [rabain] 도착
+[WARN] [1793942738.865574335] [real_course_runner]: [rabain] 도착 -> 제자리 회전 시작 (목표 -31도)
+[WARN] [1793942742.264868006] [real_course_runner]: [rabain] 회전 완료(남은 -6° — 15° 안 1초) -> 다음 동작
+[WARN] [1793942742.265233178] [real_course_runner]: [rabain] 라바콘 슬라럼 진입 -> cone_zone_active ON
+[WARN] [1793942742.508252648] [real_course_runner]: [pin1] 핀 구간 9개 — ego 먼저(목표 pin9 (5.98,-0.19)), 첫 실패면 핀 경로
+[ERROR] [1793942745.664243864] [real_course_runner]: [pin1] ego 첫 실패(핀 곡선에서 0.5 m 넘게 벗어남, 3.2초) → 지금 자리부터 핀 경로 따라가기
+[WARN] [1793942745.666820265] [real_course_runner]: 핀 회귀 곡선이 벽 0.01 m 까지 붙음(꺾은선 0.05 m) → 꺾은선으로
+[WARN] [1793942745.667191286] [real_course_runner]: [pin1] 핀 구간 9개 — ego 세우고 회귀 곡선 추종(길이 4.32 m)
+[ERROR] [1793942763.866814634] [real_course_runner]: [pin1] 핀 따라가기 2.5초 막힘(1/3) — 0.25 m/s 로 1초 빠져나온 뒤 25 cm 앞부터
+[ERROR] [1793942780.467068485] [real_course_runner]: [pin1] 핀 따라가기 2.5초 막힘(2/3) — 0.25 m/s 로 1초 빠져나온 뒤 25 cm 앞부터
+[ERROR] [1793942784.866985267] [real_course_runner]: [pin1] 핀 따라가기 2.5초 막힘(3/3) — 0.25 m/s 로 1초 빠져나온 뒤 25 cm 앞부터
+[ERROR] [1793942789.664247980] [real_course_runner]: [pin1] 핀 따라가기 3번 넘게 막힘 — 핀 그만두고 다음 점으로(ego)
+[WARN] [1793942789.864345672] [real_course_runner]: [rabaout] 목표 발행 -> (5.47, -0.39)
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1787, in <module>
+    main()
+  File "/home/ilovehan9283/ws/junsu_v2/src/real_course_runner.py", line 1783, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333

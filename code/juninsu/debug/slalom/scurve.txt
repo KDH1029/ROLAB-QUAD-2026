@@ -1,0 +1,30 @@
+[INFO] [1793903479.339580438] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793903479.340010216] [real_course_runner]: 자가진단 OK — 현재 (5.66,3.05), start와 0.00m 차이. 코스 시작.
+[WARN] [1793903479.340245313] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793903479.396255316] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.79 m)
+[WARN] [1793903479.420104056] [real_course_runner]: [exit] 경로 따라 도착(남은 0.03 m) — 멈춤 확인 뒤 동작
+[WARN] [1793903479.421815275] [rcl.logging_rosout]: Publisher already registered for node name: 'real_course_runner'. If this is due to multiple nodes with the same name then all logs for the logger named 'real_course_runner' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[INFO] [1793903479.427083128] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793903479.427432929] [real_course_runner]: 자가진단 OK — 현재 (5.66,3.05), start와 0.00m 차이. 코스 시작.
+[WARN] [1793903479.427639713] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793903479.428328638] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.79 m)
+[WARN] [1793903479.451644189] [real_course_runner]: [exit] 경로 따라 도착(남은 0.04 m) — 멈춤 확인 뒤 동작
+[INFO] [1793903479.489859116] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793903479.490176024] [real_course_runner]: 자가진단 OK — 현재 (5.66,3.05), start와 0.00m 차이. 코스 시작.
+[WARN] [1793903479.490361803] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793903479.490999030] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.79 m)
+[WARN] [1793903479.513546841] [real_course_runner]: [exit] 경로 따라 도착(남은 0.05 m) — 멈춤 확인 뒤 동작
+[WARN] [1793903479.514996905] [rcl.logging_rosout]: Publisher already registered for node name: 'real_course_runner'. If this is due to multiple nodes with the same name then all logs for the logger named 'real_course_runner' will go out over the existing publisher. As soon as any node with that name is destructed it will unregister the publisher, preventing any further logs for that name from being published on the rosout topic.
+[INFO] [1793903479.543282192] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793903479.543586182] [real_course_runner]: 자가진단 OK — 현재 (5.66,3.05), start와 0.00m 차이. 코스 시작.
+[WARN] [1793903479.543783837] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793903479.544427901] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.79 m)
+[WARN] [1793903479.566606994] [real_course_runner]: [exit] 경로 따라 도착(남은 0.03 m) — 멈춤 확인 뒤 동작
+슬라럼 #6 → #26 (21점, 경로 7.5 m) · 장애물 칸 3200
+(지표는 슬라럼 #7~#25 구역 안만)
+판   설명                           완주       시간    제자리돌기     경로이탈최대    몸닿음    최소여유   옆걸음p95
+REC 녹화(사람 조종, 기준)          -    35.0s        -       17.9cm  14.7s    0.0cm        -
+V0  지금 설정                        예     23.0s     0.8s     22.8cm  10.4s    0.0cm    0.09m/s
+V1  먼저 돌기 기준 완화(0.6→1.2 rad)     예     22.2s     0.0s     23.3cm  11.9s    0.0cm    0.17m/s
+V2  몸 방향 = 경로 방향                 예     23.0s     0.6s     25.2cm   8.8s    0.0cm    0.10m/s
+V3  V2 + 먼저 돌기 완화                예     22.5s     0.0s     24.8cm   8.7s    0.0cm    0.14m/s

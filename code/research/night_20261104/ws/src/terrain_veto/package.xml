@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>terrain_veto</name>
+  <version>0.1.0</version>
+  <description>경사로·계단 위 점을 플래너 입력에서 지운다(로봇 발밑과 이어진 매끈한 면). XT16 + D435i 깊이. night_20261104</description>
+  <maintainer email="atomyhonor@gmail.com">gosu</maintainer>
+  <license>Proprietary</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

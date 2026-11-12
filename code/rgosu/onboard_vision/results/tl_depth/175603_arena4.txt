@@ -1,0 +1,1 @@
+/home/ilovehan9283/bags/gosu_20261104_175603_arena4/camera_nuctime_p1: 프레임 493 · 신호등 상자 66 · 거리 잰 것 66 · 거리 분위 10/50/90 [1.98 2.95 4.41] m · depth→color T [-0.0147 -0.0009 -0.0008]

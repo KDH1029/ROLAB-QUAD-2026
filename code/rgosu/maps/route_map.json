@@ -1,0 +1,102 @@
+{
+ "format": "route_v1",
+ "frame": "FAST-LIO camera_init — 11-04 14:59 녹화 시작 자리·방향이 원점(저장 좌표와 같음)",
+ "map": "/home/ilovehan9283/ws/v_gosu/eval/out/fixed1459_2cm_map.npz",
+ "saved": "2026-11-05 03:14:10",
+ "problems": [
+  "rabain 벽 0.11 m",
+  "rabaout 벽 0.21 m"
+ ],
+ "route": [
+  {
+   "label": "start",
+   "x": 0.102,
+   "y": 0.043,
+   "clear_m": 0.43
+  },
+  {
+   "label": "line1",
+   "x": 2.081,
+   "y": 0.217,
+   "clear_m": 0.3
+  },
+  {
+   "label": "stopline1",
+   "x": 3.861,
+   "y": 2.284,
+   "clear_m": 0.52
+  },
+  {
+   "label": "line2",
+   "x": 5.579,
+   "y": 4.163,
+   "clear_m": 0.35
+  },
+  {
+   "label": "rabain",
+   "x": 6.525,
+   "y": 4.213,
+   "clear_m": 0.11
+  },
+  {
+   "label": "rabaout",
+   "x": 6.599,
+   "y": 0.317,
+   "clear_m": 0.21
+  },
+  {
+   "label": "line3",
+   "x": 5.927,
+   "y": 0.354,
+   "clear_m": 0.29
+  },
+  {
+   "label": "stopline2",
+   "x": 3.849,
+   "y": 2.246,
+   "clear_m": 0.56
+  },
+  {
+   "label": "line4",
+   "x": 1.732,
+   "y": 3.964,
+   "clear_m": 0.36
+  },
+  {
+   "label": "line5",
+   "x": 0.973,
+   "y": 4.001,
+   "clear_m": 0.42
+  },
+  {
+   "label": "line6",
+   "x": 0.936,
+   "y": 2.134,
+   "clear_m": 0.51
+  },
+  {
+   "label": "parking",
+   "x": -0.16,
+   "y": 2.072,
+   "clear_m": 0.31
+  },
+  {
+   "label": "line7",
+   "x": 0.973,
+   "y": 2.109,
+   "clear_m": 0.47
+  },
+  {
+   "label": "line8",
+   "x": 0.774,
+   "y": 4.088,
+   "clear_m": 0.29
+  },
+  {
+   "label": "exit",
+   "x": -0.832,
+   "y": 4.064,
+   "clear_m": 0.47
+  }
+ ]
+}

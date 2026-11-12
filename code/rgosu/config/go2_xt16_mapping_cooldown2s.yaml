@@ -1,0 +1,66 @@
+# Rgosu 전용 복사본 — 원본: ~/ws/backup/pre_gosu_slam_latest/lab_config/go2_xt16_mapping.yaml
+# 바뀐 것: map_file_path(팀 경로->Rgosu), det_range(60->15), extrinsic_est_en(true->false)
+# 목적: arena_0921 전체를 FAST-LIO로 매핑 (LIO-SAM이 IMU노이즈 미튜닝으로 발산해서 대체)
+/**:
+    ros__parameters:
+        feature_extract_enable: false
+        point_filter_num: 2          # 20Hz scan: 32000 pts/scan, 1/2 downsample
+        max_iteration: 4             # 4 iterations for solid convergence
+        filter_size_surf: 0.1        # 10cm scan surface downsample: preserves fine structural details
+        filter_size_map: 0.08        # 8cm map resolution: creates dense, sharp point cloud (~160k+ points)
+        cube_side_length: 1000.0
+        runtime_pos_log_enable: false
+        map_file_path: "/home/ilovehan9283/ws/Rgosu/maps/fastlio_arena0921/arena0921_map.pcd"
+
+        common:
+            lid_topic:  "/velodyne_points"   # Output from go2_bridge cloud_bridge
+            imu_topic:  "/imu/body"          # Output from go2_bridge imu_bridge (/lowstate 500Hz)
+            time_sync_en: false
+            time_offset_lidar_to_imu: 0.0
+
+        preprocess:
+            lidar_type: 2                # 2 = Velodyne format (x,y,z,intensity,time,ring)
+            scan_line: 16                # Hesai XT16 = 16 channels
+            timestamp_unit: 0            # time field is in seconds
+            blind: 0.5                   # robot body blind radius (meters)
+            scan_rate: 20
+
+        mapping:
+            acc_cov: 0.5                 # Quadruped footstep impact allowance
+            gyr_cov: 0.3                 # Quadruped body sway allowance
+            b_acc_cov: 0.0001
+            b_gyr_cov: 0.0001
+            fov_degree:    360.0
+            det_range:     15.0          # Rgosu 수정: 60 -> 15. 7x6m 방에서 60m는 gosu_slam에서 실측된
+                                          # "조용히 미끄러지는" 버그(경기장 밖 25m) 원인과 동일 메커니즘.
+            extrinsic_est_en:  false     # Rgosu 수정: true -> false. 외부파라미터는 이미 실측 확정됨
+                                          # (go2_slam_odometry.yaml과 동일 값) — 온라인 추정은 불필요한
+                                          # 자유도를 추가해 정지 중에도 흔들리게 함(xt16_mapping.yaml 주석 근거)
+            extrinsic_T: [ 0.25, 0.0, 0.1588 ] # Accurate lever arm: LiDAR is 15.88cm above body IMU
+            extrinsic_R: [ -0.0001707, -0.9999240,  0.0123287,
+                            0.9999844, -0.0001019,  0.0055807,
+                           -0.0055790,  0.0123295,  0.9999084 ]
+
+        publish:
+            path_en: true
+            effect_map_en: false
+            map_en: true                 # Global laser map accumulation enabled for mapping
+            scan_publish_en: true        # Required for registered body cloud
+            dense_publish_en: false
+            scan_bodyframe_pub_en: true
+
+        pcd_save:
+            pcd_save_en: true            # Save PCD map on exit
+            interval: -1                 # -1: save single full map at shutdown or trigger
+
+        motion_gating:
+            enable: true                 # Automatically pause map updates during intentional turns or severe drift
+            max_angular_rate: 80.0       # deg/s: allow normal walking body pitch/roll without false pauses
+            max_yaw_rate: 60.0           # deg/s: only pause during fast spin turns
+            max_linear_vel: 1.5          # m/s: allow walking normally while mapping
+            max_residual: 0.12           # meters: pauses map updates only on true divergence/slip
+            cooldown_time: 2.0           # Rgosu 수정: 0.1 -> 2.0. t=157~163s 급회전(yaw 191deg/s)
+                                          # 직후 포즈가 덜 안정된 채로 0.1초만에 지도추가 재개돼서
+                                          # 그 틀어진 포즈로 계속 쌓이는 게 100m 폭발의 원인으로 추정됨.
+                                          # 쿨다운을 늘려 포즈가 더 안정된 뒤에 재개하도록 시도.
+

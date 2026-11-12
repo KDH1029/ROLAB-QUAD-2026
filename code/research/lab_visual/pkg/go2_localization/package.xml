@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>go2_localization</name>
+  <version>1.0.0</version>
+  <description>
+    고정된 사전 지도에 스캔을 맞춰 위치를 잡는다 (localization only, no mapping).
+    지도는 절대 바뀌지 않는다. 바뀌는 것은 map -> odom 보정뿐이다.
+  </description>
+  <maintainer email="atomyhonor@gmail.com">ilovehan9283</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-scipy</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

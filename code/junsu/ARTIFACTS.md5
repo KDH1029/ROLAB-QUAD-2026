@@ -1,0 +1,16 @@
+# 추적하지 않는 큰 파일 md5 (tools/artifacts_md5.sh 로 다시 만듦). 내부 PC 엔진은 ~/junsu_vision 에 있다
+d9414ee0bd319afbc257ad989ea1ba16  onboard_vision/tl5cone_384x640.onnx
+fff888b5a696cb4eb7ebe6841cf1ce61  onboard_vision/tl5cone_640.pt
+0db6c1b44747068eb4e1c24869bf3947  onboard_vision/tl_cone_1104_384x640.onnx
+613f149191ac942a5fee3a892f07a444  onboard_vision/models_1104/fp16_openvino_model/best.bin
+9786b61a9dc7ca8dc50aa4f310c3ff65  onboard_vision/models_1104/fp16_openvino_model/best.xml
+a63ddb3161ed38057414848d2d066fb7  onboard_vision/models_1104/int8_openvino_model/best.bin
+3b7e679e8a16177d06a4fcc03774b615  onboard_vision/models_1104/int8_openvino_model/best.xml
+642ee960db928d60cf140893a27e8067  maps/fastlio_arena0921/arena0921_map.pcd
+6c9beb9d4b5d6aa5c6aa457397c2adf3  maps/fastlio_gosu1030_baseline/baseline_map.pcd
+fba801d792a917dd0c7dd59d41347364  maps/fixed_1459/gosu1459_fixed_maxr15_2cm_arena.pcd
+a19d4c17a66d4e0309325f24d45560a5  maps/fixed_1459/gosu1459_fixed_maxr15_2cm_full.pcd
+e201847bfe721248cf01f60dd7b2a3ac  maps/fixed_1459/gosu1459_fixed_maxr15_5cm_arena.pcd
+6eea01ada07e5284ab8d58f9cef0323a  maps/fixed_1459/gosu1459_fixed_maxr15_5cm_full.pcd
+f58d3db7016cb4ded2f6aeb0adddf3f4  maps/liosam_arena0921/trajectory.pcd
+8efc7c53121068a26a21d004a93a79b3  maps/liosam_arena0921/transformations.pcd

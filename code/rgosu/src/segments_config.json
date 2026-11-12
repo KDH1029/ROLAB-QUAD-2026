@@ -1,0 +1,22 @@
+{
+  "_comment": "전부 PLACEHOLDER 좌표 (camera_init=출발자세 기준, 단위 m). 실제 경기장(8x6m, 대회규정집 4.2절) 비율에 맞게 축소함(2026-11-02) — 이전엔 goal이 11.25m/17m로 너무 멀어서 ego_planner 로컬 그리드맵(로봇 중심 ±10m, grid_map.cpp init(0.1,20,20,...) 확인함)을 벗어나 A* 탐색이 매번 실패했었다. 실제 경기장 bag 녹화 후 전부 교체할 것. 'goal' 필드: 이 구간에 진입하는 순간 /goal_pose로 발행됨 — 중간 구간(콘슬라럼/정지선/계단)은 목표 없이 이미 진행 중인 목표를 향해 ego_planner가 라이다로 알아서 회피주행, start/exit에만 목표 지정(단순화).",
+  "segments": [
+    {"name": "start", "type": "pass_through", "camera_active": false, "obstacle_filter": "strict",
+     "zone": {"x_min": -0.3, "x_max": 0.3, "y_min": -0.3, "y_max": 0.3},
+     "goal": {"x": 6.0, "y": 0.0}},
+    {"name": "cone_slalom", "type": "tune_planner", "camera_active": false, "obstacle_filter": "strict",
+     "params": {"max_vel": 0.3, "note": "누리관 크기제한으로 복도에서 별도 연습 예정"},
+     "zone": {"x_min": 0.3, "x_max": 3.0, "y_min": -0.6, "y_max": 0.6}},
+    {"name": "stopline_1", "type": "stopline", "camera_active": true, "obstacle_filter": "strict",
+     "zone": {"x_min": 3.0, "x_max": 3.5, "y_min": -0.6, "y_max": 0.6}},
+    {"name": "ramp_or_stairs", "type": "gait_switch", "gait": "STATICWALK", "camera_active": false, "obstacle_filter": "relaxed",
+     "zone": {"x_min": 3.5, "x_max": 5.0, "y_min": -1.0, "y_max": 1.0}},
+    {"name": "stopline_2", "type": "stopline", "camera_active": true, "obstacle_filter": "strict",
+     "zone": {"x_min": 5.0, "x_max": 5.5, "y_min": -0.6, "y_max": 0.6}},
+    {"name": "parking", "type": "parking", "camera_active": false, "obstacle_filter": "strict",
+     "zone": {"x_min": 5.5, "x_max": 6.5, "y_min": -0.75, "y_max": 0.75}},
+    {"name": "exit", "type": "pass_through", "camera_active": false, "obstacle_filter": "strict",
+     "zone": {"x_min": 6.5, "x_max": 7.5, "y_min": -1.0, "y_max": 1.0},
+     "goal": {"x": 8.0, "y": 0.0}}
+  ]
+}

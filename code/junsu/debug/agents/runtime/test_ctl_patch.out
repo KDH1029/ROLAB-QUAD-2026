@@ -1,0 +1,16 @@
+{
+ "which": "HEAD",
+ "estop_lifecycle_hang": "★ 예외 TimeoutExpired (관리자 튕김), 러너 남음=True, StopMove 1번",
+ "start_all_stale_runner": "러너 남음=True",
+ "align_tool_died": "러너에 넘길 파일=route_today.json (지난번 파일 그대로면 위험) msg=출발 정렬 거부(원래 경로): {\"T\": [0.2, 0.1, 0.05]}",
+ "align_ok": "파일=route_today.json msg=출발 정렬 OK: {\"T\": [0.1, 0.0, 0.02], \"match\": 0.97, \"",
+ "R_after_restart": "러너 경로=route_map_1106_hybrid.json(정렬 안 된 지도 좌표)"
+}
+{
+ "which": "patched",
+ "estop_lifecycle_hang": "예외 없음, 러너 남음=False, StopMove 2번",
+ "start_all_stale_runner": "러너 남음=False",
+ "align_tool_died": "러너에 넘길 파일=route_map_1106_hybrid.json (지난번 파일 그대로면 위험) msg=★ 출발 정렬 실패([Errno 2] No such file or directory: '/tmp/",
+ "align_ok": "파일=route_today.json msg=출발 정렬 OK: {\"T\": [0.1, 0.0, 0.02], \"match\": 0.97, \"",
+ "R_after_restart": "러너 경로=route_today.json"
+}

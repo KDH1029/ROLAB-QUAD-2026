@@ -1,0 +1,57 @@
+# junsu 11-05: merge review mission_vision cone_tracker_params 그대로 + 지도 토픽(/junsu/map)·저장 경로만 바꿈.
+#   TF 는 /tf_junsu(map→lio_odom→base_link). 출력은 /mission/cones_lidar 로 이름 바꿔 junsu 합치기 노드가 카메라 콘과 묶는다.
+cone_tracker_node:
+  ros__parameters:
+    cloud_topic: /velodyne_points
+    base_frame: base_link
+    world_frame: map
+    base_to_lidar:
+      xyz:
+      - 0.25
+      - 0.0
+      - 0.1588
+      q_xyzw:
+      - 0.0024
+      - 0.0063
+      - 0.7071
+      - 0.707
+    sync:
+      buffer_s: 1.0
+    lidar_cone:
+      z_min: -0.306
+      z_max: -0.086
+      min_points: 3
+      surface_to_center: 0.05
+      cluster_tol: 0.1
+      max_width: 0.3
+      clear_gap: 0.08
+      clear_height: 0.6
+      floor_gap: 0.03
+      floor_radius: 0.4
+      max_range: 6.0
+      tall_cell: 0.04
+      tall_dilate: 1
+      fine_cover: false
+    lidar_only:
+      regions:
+      - 5.95
+      - -0.35
+      - 7.15
+      - 4.9
+      - 0.55
+      - 2.75
+      - 1.5
+      - 3.85
+      wall_clearance: 0.0
+      min_ratio: 0.7
+      min_scans: 20
+      confirm_hits: 5
+      max_spread: 0.08
+      assoc: 0.15
+      map_topic: /junsu/map
+    tracking:
+      alpha_lidar_only: 0.2
+    output:
+      obstacle_radius: 0.08
+      save_path: ~/go2_cones_junsu.yaml
+      load_saved: false

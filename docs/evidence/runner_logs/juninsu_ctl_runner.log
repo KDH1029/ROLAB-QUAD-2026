@@ -1,0 +1,28 @@
+[INFO] [1793942380.989637199] [real_course_runner]: 실측 코스 러너 시작 — 47개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'stopline1', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'line20', 'line21', 'line22', 'line23', 'line24', 'line25', 'line26', 'line27', 'line28', 'stopline2', 'line29', 'line30', 'line31', 'line32', 'line33', 'line34', 'line35', 'line36', 'parking', 'line37', 'line38', 'line39', 'line40', 'line41', 'line42', 'line43', 'exit']
+[WARN] [1793942381.180560220] [real_course_runner]: 자가진단 OK — 현재 (0.00,0.00), start와 0.14m 차이. 코스 시작.
+[WARN] [1793942381.380672490] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793942381.415462230] [real_course_runner]: [line1] 핀 구간 7개 — ego 세우고 회귀 곡선 추종(길이 4.47 m)
+[WARN] [1793942404.180870828] [real_course_runner]: [stopline1] 경로 따라 도착(남은 0.03 m) — 멈춤 확인 뒤 동작
+[WARN] [1793942404.580654658] [real_course_runner]: [stopline1] 도착 -> 제자리 회전 시작 (목표 39도)
+[WARN] [1793942405.181289737] [real_course_runner]: [stopline1] 회전 완료 -> 다음 동작
+[WARN] [1793942405.181586266] [real_course_runner]: [stopline1] 정지선 — 2.0초 정지 뒤 YOLO 켬
+[WARN] [1793942407.381059935] [real_course_runner]: 2.0초 정지 완료 -> YOLO 켜고 초록 기다림
+[WARN] [1793942414.381010407] [real_course_runner]: 녹색 신호 1.0초 연속 확인 -> 출발, 카메라 OFF
+[WARN] [1793942414.581658994] [real_course_runner]: [line7] 핀 구간 23개 — ego 세우고 회귀 곡선 추종(길이 12.07 m)
+[ERROR] [1793942422.580510142] [real_course_runner]: 막혀서 5초 제자리 — 경로 점 하나 건너뜀(구간 1/23번째로)
+[ERROR] [1793942427.780814856] [real_course_runner]: 막혀서 5초 제자리 — 경로 점 하나 건너뜀(구간 2/23번째로)
+[ERROR] [1793942432.980823238] [real_course_runner]: 막혀서 5초 제자리 — 경로 점 하나 건너뜀(구간 3/23번째로)
+[ERROR] [1793942438.180671992] [real_course_runner]: 막혀서 5초 제자리 — 경로 점 하나 건너뜀(구간 4/23번째로)
+[ERROR] [1793942443.580648455] [real_course_runner]: 막혀서 5초 제자리 — 경로 점 하나 건너뜀(구간 5/23번째로)
+Traceback (most recent call last):
+  File "/home/ilovehan9283/ws/juninsu/src/real_course_runner.py", line 1555, in <module>
+    main()
+  File "/home/ilovehan9283/ws/juninsu/src/real_course_runner.py", line 1551, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333

@@ -1,0 +1,237 @@
+{
+ "format": "route_v1",
+ "frame": "1459 지도 좌표(v2 출발 정렬·AMCL 과 같음) — route_v2_1118_pinfix.json 에서 11-06 13:34",
+ "map": "/home/ilovehan9283/ws/junsu_v2/maps/rec1118x/map.npz",
+ "saved": "2026-11-06 13:33:17",
+ "problems": [
+  "line2 벽 0.24 m",
+  "line3 벽 0.21 m",
+  "pin3 벽 0.21 m",
+  "pin9 벽 0.21 m",
+  "line8 벽 0.23 m"
+ ],
+ "route": [
+  {
+   "label": "start",
+   "x": 0.103,
+   "y": 0.043,
+   "clear_m": 0.43
+  },
+  {
+   "label": "line1",
+   "x": 1.674,
+   "y": 0.021,
+   "clear_m": 0.36
+  },
+  {
+   "label": "line2",
+   "x": 2.345,
+   "y": 0.341,
+   "clear_m": 0.24
+  },
+  {
+   "label": "line3",
+   "x": 2.773,
+   "y": 1.069,
+   "clear_m": 0.21
+  },
+  {
+   "label": "line4",
+   "x": 3.138,
+   "y": 1.466,
+   "clear_m": 0.45
+  },
+  {
+   "label": "stopline1",
+   "x": 3.764,
+   "y": 2.167,
+   "clear_m": 0.65
+  },
+  {
+   "label": "line5",
+   "x": 5.497,
+   "y": 4.237,
+   "clear_m": 0.34
+  },
+  {
+   "label": "rabain",
+   "x": 6.369,
+   "y": 4.426,
+   "clear_m": 0.31
+  },
+  {
+   "label": "pin1",
+   "x": 6.588,
+   "y": 4.081,
+   "clear_m": 0.34
+  },
+  {
+   "label": "pin2",
+   "x": 6.411,
+   "y": 3.66,
+   "clear_m": 0.29
+  },
+  {
+   "label": "pin3",
+   "x": 6.688,
+   "y": 2.918,
+   "clear_m": 0.21
+  },
+  {
+   "label": "pin4",
+   "x": 6.493,
+   "y": 2.477,
+   "clear_m": 0.34
+  },
+  {
+   "label": "pin5",
+   "x": 6.42,
+   "y": 2.025,
+   "clear_m": 0.32
+  },
+  {
+   "label": "pin6",
+   "x": 6.652,
+   "y": 1.621,
+   "clear_m": 0.26
+  },
+  {
+   "label": "pin7",
+   "x": 6.678,
+   "y": 0.962,
+   "clear_m": 0.31
+  },
+  {
+   "label": "pin8",
+   "x": 6.449,
+   "y": 0.783,
+   "clear_m": 0.26
+  },
+  {
+   "label": "pin9",
+   "x": 6.172,
+   "y": 0.649,
+   "clear_m": 0.21
+  },
+  {
+   "label": "rabaout",
+   "x": 5.695,
+   "y": 0.38,
+   "clear_m": 0.42
+  },
+  {
+   "label": "line6",
+   "x": 5.447,
+   "y": 0.722,
+   "clear_m": 0.43
+  },
+  {
+   "label": "line7",
+   "x": 5.172,
+   "y": 0.636,
+   "clear_m": 0.26
+  },
+  {
+   "label": "line8",
+   "x": 4.777,
+   "y": 0.951,
+   "clear_m": 0.23
+  },
+  {
+   "label": "line9",
+   "x": 4.283,
+   "y": 1.451,
+   "clear_m": 0.25
+  },
+  {
+   "label": "line10",
+   "x": 4.039,
+   "y": 1.895,
+   "clear_m": 0.45
+  },
+  {
+   "label": "stopline2",
+   "x": 3.763,
+   "y": 2.17,
+   "clear_m": 0.65
+  },
+  {
+   "label": "line11",
+   "x": 1.67,
+   "y": 4.247,
+   "clear_m": 0.32
+  },
+  {
+   "label": "line12",
+   "x": 0.614,
+   "y": 4.19,
+   "clear_m": 0.31
+  },
+  {
+   "label": "line13",
+   "x": 0.757,
+   "y": 3.416,
+   "clear_m": 0.27
+  },
+  {
+   "label": "line14",
+   "x": 0.915,
+   "y": 2.998,
+   "clear_m": 0.38
+  },
+  {
+   "label": "line15",
+   "x": 1.184,
+   "y": 2.589,
+   "clear_m": 0.27
+  },
+  {
+   "label": "line16",
+   "x": 0.954,
+   "y": 2.017,
+   "clear_m": 0.52
+  },
+  {
+   "label": "parking",
+   "x": -0.345,
+   "y": 2.038,
+   "clear_m": 0.59
+  },
+  {
+   "label": "wall1",
+   "x": -0.345,
+   "y": 2.034,
+   "clear_m": 0.59
+  },
+  {
+   "label": "line17",
+   "x": 0.91,
+   "y": 2.112,
+   "clear_m": 0.42
+  },
+  {
+   "label": "line18",
+   "x": 1.075,
+   "y": 2.936,
+   "clear_m": 0.36
+  },
+  {
+   "label": "line19",
+   "x": 0.752,
+   "y": 3.358,
+   "clear_m": 0.26
+  },
+  {
+   "label": "line20",
+   "x": 0.502,
+   "y": 4.021,
+   "clear_m": 0.42
+  },
+  {
+   "label": "exit",
+   "x": -0.961,
+   "y": 3.984,
+   "clear_m": 0.6
+  }
+ ]
+}

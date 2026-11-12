@@ -1,173 +1,90 @@
-# ROLAB-QUAD-2026
+# Go2 사족보행 자율주행 — 로보월드 2026 (우수상)
 
-Unitree Go2 EDU 사족보행 로봇이 경사로·계단·좁은 통로가 섞인 코스를 자율주행하기 위한 ROS 2 워크스페이스.
-2026 로보월드 4족보행로봇 경진대회(출발 → 경사/계단 교차로 → 신호등 정지선 → 라바콘 슬라럼 → 주차 → 도착)용.
-대회 규정·QnA·경기장 배치도: [docs/rulebook/](docs/rulebook/)
+Unitree Go2 EDU 사족보행 로봇으로 실내 장애물 코스를 자율주행한 대회 프로젝트의 코드와 기록이다.
+2026-08 말부터 2026-11-06 본선까지의 작업을 담았다.
 
-## 주요 기능
+## 결과
+- **350점 / 만점 450 — 우수상**
+- 규정 점수표: 정지선 2곳 100 · 장애물 100 · 주차 50 · 완주 200. 완주 없이 받을 수 있는 최고점이 250이므로, 채점 회차는 완주로 인정됐다.
+- 러너 로그 기준 실주행(11-05~06): 출발 17번
+  - 완주 판정 2번: 11-05 11:31 215초, 11-05 16:54 134초
+  - 출구까지 갔지만 통과 판정 전 정지 2번: 11-06 11:19 168초, 11-06 14:15 136초
+  - 자세한 기록: [docs/05_실주행_기록.md](docs/05_실주행_기록.md)
 
-- **경사에 강한 2D 스캔**: 인접 LiDAR 링이 같은 수평 거리에 맞는 수직면만 장애물로 사용 (경사로·계단을 벽으로 오인하지 않음)
-- **위치추정**: FAST-LIO(LiDAR-관성 오도메트리) + AMCL(2D 지도, Omni 이동 모델, FAST-LIO 를 이동 입력으로 — 대회장 녹화 중앙 3 cm). 출발 정렬(`go2_start_align.py`)
-- **지도**: 저장소 밖에서 만든 FAST-LIO 지도(.pgm/.yaml)를 쓰고, 매핑 중 찍힌 콘은 `go2_map_clean.py` 로 지운다
-- **경로 생성**: EGO-Planner (A* + B-spline 최적화), 모든 파라미터 YAML 분리, 충돌 시 정지
-- **라바콘 위치 인식 (LiDAR 만)**: 스캔마다 벽·다리 같은 키 큰 기둥을 먼저 빼고 콘 모양 덩어리를 찾아, 같은 지도 자리에서
-  계속 보이면 콘으로 확정·저장. 확정된 콘은 가까이 가서 안 보여도 경로 계획에 남는다 (대회장 녹화 10/10, 가짜 0)
-- **경로 계획의 콘 전용 여유**: 콘 중심 좌표를 벽과 별도로 — 절대 접근 금지 반경, 밀어내는 범위·세기를 YAML 로 관리
-- **범위**: 이 저장소는 오도메트리·위치추정(AMCL)·경로 생성까지. 미션 제어(경로 순서, 정지선·신호등, 주차)와 비전은 팀원 담당
-  — 팀원 쪽은 `/goal_pose`(map 좌표)로 목표를 주고, 정지는 모터 브리지 비활성(`go2_cmd_vel_to_sport`)으로
-- **안전**: 모든 런타임 노드가 lifecycle 노드 (비활성화 = 정지), 모터 브리지는 마지막에 기동, 모터 없는 시험 모드
-- **보험 모드**: 지도·SLAM 없이 RANSAC 벽 직선 추종
+## 코스와 과제
+8 × 6 m 경기장. 다음 과제를 순서대로 수행한다.
+- 출발 → 정지선 1(신호등) → 라바콘 슬라럼 → X자 교차로(가운데 높은 단, 계단·경사로) → 정지선 2 → 주차(4다리 접고 5초) → Out Line
+- 연산·전원은 전부 로봇 위에서 처리해야 한다. 경기 중 센서 데이터를 밖으로 보내면 안 된다.
+- 대회 중(11-05) 규정이 바뀌었다: 콘을 고정하고 대형(높이 0.7~0.8 m)으로 교체해, 학습해 둔 YOLO로는 콘을 인식할 수 없게 됐다.
 
-## 시스템 구성
-
+## 시스템 한눈에
 ```
- XT16 LiDAR ──► cloud_bridge ──► 수직성 스캔 /scan ──┬──► AMCL ──► map 좌표 ──┐ 목표·장애물 변환
-     │                                              └──► EGO-Planner ◄────────┘
-     └────────► FAST-LIO ──► /Odometry ────────────────► EGO-Planner (국소 제어)
- Go2 /lowstate ──► imu_bridge (IMU → 중력 기준 base_stab)
- FAST-LIO /Odometry ──► odom_tf ──► AMCL 이동 입력 (--leg-odom: Go2 다리 odom)
- XT16 ──► cone_tracker (콘 덩어리 → 지도 좌표 확정) ──► /mission/cones ──► EGO-Planner (콘 전용 여유)
- EGO-Planner ──► cmd_vel_to_sport ──► Go2 Sport API
+센서      Hesai XT16(16빔) · Go2 내장 L1 · 몸통 IMU 500 Hz · 다리 기구학 odom · D435i · 앞머리 카메라
+            │
+위치추정  FAST-LIO(다리 속도 결합·모션 게이팅, max_range 15)
+          + AMCL(Omni 이동모델, 이동 입력 = FAST-LIO)  + 출발 정렬(첫 3초 스캔 ↔ 지도)
+            │
+인식      LiDAR 콘 추적기 · YOLO 신호등(내부 PC, TensorRT FP16)
+            │
+계획·미션 ┌ 자율주행 미션 플래너: EGO-Planner + 코스 러너 (Rgosu → junsu)
+          └ 기록 경로 반복 미션 플래너: 한 번 몰아 기록한 경로를 따라감 (junk → juninsu)
+            │
+제어      go2_bridge → Unitree Sport API (ClassicWalk, 직진 쏠림 보정, 최소 유효 명령)
+연산      NUC16(Core Ultra 7, ROS 2 Jazzy) + 로봇 내부 PC(Jetson Orin NX, Foxy: 카메라·YOLO)
 ```
 
-| 하드웨어 | |
+## 팀
+정해진 역할 분담 없이, 모든 작업공간을 팀원들이 함께 작업했다. 이름은 책임자 또는 주 기여자다.
+
+| 구분 | 폴더 | 책임자 | 내용 |
+|---|---|---|---|
+| 기반 기술 | `code/merge_tmp` | 김도현 | 위치추정(AMCL Omni·FAST-LIO odom·다리 결합 FAST-LIO), 출발 정렬, EGO 최적화, LiDAR 콘 추적기, 카메라 캘리브레이션 |
+| 기반 기술 | `code/yolo` | 송인애 | 신호등·콘 인식 모델 |
+| 미션 플래너(자율주행) | `code/rgosu` | 고수영 | 통합 주행 스택의 틀: FAST-LIO + EGO-Planner + 코스 러너 |
+| 미션 플래너(자율주행) | `code/junsu` | 한준희 | Rgosu 틀에 기반 기술을 묶은 통합 스택 |
+| 미션 플래너(기록 경로 반복) | `code/junk` → `code/juninsu` | 김도현 → 송인애 | 규정 변경 대응. 실시간 경로 계획을 하는 일반적인 자율주행 알고리즘이 아니라 기록 경로 추종 방식 |
+| 로봇 보정 | (각 플래너의 모터 설정) | 김도현 → 송인애 | 주행 중 왼쪽 쏠림 피드포워드 보정 |
+
+## 폴더
+| 경로 | 내용 |
 |---|---|
-| 로봇 | Unitree Go2 EDU |
-| LiDAR | Hesai XT16 (16채널) |
-| 카메라 | Intel RealSense D435i (로봇 내부 PC, 팀원 비전용 — 이 저장소는 안 씀) |
-| 연산 | Intel NUC 16 (Ubuntu 24.04, ROS 2 Jazzy) |
+| [docs/01_시스템_구성.md](docs/01_시스템_구성.md) | 하드웨어·네트워크·소프트웨어 구성, 기술 계보 |
+| [docs/02_기술_구현.md](docs/02_기술_구현.md) | 분야별 구현과 실측 성능 |
+| [docs/03_트러블슈팅.md](docs/03_트러블슈팅.md) | 문제 → 원인 → 해결 → 근거 숫자 |
+| [docs/04_설계_결정.md](docs/04_설계_결정.md) | 갈림길마다 고른 것과 버린 것, 그 근거 |
+| [docs/05_실주행_기록.md](docs/05_실주행_기록.md) | 러너 로그에서 뽑은 11-05~06 실주행 18건 |
+| [docs/06_타임라인.md](docs/06_타임라인.md) | 2026-08 ~ 11 주요 사건 |
+| [docs/SOURCES.md](docs/SOURCES.md) | 각 `code/` 폴더의 원본 위치·커밋·가져온 방법 |
+| `code/` | 작업공간 6개 + 연구 코드(원본별 시점은 SOURCES 참고) |
+| `tools/real_runs_extract.py` | 러너 로그 → 실주행 표 추출기 |
 
-## 요구 사항
+## 코드 재사용 안내
+작업공간마다 `README.md` 에 기능, 구조, 의존성, 빌드, 실행, 로봇 없이 시험, 재사용할 때 고칠 곳, 알려진 문제를 같은 틀로 적었다.
 
-- ROS 2 Jazzy (Humble 에서도 빌드되도록 작성), CycloneDDS (`rmw_cyclonedds_cpp`)
-- Nav2 (`nav2_amcl`, `nav2_map_server`, `nav2_lifecycle_manager`), PCL (`pcl_ros`), Eigen3, Boost, yaml-cpp, Python numpy·scipy·PyYAML (그림은 matplotlib)
-- FAST-LIO, Livox 메시지, Hesai XT16 드라이버, Unitree 메시지는 저장소에 포함 (`src/external`, `src/interfaces`)
-
-## 빌드
-
-```bash
-git clone https://github.com/kdh1029/rolab-quad-2026.git
-cd rolab-quad-2026
-source /opt/ros/jazzy/setup.bash
-colcon build --symlink-install
-source install/setup.bash
-```
-
-## 사용법
-
-로봇에 영향을 주는 명령은 직접 터미널에서 실행한다. Ctrl+C 로 전체 정지(StopMove 전송).
-
-```bash
-# 1. 녹화 (조종기로 주행): ./scripts/go2_record.sh <이름> "<메모>"
-# 지도는 이 저장소 밖에서 만든다 (FAST-LIO 녹화 재생 → .pgm/.yaml). 결과를 maps/ 에 두고, 콘이 찍혔으면
-#   python3 scripts/go2_map_clean.py maps/arena.yaml --write   → maps/arena_clean.yaml
-
-# 2. 주행 스택
-./scripts/go2_run.sh --map maps/arena.yaml --start "0 0 0"         # --cones: 라바콘 추적, --no-motor: 모터 없음
-python3 scripts/go2_goto.py --x 2.0 --y 1.0 --yaw 0                 # 목표 (map 좌표)
-
-# 3. 보험 모드
-./scripts/go2_run.sh --mode patrol
-ros2 topic pub --once /patrol/cmd std_msgs/msg/String "{data: START}"
-```
-
-- 소프트웨어 정지: `ros2 lifecycle set /go2_cmd_vel_to_sport deactivate`
-- 녹화본 시험: `GO2_RUN_TEST_LO=<도메인>` / `GO2_MAP_TEST_LO=<도메인>` → 루프백 전용, 로봇과 섞이지 않음
-
-## 설정 파일
-
-| 파일 | 내용 |
+| 목적 | 먼저 볼 곳 |
 |---|---|
-| `src/core/go2_bridge/config/bridge_params.yaml` | 브리지, 스캔 방식(`scan_mode: vertical`), 모터 제한 |
-| `src/core/go2_localization/config/amcl_params.yaml` | AMCL (Omni 이동 모델) |
-| `src/core/ego_planner/config/ego_planner_params.yaml` | 경로 생성 (팽창·반발 거리, 최적화, 제어 이득, `cones:` 콘 전용 여유) |
-| `src/missions/mission_vision/config/cone_tracker_params.yaml` | 라바콘 (LiDAR): 콘 판정, 콘 구역(`regions`), 확정·저장, LiDAR 장착 위치 |
-| `src/fallback/go2_wall_patrol/config/patrol_params.yaml` | 보험 모드 |
-| `config/system_params.yaml` | 매핑 (2D 변환, 자동 수평, 위치 소스) |
-| `config/fastlio/fastlio_xt16_odometry.yaml` | FAST-LIO (XT16) |
+| Go2 + XT16 로 위치추정·경로 계획만 가져다 쓰기 | [`code/merge_tmp`](code/merge_tmp/README.md) (맨 아래 "재사용 가이드") |
+| 코스 과제를 자율주행으로 수행하는 전체 스택 | [`code/junsu`](code/junsu/README.md) (원형은 [`code/rgosu`](code/rgosu/README.md)) |
+| 고정 코스를 확실히 완주하는 기록 경로 반복 | [`code/juninsu`](code/juninsu/README.md) (단순판·비교는 [`code/junk`](code/junk/README.md)) |
+| 신호등·콘 YOLO 학습과 젯슨 TensorRT 배포 | [`code/yolo`](code/yolo/README.md) |
+| 백업 위치추정, 경사로 헛장애물 제거, 녹화 도구 | [`code/research`](code/research/README.md) |
 
-## 저장소 구조
-
+### 작업공간 사이의 빌드 의존
+미션 플래너들은 다른 작업공간의 빌드 결과(`install/`)를 `source` 해서 쓴다. 가져다 쓸 때는 **merge_tmp 를 먼저 빌드**한다.
 ```
-src/core/go2_bridge           LiDAR·IMU·odom·모터 브리지, 수직성 스캔, 매퍼
-src/core/go2_localization     AMCL 설정
-src/core/go2_navigation       통합 런치 (go2_stack.launch.py)
-src/core/ego_planner          EGO-Planner, 오프라인 시험 도구 (test_plan_on_map)
-src/missions/mission_vision   cone_tracker (LiDAR 콘), 콘 판정 합성 시험
-src/fallback/go2_wall_patrol  RANSAC 벽 추종 (보험)
-src/interfaces                Unitree 메시지
-src/external                  FAST-LIO, Livox 메시지, Hesai 드라이버 (포크, 출처: src/external/README.md)
-scripts/                      go2_run.sh, go2_map_clean.py, go2_amcl_init.py, go2_start_align.py, go2_goto.py
-config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
+merge_tmp  (go2_bridge·Hesai 드라이버·Unitree 메시지·AMCL 설정·EGO·콘 추적기)
+   ▲ source                       ▲ source
+junsu / rgosu                  junk / juninsu
+ + ws_fastlio_tunable           + ws_fastlio_tunable
+ + ws_ego_review / ws_ego_planner_tunable
+ + ws_wall_filter · ws_mission_vision · ws_legfuse_gated
+   └ 내부 PC: onboard_vision (YOLO, TensorRT) ── 양쪽 모두
 ```
+- 스크립트의 절대 경로(`~/ws/...`, `~/junsu_vision`)는 원래 개발 PC 기준이다. 각 README 의 "재사용할 때 고칠 곳"에 찾는 명령을 적었다.
+- 공통 운영 조건: CycloneDDS, 커널 `rmem_max/wmem_max` 128 MB, 로봇은 엎드려 켜고 기립 후 30초 안에 출발, 재생은 별도 DDS 도메인에서.
 
-## 검증 결과
-
-녹화본(누리관 경사·계단 구간, 542초) 재생과 합성 데이터 기준. 실기·대회장 검증 전.
-
-| 항목 | 이전 | 현재 |
-|---|---|---|
-| AMCL 위치 상실 (오차 > 0.5 m) | 306 s / 528 s | 0 s (2회 재현, 오차 중앙 약 8 cm) |
-| AMCL 출발 위치 0.49 m·20° 오차 | 출발 후 30초 동안 틀림 | 정지 상태 10초 만에 6 cm |
-| 지도 벽 두께 | 24.6 cm | 13.2 cm |
-| 걸은 경로가 장애물로 찍힌 비율 | 99 % | 0 % |
-| 경로 계획 성공률 / 벽 최소 이격 | 71~75 % / 0.00 m | 88 % / 0.23 m |
-| 경사 10~25°·계단 가짜 벽 (합성) | 경사·계단에서 발생 | 0 |
-| 라바콘 LiDAR 판정 (합성, 55 cm 간격 2개 포함 4개) | — | 4/4 검출, 오차 0.2~3 cm, 기둥·벽 오검출 0 |
-| 라바콘 LiDAR 확정 (대회장 녹화 145915, 콘 10개) | 6/10 (벽에 붙은 콘 놓침) | 10/10, 오차 6~13 cm, 가짜 0 |
-| 콘 2.5 m 간격 경로 계획 (누리관 지도) | 반발 없음 28 % | 70 %, 콘 절대 반경 침범 0 |
-| AMCL 이동 입력 다리 odom → FAST-LIO (대회장 녹화 3개) | 중앙 9~14 cm | 3~3.6 cm, 스캔 일치 97~99 % |
-| 슬라럼 1.0 m 통로 경로 계획 (규정 치수 지도) | — | 콘 지그재그(±0.25 m) 100 %, 콘이 가운데면 기본값 0 % (아래 제한) |
-| base_stab 기구학 보정 켜짐 → 꺼짐 | 흔들림 2.5배, 중력 대비 2.6° | AMCL 동등 (중앙 8.3 → 7.0 cm) → 꺼짐 |
-
-자세한 측정 방법과 구현: [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md)
-
-## 알려진 제한
-
-- FAST-LIO 는 XT16 `/lidar_points` 와 CycloneDDS 에서만 안정적으로 확인됨. 높이(z) 드리프트 있음(9분 +0.83 m, 2D 주행에는 영향 없음)
-- **슬라럼 통로 폭은 약 1.0 m** (지도 0.99 m). 콘이 통로 가운데에 있으면 양쪽 틈 0.425 m 에 로봇 0.31 m — 각 5.75 cm 여유.
-  기본 설정으로는 경로가 안 나오고, `grid.resolution 0.05`·`inflate_radius 0.19`·`cones.inflate_radius 0.25` 로도 25~40 %
-- 라바콘은 LiDAR 만: 콘 구역(`regions`, 지도 좌표) 밖에서는 계단·경사로 모서리, 낮고 좁은 물체가 콘이 된다(콘 없는 10-30 건물
-  녹화 41개) — 지도가 바뀌면 구역을 다시 정할 것. 왼쪽 콘 2개는 보는 방향에 따라 2~3개로 겹쳐 확정되기도 함
-- FAST-LIO 가 튀어도 이 스택은 스스로 멈추지 않는다(예전 경로 실행기의 튐 감지는 미션 제어와 함께 삭제) — 팀원 미션 쪽에서 감시할 것
-- 보험 모드는 직사각형 경기장에서 검증 필요
-
-## 문서
-
-- [docs/rulebook/](docs/rulebook/) — 2026 로보월드 대회 규정, QnA(라바콘 23 cm·14×14 cm, 신호등 130 cm), 경기장 배치도
-- [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md) — 진행 상황, 구현 방법, 측정 결과
-- [docs/OPERATIONS.md](docs/OPERATIONS.md) — 운용·튜닝 (이전 README)
-- [docs/GITHUB_RULES.md](docs/GITHUB_RULES.md) — 협업 규칙
-- [docs/Blueprint_Complete.md](docs/Blueprint_Complete.md) — 설계 블루프린트
-- [docs/HANDOVER_ROBOWORLD_2026.md](docs/HANDOVER_ROBOWORLD_2026.md) — 인수인계
-
-## 참고 논문 (References)
-
-본 프로젝트의 궤적 계획, 3D 매핑, 위치추정은 다음 연구들을 바탕으로 사족보행 환경에 맞춰 구현·적용되었습니다:
-
-1. **ABPolicy (Asynchronous B-Spline Flow Policy & $C^2$ Handover)**
-   - Yang, F., Jing, P., Qu, K., Zhao, N., & Su, Y. (2026). *ABPolicy: Asynchronous B-Spline Flow Policy for Real-Time and Smooth Robotic Manipulation*. arXiv preprint [arXiv:2602.23901](https://arxiv.org/abs/2602.23901).
-   - *적용*: `src/core/ego_planner`의 비동기 재계획 시 저크(Jerk) 없는 $C^2$ 연속 궤적 스티칭(`optimizeWithContinuity`) 구현
-
-2. **EGO-Planner (ESDF-free Gradient-based Local Planner)**
-   - Zhou, X., Wang, Z., Ye, H., Xu, C., & Gao, F. (2021). *EGO-Planner: An ESDF-free Gradient-based Local Planner for Quadrotors*. IEEE Robotics and Automation Letters (RA-L), 6(2), 478-485. [DOI: 10.1109/LRA.2020.3047728](https://doi.org/10.1109/LRA.2020.3047728).
-   - *적용*: B-스플라인 제어점 수치 최적화 및 2D 라이다 점군 장애물 반발력 모델
-
-3. **FAST-LIO2 (Fast Direct LiDAR-Inertial Odometry)**
-   - Xu, W., Cai, Y., He, D., Lin, J., & Zhang, F. (2022). *FAST-LIO2: Fast Direct LiDAR-Inertial Odometry*. IEEE Transactions on Robotics (T-RO), 38(4), 2053-2073. [DOI: 10.1109/TRO.2022.3141876](https://doi.org/10.1109/TRO.2022.3141876).
-   - *적용*: `src/external/fast_lio` 기반 Hesai XT16 + Go2 IMU(500Hz) 고주파 주행 오도메트리 및 3D 점군 지도(`.pcd`) 구축
-
-## 라이선스
-
-Apache-2.0. 단, `src/interfaces`(Unitree, BSD 3-Clause)와 `src/external`(FAST-LIO GPL-2.0, Hesai BSD 등)은
-각 패키지의 라이선스를 따른다 ([src/external/README.md](src/external/README.md)).
-
-
-1. 신호등 4초 기다리기 문제.
-가끔 4초 넘게 안 바뀌는 경우 있으니 대기 시간 늘리기
-2. 왼쪽 쏠림 보정 필수.
-3. 위치추정 발산
-4. 주차장에서 진입후 앉았다 회전하기. 회전후 바로 앉으려면 불안정함. 잠깐 기다리고 안정화한 후 도는 방밥더 있지만 앉았다 일어난 다음 도는게 훨씬 깔끔
-5. 경로를 주차장 안까지 한번에 가려고 하니 꼬깔을 쳐바림 꼬깔 앞뒤로 핀을 찍어 그 부분만 regression 기반 알고리즘으로 주행
-6. 슬라럼 주행중 길이 막혔다고 판단될 때 매번 4초 기다릴 필요 있을까? 그리고 경로 생성 알고리즘 조금 손봐야 할듯. 너무 쉽게 막힘.
-7. 벽에 페널티 강화하기. 자꾸 부딛힘
+## 읽을 때 주의
+- 코드는 대회 현장 작업본이라 단독 빌드·실행을 보장하지 않는다. ROS 2 Jazzy, Unitree SDK2, Hesai 드라이버, 로봇 실기가 필요하다.
+- 녹화(bag)·3D 지도(pcd)·모델 가중치·엔진 파일은 용량 때문에 빠져 있다(git 이력 안의 작은 지도 npz 는 남아 있음).
+- 숫자는 모두 측정 조건과 함께 적었다. 조건 없이 인용하지 말 것(예: "FAST-LIO 오차 ≤ 4 cm"는 슬라럼 밖 4분 재생 기준).
+- 외부 코드가 들어 있다: FAST-LIO(GPL-2.0), Hesai ROS 드라이버(Hesai 라이선스), EGO-Planner 등. 공개 전에 각 폴더의 LICENSE 를 확인할 것.
