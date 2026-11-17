@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CycloneDDS xmlns="https://cdds.io/config"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://cdds.io/config https://raw.githubusercontent.com/eclipse-cyclonedds/cyclonedds/master/etc/cyclonedds.xsd">
+  <Domain id="any">
+    <General>
+      <Interfaces>
+        <NetworkInterface name="robot-br" priority="default" multicast="default"/>
+      </Interfaces>
+      <AllowMulticast>spdp</AllowMulticast>   <!-- junsu 11-05: 데이터는 유니캐스트. default 면 라이다 점구름(1.4 MB×20 Hz)이 멀티캐스트로 robot-br 양쪽 포트(100 Mb/s 포함)로 넘쳐 링크 포화 → XT16 7.6 Hz -->
+      <MaxMessageSize>65500B</MaxMessageSize>
+      <FragmentSize>8000B</FragmentSize>
+    </General>
+    <Internal>
+      <SocketReceiveBufferSize min="64MB"/>
+    </Internal>
+    <Discovery>
+      <MaxAutoParticipantIndex>80</MaxAutoParticipantIndex>
+    </Discovery>
+  </Domain>
+</CycloneDDS>

@@ -1,0 +1,4 @@
+=== r1650  도메인 78  21:12:05
+  go2_imu_bridge: active [3]
+  go2_cloud_bridge: active [3]
+=== r1650 끝 21:14:43  1.1G  FAST-LIO 경고: 0

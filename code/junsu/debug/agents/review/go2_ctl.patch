@@ -1,0 +1,47 @@
+--- a/tools/go2_ctl.py
++++ b/tools/go2_ctl.py
+@@ -70,6 +70,11 @@
+ }
+ 
+ 
++# ★ review: 저장된 작전(go2_ctl_state.json)이 코드 기본값을 통째로 덮었다 — 11-06 08시 상태 파일의 route 가 옛 route_map.json(11-05 14:15, 슬라럼 대체 길 없음)이라
++#   관리자 기본(route_map_1106.json)·설명서 권장(hybrid)이 실제로는 안 쓰였다. 기본값을 바꿀 때 이 번호를 올리면 옛 저장값은 버린다(마지막 목표 번호는 유지).
++OPS_VER = '1106-review'
++
++
+ EGO_REVIEW = os.path.join(J, 'ws_ego_review')   # merge_tmp review/src/core/ego_planner 를 복사해 junsu 에서 빌드(SOURCE.txt 에 커밋)
+ 
+ 
+@@ -256,7 +261,13 @@
+         self.specs = {s[0]: s for s in comp_specs()}
+         os.makedirs(LOG, exist_ok=True)
+         try:
+-            st = json.load(open(STATE)); OPS.update(st.get('ops', {})); self.last_runner_idx = st.get('last_idx', 0)
++            st = json.load(open(STATE)); self.last_runner_idx = st.get('last_idx', 0)
++            if st.get('ver') == OPS_VER:
++                OPS.update(st.get('ops', {}))
++            else:
++                self.msg = f"옛 작전 저장값(경로 {os.path.basename(str(st.get('ops', {}).get('route', '?')))}) 버림 — 기본값 사용(경로 {os.path.basename(OPS['route'])})"
++            if not os.path.exists(OPS['route']):
++                OPS['route'] = os.path.join(J, 'maps', 'route_map_1106.json')
+             if OPS.get('cones') == 'on':
+                 OPS['cones'] = 'cam'      # 예전 저장값(on/off) → 지금 이름
+         except Exception:
+@@ -265,7 +276,7 @@
+ 
+     def save(self):
+         try:
+-            json.dump({'ops': OPS, 'last_idx': self.last_runner_idx}, open(STATE, 'w'), ensure_ascii=False, indent=1)
++            json.dump({'ver': OPS_VER, 'ops': OPS, 'last_idx': self.last_runner_idx}, open(STATE, 'w'), ensure_ascii=False, indent=1)
+         except Exception:
+             pass
+ 
+@@ -346,6 +357,8 @@
+                  ('fusion', '/mission/obstacle_cloud', 8), ('ego', None, 2), ('loc', '/mission/loc_watch', 6), ('guard', '/mission/guard', 3), ('vision', None, 0)]
+         if OPS.get('loc', 'on') != 'on':
+             order = [o for o in order if o[0] != 'loc']
++        if OPS.get('guard', 'on') != 'on':     # ★ review: 필터를 끈 기본(off)에서도 파이썬 노드가 모든 /cmd_vel 을 검사(후보 125개×자세)하며 CPU 를 썼다 — 끔이면 안 띄움
++            order = [o for o in order if o[0] != 'guard']
+         for name, topic, wait in order:
+             self.msg = f'{name} 켜는 중…'; self.start(name)
+             t0 = time.monotonic()

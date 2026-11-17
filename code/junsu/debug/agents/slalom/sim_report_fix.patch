@@ -1,0 +1,20 @@
+--- a/sim/sim_report_v2.py
++++ b/sim/sim_report_v2.py
+@@ -9,7 +9,16 @@
+ P = [e for e in E if e['ev'] == 'pose']
+ t = np.array([e['t'] for e in P]); g = np.array([e['gap'] for e in P]); v = np.array([e['v'] for e in P]); rs = [e.get('rs', '') for e in P]
+ x = np.array([e['x'] for e in P]); y = np.array([e['y'] for e in P])
+-R = json.load(open(os.path.join(O, 'route.json')))['route']; SL = np.array([[e['x'], e['y']] for e in R[6:25]]); lo, hi = SL.min(0) - 0.4, SL.max(0) + 0.4
++RJ = json.load(open(os.path.join(O, 'route.json'))); R = RJ['route']
++# ★ 11-06 slalom 점검: R[6:25] 는 옛 경로(rec1650 #7~#25) 번호 — hybrid 경로에선 line3~exit(코스 대부분)을 '슬라럼'으로 셌다. slalom_path → rabain~rabaout → 옛 번호 순
++_lab = [e['label'] for e in R]
++if RJ.get('slalom_path'):
++    SL = np.array(RJ['slalom_path'], float)
++elif 'rabain' in _lab and 'rabaout' in _lab:
++    SL = np.array([[e['x'], e['y']] for e in R[_lab.index('rabain'):_lab.index('rabaout') + 1]])
++else:
++    SL = np.array([[e['x'], e['y']] for e in R[6:25]] or [[1e9, 1e9]])
++lo, hi = SL.min(0) - 0.4, SL.max(0) + 0.4
+ inz = (x > lo[0]) & (x < hi[0]) & (y > lo[1]) & (y < hi[1])
+ st = [i for i, s in enumerate(rs) if s and s not in ('START_CHECK', '')]
+ t_start = t[st[0]] if st else t[0]

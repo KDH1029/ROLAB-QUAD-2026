@@ -1,0 +1,61 @@
+[INFO] [1793908360.153197140] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908360.153693622] [real_course_runner]: 자가진단 OK — 현재 (5.65,3.00), start와 0.05m 차이. 코스 시작.
+[WARN] [1793908360.153921064] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908360.215067249] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.83 m)
+[WARN] [1793908360.253293102] [real_course_runner]: [exit] 경로 따라 도착(남은 0.04 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908360.403013081] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908360.403509508] [real_course_runner]: 자가진단 OK — 현재 (5.65,3.13), start와 0.09m 차이. 코스 시작.
+[WARN] [1793908360.403819118] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908360.404855749] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.76 m)
+[WARN] [1793908360.445819098] [real_course_runner]: [exit] 경로 따라 도착(남은 0.05 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908360.640390035] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908360.641009627] [real_course_runner]: 자가진단 OK — 현재 (5.61,2.99), start와 0.07m 차이. 코스 시작.
+[WARN] [1793908360.641357025] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908360.642379704] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.88 m)
+[WARN] [1793908360.679456968] [real_course_runner]: [exit] 경로 따라 도착(남은 0.04 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908360.866573781] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908360.867125481] [real_course_runner]: 자가진단 OK — 현재 (5.57,2.98), start와 0.11m 차이. 코스 시작.
+[WARN] [1793908360.867429436] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908360.868509967] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.93 m)
+[WARN] [1793908360.913608798] [real_course_runner]: [exit] 경로 따라 도착(남은 0.05 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908361.092000452] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908361.092483877] [real_course_runner]: 자가진단 OK — 현재 (5.75,3.06), start와 0.09m 차이. 코스 시작.
+[WARN] [1793908361.092759620] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908361.093714182] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.68 m)
+[WARN] [1793908361.129713083] [real_course_runner]: [exit] 경로 따라 도착(남은 0.02 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908361.320184191] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908361.320511556] [real_course_runner]: 자가진단 OK — 현재 (5.70,3.13), start와 0.10m 차이. 코스 시작.
+[WARN] [1793908361.320719933] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908361.321387742] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.70 m)
+[WARN] [1793908361.350272011] [real_course_runner]: [exit] 경로 따라 도착(남은 0.06 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908361.546349162] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908361.546888331] [real_course_runner]: 자가진단 OK — 현재 (5.67,3.00), start와 0.05m 차이. 코스 시작.
+[WARN] [1793908361.547236348] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908361.548262806] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.80 m)
+[WARN] [1793908361.584190042] [real_course_runner]: [exit] 경로 따라 도착(남은 0.06 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908361.771678826] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908361.772236651] [real_course_runner]: 자가진단 OK — 현재 (5.68,3.11), start와 0.07m 차이. 코스 시작.
+[WARN] [1793908361.772537607] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908361.773599933] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.73 m)
+[WARN] [1793908361.816755226] [real_course_runner]: [exit] 경로 따라 도착(남은 0.05 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908361.993414087] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908361.994073380] [real_course_runner]: 자가진단 OK — 현재 (5.64,3.17), start와 0.12m 차이. 코스 시작.
+[WARN] [1793908361.994376076] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908361.995404033] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.77 m)
+[WARN] [1793908362.029194801] [real_course_runner]: [exit] 경로 따라 도착(남은 0.05 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908362.219559277] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908362.220027731] [real_course_runner]: 자가진단 OK — 현재 (5.73,3.04), start와 0.07m 차이. 코스 시작.
+[WARN] [1793908362.220315506] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908362.221332418] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.71 m)
+[WARN] [1793908362.257253127] [real_course_runner]: [exit] 경로 따라 도착(남은 0.02 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908362.442398849] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908362.442925662] [real_course_runner]: 자가진단 OK — 현재 (5.74,2.99), start와 0.10m 차이. 코스 시작.
+[WARN] [1793908362.443238351] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908362.444311142] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.73 m)
+[WARN] [1793908362.482144236] [real_course_runner]: [exit] 경로 따라 도착(남은 0.05 m) — 멈춤 확인 뒤 동작
+[INFO] [1793908362.665865895] [real_course_runner]: 실측 코스 러너 시작 — 20개 목표: ['line1', 'line2', 'line3', 'line4', 'line5', 'line6', 'line7', 'line8', 'line9', 'line10', 'line11', 'line12', 'line13', 'line14', 'line15', 'line16', 'line17', 'line18', 'line19', 'exit']
+[WARN] [1793908362.666339298] [real_course_runner]: 자가진단 OK — 현재 (5.59,3.04), start와 0.06m 차이. 코스 시작.
+[WARN] [1793908362.666613556] [real_course_runner]: 명령 전송: CLASSICWALK(2049)
+[WARN] [1793908362.667603650] [real_course_runner]: [line1] 핀 구간 20개 — ego 세우고 회귀 곡선 추종(길이 7.87 m)
+[WARN] [1793908362.710822262] [real_course_runner]: [exit] 경로 따라 도착(남은 0.05 m) — 멈춤 확인 뒤 동작
+S2 0 끝 12 / 12

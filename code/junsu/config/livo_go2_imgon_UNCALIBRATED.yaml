@@ -1,0 +1,97 @@
+# FAST-LIVO2 — Go2 + Hesai XT16 (+ D435i) 설정
+# 라이다·IMU 값은 실주행 FAST-LIO(~/ws/gosu_slam/config/go2_slam_odometry.yaml)와 같게 맞췄다 → 같은 조건 비교.
+# img_en 0 = 라이다·IMU만 (카메라 녹화본이 생기기 전 기준선), 1 = 카메라까지 결합.
+/**:
+  ros__parameters:
+    common:
+      lid_topic: "/velodyne_points"     # go2_bridge cloud_bridge 출력 (FAST-LIO 와 같은 입력)
+      imu_topic: "/imu/body"            # go2_bridge imu_bridge 출력 (/lowstate 500 Hz)
+      img_topic: "/camera/color/image_raw"
+      img_en: 1
+      lidar_en: 1
+      ros_driver_bug_fix: false
+    extrin_calib:
+      # 라이다 → IMU (FAST-LIO 설정과 동일)
+      extrinsic_T: [0.25, 0.0, 0.1588]
+      extrinsic_R: [-0.0001707, -0.9999240,  0.0123287,
+                     0.9999844, -0.0001019,  0.0055807,
+                    -0.0055790,  0.0123295,  0.9999084]
+      # 카메라 ← 라이다 (D435i 장착 후 실측해서 채운다. 지금은 자리표시)
+      Rcl: [1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 1.0]
+      Pcl: [0.0, 0.0, 0.0]
+    time_offset:
+      imu_time_offset: 0.0
+      img_time_offset: 0.0
+      lidar_time_offset: 0.0
+      exposure_time_init: 0.0
+    preprocess:
+      point_filter_num: 2
+      filter_size_surf: 0.15
+      lidar_type: 2                     # VELO16 처리기 (v_gosu 에서 time 필드를 초 단위로 맞춤)
+      scan_line: 16
+      blind: 0.5
+      feature_extract_enabled: false
+    vio:
+      max_iterations: 5
+      outlier_threshold: 1000
+      img_point_cov: 100
+      patch_size: 8
+      patch_pyrimid_level: 4
+      normal_en: true
+      raycast_en: false
+      inverse_composition_en: false
+      exposure_estimate_en: true
+      inv_expo_cov: 0.1
+    imu:
+      imu_en: true
+      imu_int_frame: 30
+      acc_cov: 0.5                      # FAST-LIO 설정과 동일 (발 충격 허용)
+      gyr_cov: 0.2
+      b_acc_cov: 0.0001
+      b_gyr_cov: 0.0001
+      gravity_est_en: true
+      ba_bg_est_en: true
+    lio:
+      max_iterations: 4
+      dept_err: 0.02
+      beam_err: 0.05
+      min_eigen_value: 0.0025
+      voxel_size: 0.5
+      max_layer: 2
+      max_points_num: 50
+      layer_init_num: [5, 5, 5, 5, 5]
+    local_map:
+      map_sliding_en: true              # 7 m 경기장: 먼 점이 쌓이지 않게(det_range 15 와 같은 취지)
+      half_map_size: 15
+      sliding_thresh: 4.0
+    uav:
+      imu_rate_odom: false
+      gravity_align_en: false
+    publish:
+      dense_map_en: false
+      pub_effect_point_en: false
+      pub_scan_num: 1
+      blind_rgb_points: 0.0
+    evo:
+      seq_name: "go2"
+      pose_output_en: false
+    pcd_save:
+      pcd_save_en: false
+      colmap_output_en: false
+      filter_size_pcd: 0.15
+      interval: -1
+    # D435i 컬러 848x480 — 녹화 시 camera_info 로 갱신할 것 (지금은 깊이 스트림 값으로 자리표시)
+    cam_model: "Pinhole"
+    cam_width: 848
+    cam_height: 480
+    scale: 1.0
+    cam_fx: 431.08
+    cam_fy: 431.08
+    cam_cx: 422.28
+    cam_cy: 240.89
+    cam_d0: 0.0
+    cam_d1: 0.0
+    cam_d2: 0.0
+    cam_d3: 0.0

@@ -1,0 +1,2 @@
+go2_imu_bridge:active cb_L:active cb_D:active cb_M:active cb_U:active 
+밴드 덤프 끝 21:42:54 29M

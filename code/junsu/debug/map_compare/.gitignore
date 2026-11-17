@@ -1,0 +1,7 @@
+routes/*/map.npz
+routes/*/editor_cache.npz
+routes/*/removed.npy
+routes/*/drift_*.npy
+routes/*/map.pgm
+routes/*/map_preview.png
+__pycache__/

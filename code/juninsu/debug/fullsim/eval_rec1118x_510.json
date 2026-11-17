@@ -1,0 +1,332 @@
+[
+ {
+  "seed": 510,
+  "done": true,
+  "state": "DONE",
+  "T": 148.6,
+  "hit_slalom": 5.6,
+  "hit_other": 9.95,
+  "stop_err": {
+   "stopline1": 4.3,
+   "stopline2": 2.6,
+   "parking": 1.7
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "none",
+    "red_s": 17.4,
+    "went": 10.2,
+    "expect": 10.0
+   },
+   "stopline2": {
+    "kind": "green",
+    "red_s": 12.1,
+    "went": 1.4,
+    "expect": 1.0
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": false,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 511,
+  "done": true,
+  "state": "DONE",
+  "T": 157.6,
+  "hit_slalom": 5.3,
+  "hit_other": 9.7,
+  "stop_err": {
+   "stopline1": 3.7,
+   "stopline2": 3.4,
+   "parking": 3.5
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "green",
+    "red_s": 9.7,
+    "went": 1.4,
+    "expect": 1.0
+   },
+   "stopline2": {
+    "kind": "red_then_green",
+    "red_s": 16.3,
+    "went": 17.6,
+    "expect": 17.28868803394404
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": false,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 512,
+  "done": true,
+  "state": "DONE",
+  "T": 145.2,
+  "hit_slalom": 4.1,
+  "hit_other": 9.4,
+  "stop_err": {
+   "stopline1": 2.9,
+   "stopline2": 4.8,
+   "parking": 5.1
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "red_then_green",
+    "red_s": 24.2,
+    "went": 25.6,
+    "expect": 25.221632846805694
+   },
+   "stopline2": {
+    "kind": "green",
+    "red_s": 17.1,
+    "went": 1.4,
+    "expect": 1.0
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": true,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 513,
+  "done": true,
+  "state": "DONE",
+  "T": 161.4,
+  "hit_slalom": 5.45,
+  "hit_other": 9.1,
+  "stop_err": {
+   "stopline1": 4.7,
+   "stopline2": 3.4,
+   "parking": 1.8
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "green",
+    "red_s": 22.0,
+    "went": 1.4,
+    "expect": 1.0
+   },
+   "stopline2": {
+    "kind": "red_then_green",
+    "red_s": 22.8,
+    "went": 24.0,
+    "expect": 23.79183925727142
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": false,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 514,
+  "done": true,
+  "state": "DONE",
+  "T": 163.4,
+  "hit_slalom": 5.5,
+  "hit_other": 7.85,
+  "stop_err": {
+   "stopline1": 2.0,
+   "stopline2": 2.4,
+   "parking": 2.3
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "red_then_green",
+    "red_s": 16.3,
+    "went": 17.6,
+    "expect": 17.284246179844704
+   },
+   "stopline2": {
+    "kind": "red_then_green",
+    "red_s": 20.0,
+    "went": 21.4,
+    "expect": 21.012906398495605
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": false,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 515,
+  "done": true,
+  "state": "DONE",
+  "T": 139.4,
+  "hit_slalom": 4.95,
+  "hit_other": 9.25,
+  "stop_err": {
+   "stopline1": 1.8,
+   "stopline2": 3.3,
+   "parking": 1.6
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "green",
+    "red_s": 13.1,
+    "went": 1.4,
+    "expect": 1.0
+   },
+   "stopline2": {
+    "kind": "red_then_green",
+    "red_s": 15.8,
+    "went": 17.2,
+    "expect": 16.848559495970598
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": false,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 516,
+  "done": true,
+  "state": "DONE",
+  "T": 153.4,
+  "hit_slalom": 5.65,
+  "hit_other": 10.5,
+  "stop_err": {
+   "stopline1": 2.7,
+   "stopline2": 1.8,
+   "parking": 5.6
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "green",
+    "red_s": 3.4,
+    "went": 1.4,
+    "expect": 1.0
+   },
+   "stopline2": {
+    "kind": "red_flicker",
+    "red_s": 5.3,
+    "went": 16.4,
+    "expect": 16.0
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": false,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 517,
+  "done": true,
+  "state": "DONE",
+  "T": 154.6,
+  "hit_slalom": 5.8,
+  "hit_other": 8.9,
+  "stop_err": {
+   "stopline1": 2.9,
+   "stopline2": 1.1,
+   "parking": 2.0
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "none",
+    "red_s": 12.3,
+    "went": 10.2,
+    "expect": 10.0
+   },
+   "stopline2": {
+    "kind": "none",
+    "red_s": 21.8,
+    "went": 10.2,
+    "expect": 10.0
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": false,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 518,
+  "done": true,
+  "state": "DONE",
+  "T": 147.2,
+  "hit_slalom": 5.05,
+  "hit_other": 8.55,
+  "stop_err": {
+   "stopline1": 1.0,
+   "stopline2": 2.4,
+   "parking": 1.4
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "red_then_green",
+    "red_s": 11.0,
+    "went": 12.4,
+    "expect": 12.0372436957454
+   },
+   "stopline2": {
+    "kind": "red_then_green",
+    "red_s": 13.9,
+    "went": 15.2,
+    "expect": 14.922725011901495
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": false,
+  "regait": 3,
+  "fell": 0
+ },
+ {
+  "seed": 519,
+  "done": true,
+  "state": "DONE",
+  "T": 130.6,
+  "hit_slalom": 5.15,
+  "hit_other": 8.6,
+  "stop_err": {
+   "stopline1": 1.8,
+   "stopline2": 2.1,
+   "parking": 1.4
+  },
+  "signal": {
+   "stopline1": {
+    "kind": "green",
+    "red_s": 14.8,
+    "went": 1.4,
+    "expect": 1.0
+   },
+   "stopline2": {
+    "kind": "green",
+    "red_s": 8.2,
+    "went": 1.4,
+    "expect": 1.0
+   }
+  },
+  "rot_timeout": 0,
+  "skip": 0,
+  "front": 0,
+  "person": true,
+  "regait": 3,
+  "fell": 0
+ }
+]

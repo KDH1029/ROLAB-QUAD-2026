@@ -1,0 +1,31 @@
+# night_20261104 사본 — 원본 ~/ws/v_gosu/backup/config/ego_planner_backup.yaml 과 다른 곳은 cloud_topic 한 줄뿐
+# v_gosu 백업용 — ~/ws/gosu_slam/config/ego_planner_slam.yaml 사본. 바꾼 것: cloud_topic → /cloud_active (그 외 동일)
+# ego_planner 설정 — 통째 SLAM 용 (사전 지도·AMCL 없음)
+#
+# 원본: ~/ws/lab/.../config/ego_planner_amcl.yaml  (팀 공용, 불변)
+# 바뀐 것은 goal_topic 하나뿐이다:  /goal_lio -> /goal_pose
+#
+# 【AMCL 판과 무엇이 다른가 — 중요】
+#   AMCL 판:  /goal_pose 는 map 좌표로 들어온다. goal_relay 가 최신 map->odom 으로
+#             변환해 /goal_lio(camera_init) 로 낸다. 그래서 플래너는 /goal_lio 를 읽는다.
+#   SLAM 판:  map 프레임이 아예 없다. 목표를 처음부터 camera_init(= 출발 자세) 기준으로
+#             준다. 변환할 것이 없으므로 /goal_pose 를 직접 읽는다.
+#
+#   ★ 그러므로 이 설정을 쓸 때 목표는 반드시 '출발 자세 기준' 이어야 한다.
+#     map 좌표(예전 웨이포인트)를 그대로 넣으면 엉뚱한 곳으로 간다.
+ego_planner_node:
+  ros__parameters:
+    odom_topic: "/Odometry_filtered"
+    goal_topic: "/goal_pose"
+    cloud_topic: "/cloud_planner"       # night 거부권: terrain_veto 가 /cloud_active 에서 경사로·계단 면 점을 지워 넘김
+    cmd_vel_topic: "/cmd_vel"
+    map_frame: "camera_init"
+    max_vel: 0.8
+    max_acc: 1.2
+    max_wz: 1.5
+    goal_tol: 0.25
+    safe_dist: 0.40
+    min_obs_h: -0.20
+    max_obs_h: 1.10
+    replan_gap: 0.4
+    use_prior_map: false

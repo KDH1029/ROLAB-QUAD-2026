@@ -1,0 +1,21 @@
+/**:
+  ros__parameters:
+    azimuth_bins: 360
+    enable_slope_filter: true
+    frame_id: hesai_lidar
+    input_topic: /lidar_points
+    max_range: 15.0
+    max_walkable_slope_deg: 18.0
+    min_range: 0.4
+    obstacle_max_dz: 1.2
+    obstacle_min_dz: 0.1
+    output_topic: /velodyne_points
+    publish_terrain_scan: true
+    radial_bin_m: 0.35
+    scan_mode: vertical
+    scan_topic: /scan
+    stride: 1
+    target_frame: base_stab
+    vertical_min_rings: 3
+    vertical_min_span_m: 0.08
+    vertical_tol_m: 0.03

@@ -1,0 +1,127 @@
+--- a/src/real_course_runner.py
++++ b/src/real_course_runner.py
+@@ -104,6 +104,9 @@
+ # ★ 11-06 사용자: '경로 지정된 순서로' — ego 가 다른 통로로 빠지면(지금 구간 선분에서 OFF_ROUTE_M 넘게 OFF_ROUTE_S 동안) 지나온 길을 되짚어 경로로 돌아옴
+ OFF_ROUTE_M = float(os.environ.get('RUNNER_OFF_ROUTE_M', '1.0'))
+ OFF_ROUTE_S = 3.0             # ★ 11-06 시뮬: 0.8 m·2초는 너무 자주 걸려 ego 의 자체 복구와 싸움 → 1.0 m·3초
++SLALOM_JOIN_MAX = float(os.environ.get('RUNNER_SLALOM_JOIN_MAX', '0.8'))   # ★ 11-06 slalom 점검: 슬라럼 길에서 이보다 멀면 대체 길을 시작하지 않음(먼 곳에서 벽 너머로 직선을 긋던 것)
++FOLLOW_BLOCK_COS = 0.7     # ★ 11-06 slalom 점검: drive_toward '앞 막힘'은 진행 방향 ±45° 안 점만(옆 콘·벽에 막혀 슬라럼 길 15% 에서 멈추던 것)
++TRACK_MIN_V = float(os.environ.get('RUNNER_TRACK_MIN_V', '0.12'))   # ★ 발 떼기 문턱(0.10 m/s) 위 — 이보다 작은 이동 명령은 이 크기로(밀어내기만 남으면 제자리에 서서 6초 포기)
+ TRACK_STALL_S = 6.0           # ★ 11-06 시뮬: 대체 길·되짚기에서 길 위 진행이 이만큼 없으면 그만두고 보통 주행(벽에 끼어 제자리 흔들기만 하던 것)
+ PASS_SWITCH = 0.8     # ★ 11-05 '움직임이 회전→직진 반복': 지나가기만 하는 점(line*)은 이만큼 앞에서 다음 점으로 — ego 가 모서리를 곡선으로 돔(0 이면 예전처럼)
+ # ★ 2026-11-04 밤 목표 보정(goal snap): 저장 좌표가 벽에 너무 붙어 있으면(사람이 조종하며 벽 옆에서 찍음 —
+@@ -668,14 +671,13 @@
+             return None
+         prev = self.goals[self.idx - 1][1] if self.idx > 0 else self.start_today()
+         pts = [prev]
+-        if self.idx in self.cone_zone_idx and SLALOM_PATH_MAP:   # 콘 구간: junk 슬라럼 길을 경로선으로(콘 끝 점까지)
+-            pts += [self.to_today(*q) for q in SLALOM_PATH_MAP]
+-            end_i = max(self.cone_zone_idx)
++        if self.idx in self.cone_zone_idx and SLALOM_PATH_MAP:   # 콘 구간: junk 슬라럼 길을 경로선으로(rabain 투영 다음 ~ 콘 끝 점)
++            pts = [tuple(q) for q in self.slalom_line()]
+         else:
+             end_i = self.idx
+             while end_i < len(self.goals) - 1 and self.goals[end_i][0].startswith('line') and end_i not in self.rotate_idx:
+                 end_i += 1                                         # 지나가는 점은 넘어서 다음 '일하는 점'까지 이어 봄
+-        pts += [self.goals[k][1] for k in range(self.idx, end_i + 1)]
++            pts += [self.goals[k][1] for k in range(self.idx, end_i + 1)]
+         P = np.array(pts, float); seg = np.diff(P, axis=0); L = np.hypot(seg[:, 0], seg[:, 1]); keep = L > 1e-3
+         if not keep.any():
+             return None
+@@ -853,13 +855,41 @@
+         self.get_logger().warn(f'[{self.cur()[0]}] {why} — ' + ('슬라럼 대체 길(junk)' if mode == 'slalom' else '지나온 길 되짚어 경로로') + f' 따라감(길이 {self.pin_s[-1]:.2f} m, ego 세움)')
+         return True
+ 
++    @staticmethod
++    def proj_poly(P, p):
++        """꺾은선 P 에 점 p 투영 → (거리, 투영이 놓인 선분의 끝 꼭짓점 번호)."""
++        P = np.asarray(P, float); p = np.asarray(p, float); best = (1e9, 1)
++        for i in range(len(P) - 1):
++            ab = P[i + 1] - P[i]; L2_ = float(ab @ ab) or 1e-9; u = min(1.0, max(0.0, float((p - P[i]) @ ab) / L2_))
++            d = float(np.hypot(*(p - (P[i] + u * ab))))
++            if d < best[0]:
++                best = (d, i + 1)
++        return best
++
++    def slalom_line(self):
++        """★ 11-06 slalom 점검: 콘 구간 경로선(오늘 좌표) = 콘 구간 앞 점(rabain) → 슬라럼 길에서 rabain 투영 다음 꼭짓점들 → rabaout.
++        (슬라럼 길 첫 점은 rabain 보다 1.1 m 뒤(line2 옆)라 통째로 쓰면 미끄러지는 목표가 뒤로 감)"""
++        s_i = min(self.cone_zone_idx) - 1; e_i = max(self.cone_zone_idx)
++        a = self.goals[s_i][1] if s_i >= 0 else self.start_today(); b = self.goals[e_i][1]
++        P = np.array([self.to_today(*q) for q in SLALOM_PATH_MAP], float)
++        j = self.proj_poly(P, a)[1] if len(P) >= 2 else 0
++        pts = [tuple(a)] + [tuple(q) for q in P[j:]]
++        if math.hypot(pts[-1][0] - b[0], pts[-1][1] - b[1]) > 0.15:
++            pts.append(tuple(b))
++        return np.array(pts, float)
++
+     def start_slalom_path(self, why):
+-        """콘 구간: 슬라럼 대체 길에서 지금 자리와 가장 가까운 점 다음부터 → 콘 구간 끝(rabaout) 점까지."""
++        """콘 구간: 슬라럼 대체 길에서 지금 자리를 투영한 선분의 끝 꼭짓점부터 → 콘 구간 끝(rabaout) 점까지.
++        ★ 11-06 slalom 점검: 가장 가까운 꼭짓점 '다음'부터 가면 꼭짓점 앞에 있을 때 모서리(콘 사이)를 가로지름 → 선분 투영으로.
++        슬라럼 길에서 SLALOM_JOIN_MAX 넘게 떨어져 있으면(ego 가 다른 통로로 감) 시작하지 않음 — 벽 너머로 직선을 긋지 않게."""
+         if not SLALOM_PATH_MAP or self.pos is None or not self.cone_zone_idx:
+             return False
+-        P = np.array([self.to_today(*q) for q in SLALOM_PATH_MAP]); k = int(np.argmin(np.hypot(P[:, 0] - self.pos[0], P[:, 1] - self.pos[1])))
+-        end_idx = max(self.cone_zone_idx); end = self.goals[end_idx][1]
+-        pts = [tuple(self.pos)] + [tuple(q) for q in P[k + 1:]]
++        P = np.array([self.to_today(*q) for q in SLALOM_PATH_MAP]); end_idx = max(self.cone_zone_idx); end = self.goals[end_idx][1]
++        d, j = self.proj_poly(P, self.pos) if len(P) >= 2 else (float(np.hypot(*(P[0] - self.pos))), 0)
++        if d > SLALOM_JOIN_MAX:
++            self.get_logger().error(f'[{self.cur()[0]}] {why} — 슬라럼 길에서 {d:.2f} m 떨어져 대체 길 안 씀(>{SLALOM_JOIN_MAX} m)')
++            return False
++        pts = [tuple(self.pos)] + [tuple(q) for q in P[j:]]
+         if math.hypot(pts[-1][0] - end[0], pts[-1][1] - end[1]) > 0.15:
+             pts.append(tuple(end))
+         return self.start_track(pts, 'slalom', end_idx, why)
+@@ -880,10 +910,15 @@
+ 
+     def offroute_check(self, now):
+         """콘 구간 밖: 지금 구간(앞 점→지금 점) 선분에서 OFF_ROUTE_M 넘게 OFF_ROUTE_S 동안 벗어나면, 선분 가까이 있던 마지막 자리까지 지나온 길을 되짚고 다시 보통 주행."""
+-        if self.pos is None or self.idx in self.cone_zone_idx or self.idx == 0:
++        zone = self.idx in self.cone_zone_idx
++        if self.pos is None or self.idx == 0 or (zone and (not SLALOM_PATH_MAP or SLALOM_MODE == 'ego')):
+             self.trail = []; self.off_since = None; return False
+-        a = np.array(self.goals[self.idx - 1][1]); b = np.array(self.cur()[1]); p = np.array(self.pos)
+-        ab = b - a; L2_ = float(ab @ ab) or 1e-9; u = min(1.0, max(0.0, float((p - a) @ ab) / L2_)); d = float(np.hypot(*(p - (a + u * ab))))
++        p = np.array(self.pos)
++        if zone:   # ★ 11-06 slalom 점검(시뮬): 콘 통로가 막혀 보이면 ego 가 코스를 거꾸로(line2→정지선→line6…) 돌아 rabaout 으로 감 → 슬라럼 길에서 거리로 감시
++            d = self.proj_poly(self.slalom_line(), p)[0]
++        else:
++            a = np.array(self.goals[self.idx - 1][1]); b = np.array(self.cur()[1])
++            ab = b - a; L2_ = float(ab @ ab) or 1e-9; u = min(1.0, max(0.0, float((p - a) @ ab) / L2_)); d = float(np.hypot(*(p - (a + u * ab))))
+         if not self.trail or math.hypot(p[0] - self.trail[-1][0], p[1] - self.trail[-1][1]) > 0.10:
+             self.trail.append((float(p[0]), float(p[1]), d)); self.trail = self.trail[-200:]
+         if d <= OFF_ROUTE_M:
+@@ -993,6 +1028,8 @@
+             else:
+                 self.get_logger().warn(f'[{self.cur()[0]}] 경로로 돌아옴 → 보통 주행')
+             self.state = 'TO_GOAL'; self.goal_last_sent = 0.0; self.prog = []; self.trail = []; self.off_since = None
++            if mode == 'rejoin' and self.idx in self.cone_zone_idx and SLALOM_MODE != 'ego':   # ★ 콘 구간: ego 는 또 돌아갈 것이라 대체 길로
++                self.slalom_done = True; self.start_slalom_path('콘 구간 — 되짚어 슬라럼 길로 돌아옴')
+             return
+         if self.pin_mode is not None and S[k] - S[self.track_prog_ci] > 0.05:
+             self.track_prog_t = now; self.track_prog_ci = k
+@@ -1023,7 +1060,7 @@
+                 P = T.data[idx] - np.array(self.pos); r = np.hypot(P[:, 0], P[:, 1]) + 1e-6
+                 ahead = (P @ np.array([wx, wy])) / r
+                 if np.any((ahead > 0.7) & (r < 0.15 + 0.35 * max(0.0, abs(math.cos(math.atan2(wy, wx) - yaw))))):
+-                    wx, wy = -wy * 0.3, wx * 0.3        # 앞(가는 쪽)이 막히면 옆으로 조금
++                    wx, wy = -wy * (TRACK_MIN_V / v), wx * (TRACK_MIN_V / v)   # 앞(가는 쪽)이 막히면 옆으로 조금 — ★ slalom 점검: 0.3·0.20 = 0.06 m/s 는 발 떼기 문턱(0.10) 아래라 제자리(되짚기 6초 포기)
+         vxw, vyw = v * wx, v * wy
+         cmd = Twist(); cmd.linear.x = float(c * vxw + s_ * vyw); cmd.linear.y = float(-s_ * vxw + c * vyw)
+         cmd.linear.y = float(np.clip(cmd.linear.y, -0.2, 0.2)); cmd.angular.z = 0.0
+@@ -1043,9 +1080,12 @@
+                 P = T.data[idx]; d = np.array(self.pos) - P; r = np.hypot(d[:, 0], d[:, 1]) + 1e-6
+                 push = (d / r[:, None] * ((FOLLOW_WALL_SIDE - r) / FOLLOW_WALL_SIDE)[:, None]).sum(0)
+                 ahead = (P - np.array(self.pos)) @ np.array([wx, wy])
+-                blocked = bool(np.any((ahead > 0) & (r < FOLLOW_WALL_STOP)))
++                blocked = bool(np.any((ahead > FOLLOW_BLOCK_COS * r) & (r < FOLLOW_WALL_STOP)))   # ★ 진행 방향 ±45° 안만(옆 콘·벽은 비켜나기로)
+         vx_w = (v * wx if (fwd and not blocked) else 0.0) + 0.15 * push[0]
+         vy_w = (v * wy if (fwd and not blocked) else 0.0) + 0.15 * push[1]
++        sp = math.hypot(vx_w, vy_w)
++        if 0.03 < sp < TRACK_MIN_V:                       # ★ 발 떼기 문턱 아래면 안 움직임(시뮬: 밀어내기 0.08 만 남아 제자리 6초 → 대체 길 포기)
++            vx_w, vy_w = vx_w * TRACK_MIN_V / sp, vy_w * TRACK_MIN_V / sp
+         cmd.linear.x = float(c * vx_w + s_ * vy_w); cmd.linear.y = float(-s_ * vx_w + c * vy_w)
+         self.pub_cmd_vel.publish(cmd)
+ 

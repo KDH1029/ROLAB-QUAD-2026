@@ -1,0 +1,492 @@
+[
+ {
+  "name": "normal_60x24",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   4963,
+   3971,
+   2386
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    23,
+    35,
+    60
+   ],
+   [
+    23,
+    35,
+    60
+   ],
+   [
+    23,
+    35,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "HEAD"
+ },
+ {
+  "name": "normal_80x24",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   4499,
+   3843,
+   2163
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    23,
+    55,
+    60
+   ],
+   [
+    23,
+    55,
+    60
+   ],
+   [
+    23,
+    55,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "HEAD"
+ },
+ {
+  "name": "normal_120x30",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   4269,
+   3498,
+   2114
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    29,
+    95,
+    60
+   ],
+   [
+    29,
+    95,
+    60
+   ],
+   [
+    29,
+    95,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "HEAD"
+ },
+ {
+  "name": "normal_184x45",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   3818,
+   3100,
+   1851
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    44,
+    159,
+    60
+   ],
+   [
+    44,
+    159,
+    60
+   ],
+   [
+    44,
+    159,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "HEAD"
+ },
+ {
+  "name": "normal_40x12",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   8357,
+   6702,
+   4194
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    11,
+    26,
+    60
+   ],
+   [
+    11,
+    26,
+    60
+   ],
+   [
+    11,
+    26,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "HEAD"
+ },
+ {
+  "name": "bigdata_80x24",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   4763,
+   3911,
+   2351
+  ],
+  "keys": 93,
+  "getstr": [
+   [
+    23,
+    55,
+    60
+   ],
+   [
+    23,
+    55,
+    60
+   ],
+   [
+    23,
+    55,
+    60
+   ]
+  ],
+  "marks": []
+ },
+ {
+  "name": "normal_60x24",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   2,
+   1,
+   2
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    23,
+    35,
+    60
+   ],
+   [
+    23,
+    35,
+    60
+   ],
+   [
+    23,
+    35,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "patched"
+ },
+ {
+  "name": "normal_80x24",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   2,
+   1,
+   2
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    23,
+    55,
+    60
+   ],
+   [
+    23,
+    55,
+    60
+   ],
+   [
+    23,
+    55,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "patched"
+ },
+ {
+  "name": "normal_120x30",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   2,
+   1,
+   2
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    29,
+    95,
+    60
+   ],
+   [
+    29,
+    95,
+    60
+   ],
+   [
+    29,
+    95,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "patched"
+ },
+ {
+  "name": "normal_184x45",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   2,
+   1,
+   2
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    44,
+    159,
+    60
+   ],
+   [
+    44,
+    159,
+    60
+   ],
+   [
+    44,
+    159,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "patched"
+ },
+ {
+  "name": "normal_40x12",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   2,
+   1,
+   2
+  ],
+  "keys": 81,
+  "getstr": [
+   [
+    11,
+    26,
+    60
+   ],
+   [
+    11,
+    26,
+    60
+   ],
+   [
+    11,
+    26,
+    60
+   ]
+  ],
+  "marks": [],
+  "tag": "patched"
+ },
+ {
+  "name": "bigdata_80x24",
+  "exit": 0,
+  "signal": null,
+  "exit_ok": true,
+  "crash": [],
+  "addstr_error": 0,
+  "err_samples": [],
+  "overflow": 0,
+  "ovf_samples": [],
+  "loops_before_ask": [
+   2,
+   2,
+   3
+  ],
+  "loops_after_ask": [
+   2,
+   1,
+   2
+  ],
+  "keys": 93,
+  "getstr": [
+   [
+    23,
+    55,
+    60
+   ],
+   [
+    23,
+    55,
+    60
+   ],
+   [
+    23,
+    55,
+    60
+   ]
+  ],
+  "marks": []
+ }
+]

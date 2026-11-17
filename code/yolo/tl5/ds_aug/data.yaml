@@ -1,0 +1,9 @@
+path: ds_aug
+train: images/train
+val: images/val
+names:
+  0: tl_red
+  1: tl_green
+  2: pedestrian
+  3: temi
+  4: unknown

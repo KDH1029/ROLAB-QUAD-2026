@@ -1,0 +1,136 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+    Property Tree Widget:
+      Expanded: ~
+    Tree Height: 700
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 30
+      Color: 60; 60; 60
+      Alpha: 0.4
+      Reference Frame: map
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Marker Scale: 0.6
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Update Interval: 0
+      Frame Timeout: 15
+    # 사전 지도 — 흰색. 스캔이 이 위에 겹쳐야 정합이 맞는 것이다.
+    - Class: rviz_default_plugins/PointCloud2
+      Name: 사전지도 map/points
+      Enabled: true
+      Topic:
+        Value: /map/points
+        Depth: 1
+        Durability Policy: Transient Local
+        Reliability Policy: Reliable
+        History Policy: Keep Last
+      Style: Points
+      Size (Pixels): 2
+      Alpha: 0.55
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+    # 지금 라이다 스캔 — 높이로 색을 준다. 흰 지도 위에 얹혀야 한다.
+    - Class: rviz_default_plugins/PointCloud2
+      Name: 스캔 velodyne_points
+      Enabled: true
+      Topic:
+        Value: /velodyne_points
+        Depth: 1
+        Durability Policy: Volatile
+        Reliability Policy: Best Effort
+        History Policy: Keep Last
+      Style: Points
+      Size (Pixels): 3
+      Alpha: 1
+      Color: 0; 255; 110
+      Color Transformer: FlatColor
+      Decay Time: 0
+    - Class: rviz_default_plugins/Odometry
+      Name: 오도메트리 /Odometry
+      Enabled: true
+      Topic:
+        Value: /Odometry
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Best Effort
+      Keep: 300
+      Position Tolerance: 0.05
+      Angle Tolerance: 0.05
+      Shape:
+        Value: Arrow
+        Alpha: 0.8
+        Color: 255; 170; 0
+        Shaft Length: 0.25
+        Shaft Radius: 0.04
+        Head Length: 0.1
+        Head Radius: 0.08
+      Covariance:
+        Value: false
+    - Class: rviz_default_plugins/PoseWithCovariance
+      Name: 위치추정 localization/pose
+      Enabled: true
+      Topic:
+        Value: /localization/pose
+        Depth: 5
+        Durability Policy: Volatile
+        Reliability Policy: Reliable
+      Shape: Arrow
+      Color: 0; 230; 120
+      Alpha: 1
+      Shaft Length: 0.5
+      Shaft Radius: 0.06
+      Head Length: 0.2
+      Head Radius: 0.12
+      Covariance:
+        Value: true
+        Position:
+          Alpha: 0.25
+          Color: 0; 230; 120
+          Scale: 1
+        Orientation:
+          Value: false
+  Global Options:
+    Fixed Frame: map
+    Background Color: 25; 25; 28
+    Frame Rate: 20
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Value: /initialpose
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+      Distance: 22
+      Focal Point:
+        X: 4
+        Y: -2
+        Z: 0
+      Pitch: 1.0
+      Yaw: 0.8
+      Target Frame: map
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 900
+  Width: 1500

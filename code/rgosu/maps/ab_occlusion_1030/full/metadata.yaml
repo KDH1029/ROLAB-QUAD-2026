@@ -1,0 +1,38 @@
+rosbag2_bagfile_information:
+  version: 9
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 239999904548
+  starting_time:
+    nanoseconds_since_epoch: 1793286688382550646
+  message_count: 124831
+  topics_with_message_count:
+    - topic_metadata:
+        name: /lowstate
+        type: unitree_go/msg/LowState
+        serialization_format: cdr
+        offered_qos_profiles:
+          []
+        type_description_hash: ""
+      message_count: 120030
+    - topic_metadata:
+        name: /lidar_points
+        type: sensor_msgs/msg/PointCloud2
+        serialization_format: cdr
+        offered_qos_profiles:
+          []
+        type_description_hash: ""
+      message_count: 4801
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - full_0.mcap
+  files:
+    - path: full_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1793286688382550646
+      duration:
+        nanoseconds: 239999904548
+      message_count: 249662
+  custom_data: ~
+  ros_distro: jazzy
