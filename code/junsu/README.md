@@ -78,6 +78,8 @@ for ws in ws_fastlio_tunable ws_legfuse_gated ws_ego_review ws_ego_planner_tunab
   (cd $ws && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release)
 done
 ```
+- `ws_wall_filter`, `ws_mission_vision` 은 이 폴더에 없다. 빌드 전에 만든다:
+  `cp -r ../rgosu/ws_wall_filter .` / `mkdir -p ws_mission_vision/src && cp -r ../merge_tmp/src/missions/mission_vision ws_mission_vision/src/`
 - `ws_mission_vision` 은 merge_tmp 의 콘 추적기를 따로 빌드한 것이다.
 - 내부 PC(Foxy, JetPack 5): `onboard_vision/deploy_onboard_vision.sh fp16` → `start`. TensorRT 엔진은 장치마다 새로 만든다(INT8 은 초록 재현율이 떨어져 기본 FP16).
   - 모델 선택 `TL_MODEL=tl_cone_1104|tl5cone`, 카메라 장착값 `GO2_CAM_FIX=1650`(11-06: 거의 수평. 관리자가 넘긴다)
