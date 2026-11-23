@@ -64,17 +64,17 @@ flowchart LR
 
 본 블루프린트를 구성하는 6개의 상세 기술 보고서 라인업입니다. 각 문서는 독립적이면서도 서로 강력하게 의존하며 로봇 시스템을 완성합니다.
 
-* [01] ROS 2 아키텍처 및 미들웨어 ([01_ros2_architecture.md](./01_ros2_architecture.md))
+* [01] ROS 2 아키텍처 및 미들웨어 (`01_ros2_architecture.md`, 원본 저장소에도 없음)
   * 대용량 데이터 병목 현상을 뚫기 위한 CycloneDDS 최적화, QoS 튜닝, 그리고 TF2 기반 시공간 동기화의 수학적 기초.
-* [02] SLAM 및 상태 추정 ([02_slam_guide.md](./02_slam_guide.md))
+* [02] SLAM 및 상태 추정 (`02_slam_guide.md`, 원본 저장소에도 없음)
   * 4족보행 특유의 지터(Jitter)와 중력 누수 딜레마 극복. FAST-LIO 기반 고주파 Odometry를 통한 모터 제어기 갈증(Starvation) 해결.
-* [03] Nav2 및 경로 계획 ([03_nav2_guide.md](./03_nav2_guide.md))
+* [03] Nav2 및 경로 계획 (`03_nav2_guide.md`, 원본 저장소에도 없음)
   * 전방위(Holonomic) 이동이 가능한 4족보행 특성을 극대화하는 EGO-Planner 기반 장애물 회피 및 B-Spline 부드러운 궤적 생성 알고리즘.
-* [04] 비전 AI 및 3D 기하학 ([04_vision_guide.md](./04_vision_guide.md))
+* [04] 비전 AI 및 3D 기하학 (`04_vision_guide.md`, 원본 저장소에도 없음)
   * RGB-D 카메라의 하드웨어(Active Stereo) 역투영 원리, 3대 비전 태스크(YOLO/ArUco/OCR), 그리고 AI 연산 지연 보정($t_{capture}$).
-* [05] 미션 컨트롤 (Behavior Tree) ([05_mission_control_guide.md](./05_mission_control_guide.md))
+* [05] 미션 컨트롤 (Behavior Tree) (`05_mission_control_guide.md`, 원본 저장소에도 없음)
   * 기존 FSM의 상태 폭발 한계 수학적 분석 및 `RUNNING` 상태를 활용한 실시간 반응형(Reactive) BT 설계 철학.
-* [06] 형상 관리 및 협업 파이프라인 ([06_git_management_guide.md](./06_git_management_guide.md))
+* [06] 형상 관리 및 협업 파이프라인 (`06_git_management_guide.md`, 원본 저장소에도 없음)
   * 코드 패키지 물리적 분리(`core/` vs `mission/`)와 GitHub-Flow를 통한 4인 팀의 Git 충돌 완벽 차단 워크플로우.
 
 ---
