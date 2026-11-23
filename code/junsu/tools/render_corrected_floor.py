@@ -4,7 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-path = '/home/gamulchi/arena0921_map/arena0921_map_ascii.pcd'
+path = '/home/user/arena0921_map/arena0921_map_ascii.pcd'
 with open(path) as f:
     lines = f.readlines()
 he = next(i for i, l in enumerate(lines) if l.startswith('DATA'))
@@ -50,7 +50,7 @@ axes[2].set_title('Point density')
 plt.colorbar(im, ax=axes[2], label='point count')
 
 plt.tight_layout()
-out = '/home/gamulchi/arena0921_map/topdown_corrected.png'
+out = '/home/user/arena0921_map/topdown_corrected.png'
 plt.savefig(out, dpi=150)
 print(f"저장: {out}")
 
@@ -62,5 +62,5 @@ ax.set_xlabel('height above real floor (m)')
 ax.set_ylabel('point count')
 ax.set_title('Height histogram (corrected floor reference)')
 plt.tight_layout()
-plt.savefig('/home/gamulchi/arena0921_map/height_histogram_corrected.png', dpi=150)
+plt.savefig('/home/user/arena0921_map/height_histogram_corrected.png', dpi=150)
 print("저장: height_histogram_corrected.png")

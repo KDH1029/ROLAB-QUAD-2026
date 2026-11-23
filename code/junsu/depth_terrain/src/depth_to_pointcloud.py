@@ -54,7 +54,7 @@ def main():
     print(f"X(좌우) 범위: {x.min():.2f}~{x.max():.2f}m")
     print(f"Y(상하, 카메라 기준 아래가 +): {y.min():.2f}~{y.max():.2f}m")
 
-    np.savez('/home/gamulchi/arena0921_map/depth_pointcloud_sample.npz', x=x, y=y, z=z)
+    np.savez('/home/user/arena0921_map/depth_pointcloud_sample.npz', x=x, y=y, z=z)
     print("저장: depth_pointcloud_sample.npz")
 
 

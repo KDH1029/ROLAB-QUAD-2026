@@ -4,7 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-d = np.load('/home/gamulchi/arena0921_map/depth_pointcloud_sample.npz')
+d = np.load('/home/user/arena0921_map/depth_pointcloud_sample.npz')
 x, y, z = d['x'], d['y'], d['z']
 
 fig, axes = plt.subplots(1, 2, figsize=(18, 8))
@@ -36,5 +36,5 @@ for i, v in enumerate([lidar_density, depth_density]):
     axes[1].text(i, v, f'{v:.0f}', ha='center', va='bottom')
 
 plt.tight_layout()
-plt.savefig('/home/gamulchi/arena0921_map/depth_vs_lidar_density.png', dpi=150)
+plt.savefig('/home/user/arena0921_map/depth_vs_lidar_density.png', dpi=150)
 print("저장: depth_vs_lidar_density.png")

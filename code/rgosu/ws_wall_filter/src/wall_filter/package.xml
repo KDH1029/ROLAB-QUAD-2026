@@ -4,7 +4,7 @@
   <name>wall_filter</name>
   <version>1.0.0</version>
   <description>Vertical-surface (wall) detection from ring-tagged lidar cloud, gravity-leveled by current odometry; feeds ego_planner's obstacle input so ramps/stairs are not misread as walls.</description>
-  <maintainer email="ilovehan9283@todo.todo">ilovehan9283</maintainer>
+  <maintainer email="dohappy1029@gmail.com">kdh</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

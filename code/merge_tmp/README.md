@@ -138,7 +138,7 @@ config/ · maps/ · docs/ (docs/rulebook: 대회 규정)
 - [docs/PROGRESS_20261103.md](docs/PROGRESS_20261103.md) — 진행 상황, 구현 방법, 측정 결과
 - [docs/OPERATIONS.md](docs/OPERATIONS.md) — 운용·튜닝 (이전 README)
 - [docs/GITHUB_RULES.md](docs/GITHUB_RULES.md) — 협업 규칙
-- [docs/Blueprint_Complete.md](docs/Blueprint_Complete.md) — 설계 블루프린트
+- [docs/Blueprint_Complete.md](docs/Blueprint_Complete.md) — 설계 블루프린트 (본문 3장이 가리키는 01~06 세부 문서는 원본 저장소에도 없어 빠져 있다)
 - [docs/HANDOVER_ROBOWORLD_2026.md](docs/HANDOVER_ROBOWORLD_2026.md) — 인수인계
 
 ## 참고 논문 (References)

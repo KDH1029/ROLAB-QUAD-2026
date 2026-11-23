@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 
-path = '/home/gamulchi/arena0921_map/arena0921_map_ascii.pcd'
+path = '/home/user/arena0921_map/arena0921_map_ascii.pcd'
 with open(path) as f:
     lines = f.readlines()
 header_end = next(i for i, l in enumerate(lines) if l.startswith('DATA'))

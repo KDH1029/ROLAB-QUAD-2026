@@ -11,7 +11,7 @@ import numpy as np
 FLOOR_Z = -0.488  # 물리 기반 보정값 (body_height 0.329 + lever arm 0.1588)
 CELL = 0.15       # 15cm 그리드 — 발 디딜 자리 스케일
 
-path = '/home/gamulchi/arena0921_map/arena0921_map_ascii.pcd'
+path = '/home/user/arena0921_map/arena0921_map_ascii.pcd'
 with open(path) as f:
     lines = f.readlines()
 he = next(i for i, l in enumerate(lines) if l.startswith('DATA'))
@@ -148,7 +148,7 @@ axes[1].set_title('A* path comparison')
 plt.colorbar(im2, ax=axes[1], label='risk (0-100)')
 
 plt.tight_layout()
-out = '/home/gamulchi/arena0921_map/risk_grid_prototype.png'
+out = '/home/user/arena0921_map/risk_grid_prototype.png'
 plt.savefig(out, dpi=150)
 print(f"저장: {out}")
 if route:

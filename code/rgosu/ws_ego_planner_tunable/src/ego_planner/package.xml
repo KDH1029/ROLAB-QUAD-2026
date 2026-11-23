@@ -4,7 +4,7 @@
   <name>ego_planner</name>
   <version>1.0.0</version>
   <description>ESDF-free Gradient-based Local Trajectory Planner for Unitree Go2</description>
-  <maintainer email="ilovehan9283@todo.todo">ilovehan9283</maintainer>
+  <maintainer email="dohappy1029@gmail.com">kdh</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

@@ -37,7 +37,6 @@
 
 ## 점검
 - 비밀번호·키·토큰: 복사본 전체를 패턴 검색했고, 발견되지 않았다(문서 속 `<새값>` 같은 자리표시만 있음).
-- 공개 전에 확인할 것
-  - 내부 네트워크 주소(Tailscale)가 있는 파일: `code/rgosu/WORKLOG.md`, `code/junsu/WORKLOG.md`, `code/research/lab_visual/jetson_gosu/run_*.sh`
-  - `code/merge_tmp/docs/rulebook/` 에 대회 규정집 PDF 가 있다(배포 허락 확인 필요).
-  - 외부 코드 라이선스: FAST-LIO 사본(GPL-2.0), Hesai ROS 드라이버(Hesai 저작권 고지).
+- 내부 네트워크 주소(Tailscale)와 개인 계정 경로는 빼거나 `/home/user` 로 바꿨다.
+- `code/merge_tmp/docs/rulebook/` 의 대회 규정집 PDF 는 주최 측 자료다.
+- 외부 코드 라이선스: FAST-LIO 사본(GPL-2.0), Hesai ROS 드라이버(Hesai 저작권 고지).

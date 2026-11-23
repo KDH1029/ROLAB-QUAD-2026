@@ -111,7 +111,7 @@ ros2 param set /wall_runner_node traffic_cycle_sec 20.0
 ```
 
 > **영구 저장**:  
-> 실시간 튜닝으로 가장 이상적인 값을 찾았다면, [`config/patrol_params.yaml`](file:///home/kdh/full_passive/go2_patrol_ws/src/go2_wall_patrol/config/patrol_params.yaml) 파일을 열어 해당 수치를 적어두시면 다음 부팅 때도 유지됩니다.
+> 실시간 튜닝으로 가장 이상적인 값을 찾았다면, [`config/patrol_params.yaml`](config/patrol_params.yaml) 파일을 열어 해당 수치를 적어두시면 다음 부팅 때도 유지됩니다.
 
 ---
 
