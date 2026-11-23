@@ -7,7 +7,7 @@
     고정된 사전 지도에 스캔을 맞춰 위치를 잡는다 (localization only, no mapping).
     지도는 절대 바뀌지 않는다. 바뀌는 것은 map -> odom 보정뿐이다.
   </description>
-  <maintainer email="atomyhonor@gmail.com">ilovehan9283</maintainer>
+  <maintainer email="dohappy1029@gmail.com">kdh</maintainer>
   <license>MIT</license>
 
   <exec_depend>rclpy</exec_depend>

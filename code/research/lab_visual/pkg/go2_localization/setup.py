@@ -15,8 +15,8 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='ilovehan9283',
-    maintainer_email='atomyhonor@gmail.com',
+    maintainer='kdh',
+    maintainer_email='dohappy1029@gmail.com',
     description='고정 사전 지도 기반 위치추정 (mapping 하지 않는다)',
     license='MIT',
     entry_points={

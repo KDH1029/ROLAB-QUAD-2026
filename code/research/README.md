@@ -9,7 +9,7 @@
 |---|---|---|---|
 | `night_20261104/` | 11-04 | 백업 위치추정 v2 p95 0.050 m, 경사로 헛장애물 13.9 → 1.0% | 경사로 거부권 C++ 노드, 다리 roll·pitch 로 세운 스캔의 3D 정합, D435i 외부파라미터 보정 |
 | `v_gosu/` | 10월 | 전 토픽 녹화 + 재현 조건 기록, 백업 위치추정 v1, XT16 대 L1 지도 비교 | `tools/record_all.sh`, `backup/` |
-| `lab_visual/` | 09월 | 3D ICP 다단 해상도로 수렴 범위 확대(0.5 m / 5° 100%), 사전 장애물 층 자유공간 9.9 → 46.1 m² | `tools/make_obstacle_layer.py`, `tools/align_obstacle_layer.py`, `src/icp3d.py` |
+| `lab_visual/` | 09월 (로봇플러스 대회 기간) | 3D ICP 다단 해상도로 수렴 범위 확대(0.5 m / 5° 100%), 사전 장애물 층 자유공간 9.9 → 46.1 m² | `tools/make_obstacle_layer.py`, `tools/align_obstacle_layer.py`, `src/icp3d.py` |
 | `gosu_slam/` | 09-30 | 사전 지도 없이 SLAM 만으로 달리는 구성 | 런치·설정 예시 |
 | `archbench/` | 10-08 | FAST-LIO OpenMP 끄면 스캔당 지연 1.5배 | 지연 측정 도구 |
 | `go2_3d/` | 08~09월 | 초기 지도 메타데이터, SC-PGO 최적화 전·후 궤적 | SC-PGO 효과 감사 자료 |
